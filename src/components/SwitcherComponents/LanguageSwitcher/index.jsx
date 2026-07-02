@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import {useLanguage} from "../../../context/LanguageContext/index.jsx";
+import { useLanguage } from "../../../context/LanguageContext/index.jsx";
 
 const LanguageSwitcher = () => {
+
     const { language, changeLanguage } = useLanguage();
     const { t } = useTranslation();
 
