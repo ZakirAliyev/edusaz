@@ -1,9 +1,17 @@
-:root[data-theme='light'] {
-  --bg-color: #ffffff;
-  --text-color: #000000;
-}
-
+:root[data-theme='light'],
 :root[data-theme='dark'] {
-  --bg-color: #000000;
-  --text-color: #ffffff;
+  --bg-color: #0c0b1e;
+  --text-color: #f1f5f9;
+
+  --nav-bg: #0c0b1e;
+  --nav-border: rgba(255, 255, 255, 0.07);
+  --nav-link-color: #8892a4;
+  --nav-link-hover: #ffffff;
+
+  --logo-text-primary: #ffffff;
+  --logo-text-secondary: #7c6ee8;
+
+  --btn-signin-border: rgba(255, 255, 255, 0.18);
+  --btn-signin-text: #ffffff;
+  --btn-signin-hover-bg: rgba(255, 255, 255, 0.06);
 }

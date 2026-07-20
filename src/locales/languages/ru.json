@@ -1,4 +1,40 @@
 {
   "welcome": "Добро пожаловать",
-  "login": "Войти"
+  "login": "Войти",
+  "nav": {
+    "browseUniversities": "Вузы",
+    "scholarships": "Стипендии",
+    "destinations": "Направления",
+    "forUniversities": "Для вузов",
+    "signIn": "Войти",
+    "aiDiscovery": "AI Discovery"
+  },
+  "hero": {
+    "badge": "AI-Powered Global University Discovery",
+    "titlePart1": "Найдите Свое Будущее",
+    "titlePart2": "Университет с AI",
+    "subtitle": "Расскажите нам о себе. Наш AI подберет для вас лучшие университеты мира — с информацией о стипендиях, визах и шансах на поступление.",
+    "labels": {
+      "from": "Я ИЗ СТРАНЫ",
+      "to": "ХОЧУ УЧИТЬСЯ В",
+      "field": "НАПРАВЛЕНИЕ ОБУЧЕНИЯ",
+      "level": "СТЕПЕНЬ"
+    },
+    "placeholders": {
+      "from": "Родина",
+      "to": "Страна назначения",
+      "field": "Выберите специальность",
+      "level": "Выберите степень"
+    },
+    "buttons": {
+      "find": "Найти университеты",
+      "ai": "Full AI Discovery"
+    },
+    "stats": {
+      "universities": "Университетов",
+      "countries": "Стран",
+      "scholarships": "Стипендий",
+      "languages": "Языков"
+    }
+  }
 }

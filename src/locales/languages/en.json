@@ -1,4 +1,40 @@
 {
   "welcome": "Welcome",
-  "login": "Login"
+  "login": "Login",
+  "nav": {
+    "browseUniversities": "Browse Universities",
+    "scholarships": "Scholarships",
+    "destinations": "Destinations",
+    "forUniversities": "For Universities",
+    "signIn": "Sign In",
+    "aiDiscovery": "AI Discovery"
+  },
+  "hero": {
+    "badge": "AI-Powered Global University Discovery",
+    "titlePart1": "Find Your Future",
+    "titlePart2": "University with AI",
+    "subtitle": "Tell us who you are. Our AI matches you with the world's best universities — complete with scholarships, visa guidance, and admission probability.",
+    "labels": {
+      "from": "I AM FROM",
+      "to": "I WANT TO STUDY IN",
+      "field": "FIELD OF STUDY",
+      "level": "DEGREE LEVEL"
+    },
+    "placeholders": {
+      "from": "Home country",
+      "to": "Destination",
+      "field": "Select program",
+      "level": "Select degree"
+    },
+    "buttons": {
+      "find": "Find Universities",
+      "ai": "Full AI Discovery"
+    },
+    "stats": {
+      "universities": "Universities",
+      "countries": "Countries",
+      "scholarships": "Scholarships",
+      "languages": "Languages"
+    }
+  }
 }

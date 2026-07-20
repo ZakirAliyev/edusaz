@@ -1,4 +1,40 @@
 {
   "welcome": "Xoş gəlmisiz",
-  "login": "Daxil ol"
+  "login": "Daxil ol",
+  "nav": {
+    "browseUniversities": "Universitetlər",
+    "scholarships": "Təqaüdlər",
+    "destinations": "Ölkələr",
+    "forUniversities": "Universitetlər üçün",
+    "signIn": "Daxil ol",
+    "aiDiscovery": "AI Discovery"
+  },
+  "hero": {
+    "badge": "AI-Powered Global University Discovery",
+    "titlePart1": "Gələcəyinizi",
+    "titlePart2": "Süni İntellektlə Tapın",
+    "subtitle": "Bizə kim olduğunuzu deyin. Süni intellektimiz sizi dünyanın ən yaxşı universitetləri ilə uyğunlaşdırır — təqaüdlər, viza bələdçisi və qəbul ehtimalı daxil olmaqla.",
+    "labels": {
+      "from": "MƏN BURADANAM",
+      "to": "TƏHSİL ALMAQ İSTƏYİRƏM",
+      "field": "İXTİSAS SAHƏSİ",
+      "level": "DƏRƏCƏ"
+    },
+    "placeholders": {
+      "from": "Vətəniniz",
+      "to": "Ölkə",
+      "field": "İxtisas seçin",
+      "level": "Dərəcə seçin"
+    },
+    "buttons": {
+      "find": "Universitetləri Tap",
+      "ai": "Full AI Discovery"
+    },
+    "stats": {
+      "universities": "Universitet",
+      "countries": "Ölkə",
+      "scholarships": "Təqaüd",
+      "languages": "Dil"
+    }
+  }
 }
