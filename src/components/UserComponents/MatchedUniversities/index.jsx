@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './index.scss';
 
 const BuildingIcon = () => (
@@ -147,53 +148,55 @@ function MatchedUniversities() {
 
         <div className="mu-grid">
           {universities.map(uni => (
-            <div key={uni.id} className="mu-card">
-              <div className="mu-card-img-wrapper">
-                <img src={uni.img} alt={uni.name} className="mu-card-img" />
-                <div className="mu-card-tags">
-                  <div className="mu-tag-match" style={{ backgroundColor: uni.matchColor }}>
-                    <SparkleIcon /> {uni.match} Match
-                  </div>
-                  {uni.hasScholarship && (
-                    <div className="mu-tag-scholarship">
-                      <ScholarshipIcon /> Scholarship
+            <Link to="/universities/ada" key={uni.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="mu-card">
+                <div className="mu-card-img-wrapper">
+                  <img src={uni.img} alt={uni.name} className="mu-card-img" />
+                  <div className="mu-card-tags">
+                    <div className="mu-tag-match" style={{ backgroundColor: uni.matchColor }}>
+                      <SparkleIcon /> {uni.match} Match
                     </div>
-                  )}
+                    {uni.hasScholarship && (
+                      <div className="mu-tag-scholarship">
+                        <ScholarshipIcon /> Scholarship
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mu-card-body">
+                  <div className="mu-card-header">
+                    <h3 className="mu-uni-name">{uni.name}</h3>
+                    <span className="mu-uni-rank">{uni.rank}</span>
+                  </div>
+                  
+                  <span className="mu-uni-location">{uni.location}</span>
+                  <span className="mu-uni-program">{uni.program}</span>
+
+                  <div className="mu-uni-stats">
+                    <div className="stat-box">
+                      <span className="stat-label">Tuition</span>
+                      <span className="stat-val">{uni.tuition}</span>
+                    </div>
+                    <div className="stat-box">
+                      <span className="stat-label">Acceptance</span>
+                      <span className="stat-val">{uni.acceptance}</span>
+                    </div>
+                    <div className="stat-box">
+                      <span className="stat-label">Language</span>
+                      <span className="stat-val">{uni.language}</span>
+                    </div>
+                  </div>
+
+                  <div className="mu-card-footer">
+                    <div className="mu-deadline">
+                      <CalendarIcon /> {uni.deadline}
+                    </div>
+                    <ChevronIcon />
+                  </div>
                 </div>
               </div>
-
-              <div className="mu-card-body">
-                <div className="mu-card-header">
-                  <h3 className="mu-uni-name">{uni.name}</h3>
-                  <span className="mu-uni-rank">{uni.rank}</span>
-                </div>
-                
-                <span className="mu-uni-location">{uni.location}</span>
-                <span className="mu-uni-program">{uni.program}</span>
-
-                <div className="mu-uni-stats">
-                  <div className="stat-box">
-                    <span className="stat-label">Tuition</span>
-                    <span className="stat-val">{uni.tuition}</span>
-                  </div>
-                  <div className="stat-box">
-                    <span className="stat-label">Acceptance</span>
-                    <span className="stat-val">{uni.acceptance}</span>
-                  </div>
-                  <div className="stat-box">
-                    <span className="stat-label">Language</span>
-                    <span className="stat-val">{uni.language}</span>
-                  </div>
-                </div>
-
-                <div className="mu-card-footer">
-                  <div className="mu-deadline">
-                    <CalendarIcon /> {uni.deadline}
-                  </div>
-                  <ChevronIcon />
-                </div>
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

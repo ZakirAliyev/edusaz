@@ -1,18 +1,37 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useRegisterUserMutation } from '../../../services/apis/userApi';
 import './index.scss';
 
 const CheckIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 6 9 17l-5-5"/>
+    <path d="M20 6 9 17l-5-5" />
   </svg>
 );
 
 function RegisterDetailsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const role = location.state?.role || 'student';
+  const [registerUser, { isLoading }] = useRegisterUserMutation();
 
-  const handleSubmit = (e) => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: ''
+  });
+
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate('/ai-discovery');
+    try {
+      await registerUser(formData).unwrap();
+      navigate('/signin');
+    } catch (err) {
+      alert("Registration failed: " + (err.data?.message || err.error || "Unknown error"));
+    }
   };
 
   return (
@@ -36,22 +55,27 @@ function RegisterDetailsPage() {
 
           <form className="register-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Full Name</label>
-              <input type="text" placeholder="Your name" />
+              <label>First Name</label>
+              <input type="text" name="firstName" placeholder="First Name" onChange={handleChange} required />
+            </div>
+
+            <div className="form-group">
+              <label>Last Name</label>
+              <input type="text" name="lastName" placeholder="Last Name" onChange={handleChange} required />
             </div>
 
             <div className="form-group">
               <label>Email Address</label>
-              <input type="email" placeholder="you@example.com" />
+              <input type="email" name="email" placeholder="you@example.com" onChange={handleChange} required />
             </div>
 
             <div className="form-group">
               <label>Password</label>
-              <input type="password" placeholder="Minimum 8 characters" />
+              <input type="password" name="password" placeholder="Minimum 8 characters" onChange={handleChange} required />
             </div>
 
-            <button type="submit" className="btn-submit">
-              Create Account <span>&rarr;</span>
+            <button type="submit" className="btn-submit" disabled={isLoading}>
+              {isLoading ? 'Creating...' : 'Create Account'} <span>&rarr;</span>
             </button>
           </form>
         </div>

@@ -1,0 +1,13 @@
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/bin/Debug/net8.0/Edusaz.Domain.deps.json
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/bin/Debug/net8.0/Edusaz.Domain.dll
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/bin/Debug/net8.0/Edusaz.Domain.pdb
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/obj/Debug/net8.0/Edusaz.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/obj/Debug/net8.0/Edusaz.Domain.AssemblyInfoInputs.cache
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/obj/Debug/net8.0/Edusaz.Domain.AssemblyInfo.cs
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/obj/Debug/net8.0/Edusaz.Domain.csproj.CoreCompileInputs.cache
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/obj/Debug/net8.0/Edusaz.Domain.sourcelink.json
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/obj/Debug/net8.0/Edusaz.Domain.dll
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/obj/Debug/net8.0/refint/Edusaz.Domain.dll
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/obj/Debug/net8.0/Edusaz.Domain.pdb
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/obj/Debug/net8.0/ref/Edusaz.Domain.dll
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Domain/obj/Debug/net8.0/Edusaz.Domain.csproj.AssemblyReference.cache

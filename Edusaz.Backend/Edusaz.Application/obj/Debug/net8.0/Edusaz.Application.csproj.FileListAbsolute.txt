@@ -1,0 +1,16 @@
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/Edusaz.Application.csproj.AssemblyReference.cache
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/Edusaz.Application.GeneratedMSBuildEditorConfig.editorconfig
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/Edusaz.Application.AssemblyInfoInputs.cache
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/Edusaz.Application.AssemblyInfo.cs
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/Edusaz.Application.csproj.CoreCompileInputs.cache
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/Edusaz.Application.sourcelink.json
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/bin/Debug/net8.0/Edusaz.Application.deps.json
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/bin/Debug/net8.0/Edusaz.Application.dll
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/bin/Debug/net8.0/Edusaz.Application.pdb
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/bin/Debug/net8.0/Edusaz.Domain.dll
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/bin/Debug/net8.0/Edusaz.Domain.pdb
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/Edusaz.A.506F53E4.Up2Date
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/Edusaz.Application.dll
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/refint/Edusaz.Application.dll
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/Edusaz.Application.pdb
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.Application/obj/Debug/net8.0/ref/Edusaz.Application.dll

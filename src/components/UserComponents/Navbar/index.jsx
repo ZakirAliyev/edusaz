@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink, Link, useLocation } from 'react-router-dom';
+import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import './index.scss';
 import { useTranslation } from "react-i18next";
 
@@ -39,6 +39,7 @@ function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
 
     const isLightMode = location.pathname !== '/';
 
@@ -144,7 +145,7 @@ function Navbar() {
                         <Link to="/signin" className="mobile-btn-signin" onClick={toggleMenu}>
                             {t('nav.signIn')}
                         </Link>
-                        <button className="mobile-btn-ai-discovery" onClick={toggleMenu}>
+                        <button className="mobile-btn-ai-discovery" onClick={() => { toggleMenu(); navigate('/ai-discovery'); }}>
                             <span>{t('nav.aiDiscovery')}</span>
                             <SparklesIcon />
                         </button>

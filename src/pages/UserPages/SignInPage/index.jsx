@@ -1,4 +1,7 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import { useLoginUserMutation } from '../../../services/apis/userApi';
 import './index.scss';
 
 const BrainIcon = () => (
@@ -31,6 +34,26 @@ const MailIcon = () => (
 );
 
 function SignInPage() {
+  const navigate = useNavigate();
+  const [loginUser, { isLoading }] = useLoginUserMutation();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await loginUser(formData).unwrap();
+      // Save token (Cookies logic)
+      Cookies.set('userToken', response.data, { expires: 1 }); // 1 day
+      
+      // We don't have role returned yet from API, but we'll navigate to home for now.
+      navigate('/');
+    } catch (err) {
+      alert("Login failed: " + (err.data?.message || err.error || "Unknown error"));
+    }
+  };
+
   return (
     <div className="signin-page">
       {/* Left Panel - Dark */}
@@ -80,12 +103,12 @@ function SignInPage() {
             <span>or email</span>
           </div>
 
-          <form className="sr-form" onSubmit={(e) => e.preventDefault()}>
+          <form className="sr-form" onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Email</label>
               <div className="input-wrapper">
                 <MailIcon />
-                <input type="email" placeholder="you@example.com" />
+                <input type="email" name="email" placeholder="you@example.com" onChange={handleChange} required />
               </div>
             </div>
 
@@ -96,15 +119,15 @@ function SignInPage() {
               </div>
               <div className="input-wrapper">
                 <LockIcon />
-                <input type="password" placeholder="••••••••" />
+                <input type="password" name="password" placeholder="••••••••" onChange={handleChange} required />
                 <button type="button" className="btn-toggle-visibility">
                   <EyeIcon />
                 </button>
               </div>
             </div>
 
-            <button type="submit" className="btn-submit">
-              Sign In <span>&rarr;</span>
+            <button type="submit" className="btn-submit" disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Sign In'} <span>&rarr;</span>
             </button>
           </form>
         </div>

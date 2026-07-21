@@ -12,6 +12,7 @@ import AiDiscoveryPage from "../pages/UserPages/AiDiscoveryPage/index.jsx";
 import AiDiscoveryResultsPage from "../pages/UserPages/AiDiscoveryResultsPage/index.jsx";
 import DestinationDetailPage from "../pages/UserPages/DestinationDetailPage/index.jsx";
 import UniversityDetailPage from "../pages/UserPages/UniversityDetailPage/index.jsx";
+import UniversityPortalPage from "../pages/UserPages/UniversityPortalPage/index.jsx";
 
 export const ROUTES = [
     {
@@ -67,5 +68,9 @@ export const ROUTES = [
                 element: <AiDiscoveryResultsPage/>
             }
         ]
+    },
+    {
+        path: '/university-portal',
+        element: <UniversityPortalPage/>
     }
 ];

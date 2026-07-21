@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './index.scss';
 
 const GlobeIcon = () => (
@@ -38,19 +39,21 @@ function TopDestinations() {
 
         <div className="td-grid">
           {destinations.map(dest => (
-            <div key={dest.id} className="td-card">
-              <img src={dest.img} alt={dest.name} className="td-card-img" />
-              <div className="td-card-overlay">
-                <div className="td-card-content">
-                  <div className="td-card-title">
-                    <span className="td-flag">{dest.flag}</span>
-                    <h3>{dest.name}</h3>
+            <Link to={`/destinations/${dest.id}`} key={dest.id} style={{ textDecoration: 'none' }}>
+              <div className="td-card">
+                <img src={dest.img} alt={dest.name} className="td-card-img" />
+                <div className="td-card-overlay">
+                  <div className="td-card-content">
+                    <div className="td-card-title">
+                      <span className="td-flag">{dest.flag}</span>
+                      <h3>{dest.name}</h3>
+                    </div>
+                    <span className="td-count">{dest.count} universities</span>
+                    <span className="td-label">{dest.label}</span>
                   </div>
-                  <span className="td-count">{dest.count} universities</span>
-                  <span className="td-label">{dest.label}</span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

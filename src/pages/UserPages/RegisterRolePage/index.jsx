@@ -4,31 +4,31 @@ import './index.scss';
 
 const GradCapIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+    <path d="M6 12v5c3 3 9 3 12 0v-5" />
   </svg>
 );
 
 const BuildingIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-    <path d="M9 22v-4h6v4"/>
-    <path d="M8 6h.01"/>
-    <path d="M16 6h.01"/>
-    <path d="M12 6h.01"/>
-    <path d="M12 10h.01"/>
-    <path d="M12 14h.01"/>
-    <path d="M16 10h.01"/>
-    <path d="M16 14h.01"/>
-    <path d="M8 10h.01"/>
-    <path d="M8 14h.01"/>
+    <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+    <path d="M9 22v-4h6v4" />
+    <path d="M8 6h.01" />
+    <path d="M16 6h.01" />
+    <path d="M12 6h.01" />
+    <path d="M12 10h.01" />
+    <path d="M12 14h.01" />
+    <path d="M16 10h.01" />
+    <path d="M16 14h.01" />
+    <path d="M8 10h.01" />
+    <path d="M8 14h.01" />
   </svg>
 );
 
 const BriefcaseIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
   </svg>
 );
 
@@ -38,9 +38,12 @@ function RegisterRolePage() {
 
   const handleSelect = (role) => {
     setSelectedRole(role);
-    setTimeout(() => {
-      navigate('/register/details');
-    }, 200);
+  };
+
+  const handleContinue = () => {
+    if (selectedRole) {
+      navigate('/register/details', { state: { role: selectedRole } });
+    }
   };
 
   return (
@@ -61,7 +64,7 @@ function RegisterRolePage() {
           </div>
 
           <div className="role-options">
-            <div 
+            <div
               className={`role-option ${selectedRole === 'student' ? 'selected' : ''}`}
               onClick={() => handleSelect('student')}
             >
@@ -74,7 +77,7 @@ function RegisterRolePage() {
               </div>
             </div>
 
-            <div 
+            <div
               className={`role-option ${selectedRole === 'university' ? 'selected' : ''}`}
               onClick={() => handleSelect('university')}
             >
@@ -87,7 +90,7 @@ function RegisterRolePage() {
               </div>
             </div>
 
-            <div 
+            <div
               className={`role-option ${selectedRole === 'agent' ? 'selected' : ''}`}
               onClick={() => handleSelect('agent')}
             >
@@ -99,6 +102,16 @@ function RegisterRolePage() {
                 <p>I help students with applications</p>
               </div>
             </div>
+          </div>
+
+          <div className="register-actions">
+            <button
+              className={`btn-continue ${selectedRole ? 'active' : ''}`}
+              onClick={handleContinue}
+              disabled={!selectedRole}
+            >
+              Continue
+            </button>
           </div>
         </div>
       </div>

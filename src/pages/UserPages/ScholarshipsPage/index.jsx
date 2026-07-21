@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './index.scss';
 
 const ScholarshipIcon = () => (
@@ -100,9 +101,11 @@ function ScholarshipsPage() {
           AI matches scholarships to your nationality, program, degree level, and academic background.
         </p>
 
-        <button className="btn-find-scholarships">
-          Find My Scholarships <SparkleIcon />
-        </button>
+        <Link to="/ai-discovery" style={{ textDecoration: 'none' }}>
+          <button className="btn-find-scholarships">
+            Find My Scholarships <SparkleIcon />
+          </button>
+        </Link>
       </div>
 
       <div className="sp-grid-container">
@@ -139,9 +142,11 @@ function ScholarshipsPage() {
                 </div>
               </div>
               
-              <button className={`sp-card-btn ${sch.buttonType}`}>
-                {sch.buttonType === 'check' ? 'Check Eligibility' : 'Get Notified'}
-              </button>
+              <Link to="/register" style={{ textDecoration: 'none' }}>
+                <button className={`sp-card-btn ${sch.buttonType}`}>
+                  {sch.buttonType === 'check' ? 'Check Eligibility' : 'Get Notified'}
+                </button>
+              </Link>
             </div>
           ))}
         </div>

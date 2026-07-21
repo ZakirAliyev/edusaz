@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { useGetUniversitiesQuery } from '../../../services/apis/userApi';
 import './index.scss';
 
 const UniversityIcon = () => (
@@ -28,94 +30,12 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-const universities = [
-  {
-    id: 1,
-    name: "ADA University",
-    location: "Baku, Azerbaijan",
-    ranking: "#1 in AZ",
-    program: "Bachelor in Computer Science",
-    tuition: "$6,500/yr",
-    acceptance: "42%",
-    language: "English",
-    deadline: "Apr 30, 2025",
-    match: "96% Match",
-    hasScholarship: true,
-    image: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 2,
-    name: "Baku State University",
-    location: "Baku, Azerbaijan",
-    ranking: "#2 in AZ",
-    program: "Bachelor in Computer Science",
-    tuition: "$2,800/yr",
-    acceptance: "55%",
-    language: "Azerbaijani",
-    deadline: "May 15, 2025",
-    match: "91% Match",
-    hasScholarship: true,
-    image: "https://images.unsplash.com/photo-1562774053-701939374585?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 3,
-    name: "Istanbul Technical University",
-    location: "Istanbul, Turkey",
-    ranking: "#501-600 QS",
-    program: "Bachelor in Computer Engineering",
-    tuition: "$3,200/yr",
-    acceptance: "38%",
-    language: "Turkish",
-    deadline: "Mar 1, 2025",
-    match: "88% Match",
-    hasScholarship: true,
-    image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 4,
-    name: "University of Warsaw",
-    location: "Warsaw, Poland",
-    ranking: "#351-400 QS",
-    program: "Bachelor in Computer Science",
-    tuition: "$2,500/yr",
-    acceptance: "48%",
-    language: "English",
-    deadline: "Jun 30, 2025",
-    match: "84% Match",
-    hasScholarship: false,
-    image: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 5,
-    name: "Universiti Malaya",
-    location: "Kuala Lumpur, Malaysia",
-    ranking: "#65 QS Asia",
-    program: "Bachelor in Computer Science",
-    tuition: "$4,100/yr",
-    acceptance: "35%",
-    language: "English",
-    deadline: "May 31, 2025",
-    match: "79% Match",
-    hasScholarship: true,
-    image: "https://images.unsplash.com/photo-1606761568499-6d2451b23c66?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 6,
-    name: "University of Pecs",
-    location: "Pecs, Hungary",
-    ranking: "#801-1000 QS",
-    program: "Bachelor in Computer Science",
-    tuition: "$3,800/yr",
-    acceptance: "62%",
-    language: "English",
-    deadline: "Jan 15, 2025",
-    match: "74% Match",
-    hasScholarship: true,
-    image: "https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-  }
-];
-
 function BrowseUniversitiesPage() {
+  const { data: universities = [], isLoading, isError } = useGetUniversitiesQuery();
+
+  if (isLoading) return <div>Loading universities...</div>;
+  if (isError) return <div>Error loading universities.</div>;
+
   return (
     <main id="browse-universities-page">
       <div className="bu-header">
@@ -169,14 +89,14 @@ function BrowseUniversitiesPage() {
       <div className="bu-grid-container">
         <div className="bu-grid">
           {universities.map(uni => (
-            <div className="bu-card" key={uni.id}>
-              <div className="bu-card-img-wrapper">
-                <img src={uni.image} alt={uni.name} className="bu-card-img" />
-                <div className="bu-card-tags">
-                  <span className={`bu-tag-match ${parseInt(uni.match) >= 90 ? 'high' : parseInt(uni.match) >= 80 ? 'med' : 'low'}`}>
-                    <SparkleIcon /> {uni.match}
-                  </span>
-                  {uni.hasScholarship && (
+            <Link to={`/universities/${uni.id}`} key={uni.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <div className="bu-card">
+                <div className="bu-card-img-wrapper">
+                  <img src={uni.logoUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"} alt={uni.name} className="bu-card-img" />
+                  <div className="bu-card-tags">
+                    <span className="bu-tag-match high">
+                      <SparkleIcon /> 96% Match
+                    </span>
                     <span className="bu-tag-scholarship">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
@@ -184,54 +104,54 @@ function BrowseUniversitiesPage() {
                       </svg>
                       Scholarship
                     </span>
-                  )}
+                  </div>
+                </div>
+                
+                <div className="bu-card-body">
+                  <div className="bu-card-header">
+                    <div>
+                      <h4 className="bu-card-title">{uni.name}</h4>
+                      <p className="bu-card-location">{uni.city}, {uni.country}</p>
+                    </div>
+                    <span className="bu-card-ranking">Est. {uni.establishedYear}</span>
+                  </div>
+                  
+                  <p className="bu-card-program">{uni.description?.substring(0, 50)}...</p>
+                  
+                  <div className="bu-card-stats">
+                    <div className="bu-card-stat">
+                      <span>Tuition</span>
+                      <strong>{uni.tuition || "N/A"}</strong>
+                    </div>
+                    <div className="bu-card-stat">
+                      <span>Acceptance</span>
+                      <strong>{uni.acceptanceRate || "N/A"}</strong>
+                    </div>
+                    <div className="bu-card-stat">
+                      <span>Language</span>
+                      <strong>{uni.teachingLanguage || "English"}</strong>
+                    </div>
+                  </div>
+                  
+                  <div className="bu-card-footer">
+                    <div className="bu-deadline">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      {uni.deadline || "TBA"}
+                    </div>
+                    <button className="bu-card-btn">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6"/>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
-              
-              <div className="bu-card-body">
-                <div className="bu-card-header">
-                  <div>
-                    <h4 className="bu-card-title">{uni.name}</h4>
-                    <p className="bu-card-location">{uni.location}</p>
-                  </div>
-                  <span className="bu-card-ranking">{uni.ranking}</span>
-                </div>
-                
-                <p className="bu-card-program">{uni.program}</p>
-                
-                <div className="bu-card-stats">
-                  <div className="bu-card-stat">
-                    <span>Tuition</span>
-                    <strong>{uni.tuition}</strong>
-                  </div>
-                  <div className="bu-card-stat">
-                    <span>Acceptance</span>
-                    <strong>{uni.acceptance}</strong>
-                  </div>
-                  <div className="bu-card-stat">
-                    <span>Language</span>
-                    <strong>{uni.language}</strong>
-                  </div>
-                </div>
-                
-                <div className="bu-card-footer">
-                  <div className="bu-deadline">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                      <line x1="16" y1="2" x2="16" y2="6"/>
-                      <line x1="8" y1="2" x2="8" y2="6"/>
-                      <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                    {uni.deadline}
-                  </div>
-                  <button className="bu-card-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
