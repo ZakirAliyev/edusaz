@@ -1,0 +1,175 @@
+.register-role-page {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding-top: 140px; /* Account for navbar + some spacing */
+  padding-bottom: 80px;
+  display: flex;
+  justify-content: center;
+
+  .register-container {
+    width: 100%;
+    max-width: 500px;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Stepper styling */
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+
+    .step {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      
+      &.active {
+        background: #7A5CFF;
+        color: #ffffff;
+      }
+    }
+
+    .step-line {
+      width: 40px;
+      height: 2px;
+      background: #e2e8f0;
+    }
+  }
+
+  /* Card styling */
+  .register-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.03);
+
+    .rc-header {
+      margin-bottom: 32px;
+
+      h2 {
+        font-family: 'Lora', serif;
+        font-size: 28px;
+        font-weight: 600;
+        color: #0c0b1e;
+        margin-bottom: 8px;
+      }
+
+      p {
+        font-size: 15px;
+        color: #64748b;
+      }
+    }
+
+    .role-options {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 32px;
+
+      .role-option {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #ffffff;
+
+        &:hover {
+          border-color: #cbd5e1;
+          background: #f8fafc;
+        }
+
+        &.selected {
+          border-color: #7A5CFF;
+          background: rgba(122, 92, 255, 0.04);
+          box-shadow: 0 0 0 1px #7A5CFF;
+
+          .role-icon {
+            color: #7A5CFF;
+            background: rgba(122, 92, 255, 0.1);
+          }
+        }
+
+        .role-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
+          background: #f1f5f9;
+          color: #94a3b8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
+
+        .role-text {
+          h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+          }
+
+          p {
+            font-size: 13px;
+            color: #64748b;
+          }
+        }
+      }
+    }
+
+    .btn-continue {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: not-allowed;
+      transition: all 0.3s ease;
+      
+      background: #e2e8f0;
+      color: #94a3b8;
+
+      &.active {
+        background: #7A5CFF;
+        color: #ffffff;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(122, 92, 255, 0.3);
+
+        &:hover {
+          background: #6246e5;
+          box-shadow: 0 4px 20px rgba(122, 92, 255, 0.4);
+        }
+      }
+    }
+  }
+
+  @media screen and (max-width: 576px) {
+    padding-top: 100px;
+    
+    .register-card {
+      padding: 24px;
+    }
+  }
+}

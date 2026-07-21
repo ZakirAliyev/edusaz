@@ -1,0 +1,62 @@
+.step4-container {
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+
+    .level-card {
+      padding: 24px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+
+      .level-icon-wrapper {
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        background: #f8fafc;
+        border-radius: 50%;
+        margin-bottom: 8px;
+      }
+
+      .level-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .level-name {
+          font-size: 16px;
+          font-weight: 600;
+          color: #0c0b1e;
+        }
+
+        .level-duration {
+          font-size: 13px;
+          color: #94a3b8;
+        }
+      }
+
+      &.selected {
+        .level-icon-wrapper {
+          color: #7c6ee8;
+          background: rgba(124, 110, 232, 0.1);
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .step4-container .level-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .step4-container .level-grid {
+    grid-template-columns: 1fr;
+  }
+}

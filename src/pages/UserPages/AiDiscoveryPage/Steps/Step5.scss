@@ -1,0 +1,40 @@
+.step5-container {
+  .budget-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+
+    .budget-card {
+      padding: 20px 24px;
+      gap: 16px;
+      justify-content: flex-start;
+
+      .budget-icon {
+        font-size: 24px;
+      }
+
+      .budget-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .budget-range {
+          font-size: 15px;
+          font-weight: 600;
+          color: #0c0b1e;
+        }
+
+        .budget-desc {
+          font-size: 13px;
+          color: #94a3b8;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .step5-container .budget-grid {
+    grid-template-columns: 1fr;
+  }
+}

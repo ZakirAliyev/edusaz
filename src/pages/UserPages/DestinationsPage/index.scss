@@ -1,0 +1,170 @@
+.destinations-page {
+  padding-top: 120px;
+  padding-bottom: 80px;
+  background-color: #ffffff;
+  min-height: 100vh;
+
+  .dp-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 60px;
+    padding: 0 24px;
+    
+    .dp-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(122, 92, 255, 0.08);
+      color: #7A5CFF;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .dp-title {
+      font-family: 'Lora', serif;
+      font-size: 48px;
+      font-weight: 600;
+      color: #0c0b1e;
+      margin-bottom: 16px;
+      line-height: 1.2;
+
+      .dp-title-highlight {
+        color: #7A5CFF;
+      }
+    }
+
+    .dp-subtitle {
+      font-size: 16px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+  }
+
+  .dp-grid-wrapper {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .dp-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .dp-card {
+    display: flex;
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
+      border-color: #e2e8f0;
+      transform: translateY(-2px);
+    }
+
+    .dp-card-img-container {
+      width: 200px;
+      min-width: 200px;
+      height: 200px;
+      
+      .dp-card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .dp-card-content {
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      .dp-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+
+        .dp-country {
+          .dp-flag {
+            font-size: 24px;
+          }
+        }
+
+        .dp-label {
+          font-size: 12px;
+          font-weight: 500;
+          color: #7A5CFF;
+          background: rgba(122, 92, 255, 0.08);
+          padding: 4px 10px;
+          border-radius: 100px;
+        }
+      }
+
+      .dp-name {
+        font-size: 20px;
+        font-weight: 600;
+        color: #0c0b1e;
+        margin-bottom: 8px;
+      }
+
+      .dp-stats {
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 16px;
+      }
+
+      .dp-explore-link {
+        font-size: 13px;
+        font-weight: 500;
+        color: #7A5CFF;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: gap 0.2s ease;
+        margin-top: auto;
+        
+        span {
+          transition: transform 0.2s ease;
+        }
+      }
+    }
+    
+    &:hover .dp-explore-link {
+      gap: 8px;
+    }
+  }
+
+  @media screen and (max-width: 992px) {
+    .dp-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media screen and (max-width: 576px) {
+    .dp-card {
+      flex-direction: column;
+
+      .dp-card-img-container {
+        width: 100%;
+        height: 200px;
+      }
+    }
+    
+    .dp-header {
+      .dp-title {
+        font-size: 36px;
+      }
+    }
+  }
+}

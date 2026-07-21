@@ -1,0 +1,37 @@
+.step6-container {
+  .language-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+
+    .language-card {
+      padding: 24px;
+      gap: 16px;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+
+      .flag {
+        font-size: 32px;
+      }
+
+      .name {
+        font-size: 16px;
+        color: #1e293b;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .step6-container .language-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .step6-container .language-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

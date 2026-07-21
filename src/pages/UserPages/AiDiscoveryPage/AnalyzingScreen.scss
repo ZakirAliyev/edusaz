@@ -1,0 +1,129 @@
+.analyzing-screen-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 72px); // Assuming navbar is 72px
+  background-color: #0c0b1e;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%); // Full width hack for inside container
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+
+  .analyzing-content {
+    max-width: 600px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 40px;
+
+    .icon-container {
+      margin-bottom: 32px;
+
+      .brain-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: rgba(124, 110, 232, 0.2);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 0 40px rgba(124, 110, 232, 0.4);
+
+        .brain-icon {
+          font-size: 40px;
+          filter: drop-shadow(0 0 10px rgba(124, 110, 232, 0.8));
+        }
+      }
+    }
+
+    h2 {
+      font-family: 'Lora', serif;
+      font-size: 36px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #94a3b8;
+      margin-bottom: 48px;
+    }
+
+    .analyzing-steps {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+      width: 100%;
+      max-width: 400px;
+
+      .analyzing-step {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: all 0.3s ease;
+
+        .step-icon {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 12px;
+        }
+
+        .step-text {
+          font-size: 15px;
+        }
+
+        &.completed {
+          .step-icon {
+            background-color: #10b981;
+            color: white;
+          }
+          .step-text {
+            color: #cbd5e1;
+          }
+        }
+
+        &.active {
+          .step-icon {
+            background-color: transparent;
+            .spinner {
+              width: 16px;
+              height: 16px;
+              border: 2px solid rgba(124, 110, 232, 0.3);
+              border-top-color: #7c6ee8;
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+            }
+          }
+          .step-text {
+            color: #ffffff;
+            font-weight: 500;
+          }
+        }
+
+        &.pending {
+          opacity: 0.4;
+          .step-icon {
+            border: 1px solid #475569;
+            color: transparent;
+          }
+          .step-text {
+            color: #64748b;
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,259 @@
+.destination-detail-page {
+  padding-top: 72px; /* Navbar padding */
+  min-height: 100vh;
+  background-color: #f8fafc;
+  font-family: 'Inter', sans-serif;
+  
+  .dest-hero {
+    height: 300px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #ffffff;
+    
+    .dest-hero-content {
+      .dest-flag {
+        font-size: 32px;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      h1 {
+        font-family: 'Lora', serif;
+        font-size: 48px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+      }
+      
+      p {
+        font-size: 16px;
+        color: rgba(255,255,255,0.9);
+      }
+    }
+  }
+
+  .dest-stats-section {
+    max-width: 1000px;
+    margin: -40px auto 40px auto;
+    position: relative;
+    z-index: 10;
+    padding: 0 24px;
+
+    .stats-container {
+      display: flex;
+      gap: 16px;
+      
+      .stat-card {
+        flex: 1;
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        border: 1px solid #f1f5f9;
+        
+        h2 {
+          font-size: 24px;
+          color: #0f172a;
+          margin: 0 0 8px 0;
+          font-weight: 600;
+        }
+        
+        p {
+          font-size: 13px;
+          color: #64748b;
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  .dest-unis-section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 24px 80px 24px;
+
+    .unis-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 40px;
+
+      .uni-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: transform 0.2s;
+        
+        &:hover {
+          transform: translateY(-4px);
+        }
+      }
+
+      .uni-card {
+        background: #ffffff;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        border: 1px solid #f1f5f9;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+
+        .uni-image {
+          height: 180px;
+          background-size: cover;
+          background-position: center;
+          padding: 16px;
+          position: relative;
+
+          .badges-top {
+            display: flex;
+            gap: 8px;
+            
+            .match-badge {
+              background: #10b981;
+              color: white;
+              font-size: 12px;
+              font-weight: 600;
+              padding: 4px 10px;
+              border-radius: 100px;
+            }
+            
+            .scholarship-badge {
+              background: #f59e0b;
+              color: white;
+              font-size: 12px;
+              font-weight: 600;
+              padding: 4px 10px;
+              border-radius: 100px;
+            }
+          }
+        }
+
+        .uni-info {
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+
+          .uni-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+
+            h3 {
+              font-size: 18px;
+              color: #0f172a;
+              margin: 0;
+              font-weight: 600;
+            }
+            
+            .uni-rank {
+              font-size: 12px;
+              color: #64748b;
+            }
+          }
+
+          .location {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0 0 8px 0;
+          }
+
+          .program {
+            font-size: 14px;
+            color: #7c6ee8;
+            font-weight: 500;
+            margin-bottom: 20px;
+          }
+
+          .uni-metrics {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
+            justify-content: space-between;
+
+            .metric {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              
+              .label {
+                font-size: 11px;
+                color: #94a3b8;
+                margin-bottom: 4px;
+              }
+              .val {
+                font-size: 13px;
+                color: #1e293b;
+                font-weight: 600;
+              }
+            }
+          }
+
+          .uni-footer {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+            
+            .deadline {
+              font-size: 12px;
+              color: #64748b;
+            }
+            
+            .arrow {
+              color: #7c6ee8;
+              font-size: 18px;
+            }
+          }
+        }
+      }
+    }
+    
+    .find-programs-action {
+      text-align: center;
+      
+      .btn-find-programs {
+        background: #7c6ee8;
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 100px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+        
+        &:hover {
+          background: #685ac2;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .destination-detail-page .dest-stats-section .stats-container {
+    flex-wrap: wrap;
+    .stat-card {
+      min-width: calc(50% - 8px);
+    }
+  }
+  
+  .destination-detail-page .dest-unis-section .unis-grid {
+    grid-template-columns: 1fr;
+  }
+}

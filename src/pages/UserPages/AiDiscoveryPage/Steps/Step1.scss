@@ -1,0 +1,35 @@
+.step1-container {
+  .country-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+
+    .country-card {
+      padding: 16px 20px;
+      gap: 12px;
+      justify-content: flex-start;
+
+      .flag {
+        font-size: 20px;
+      }
+
+      .name {
+        font-size: 15px;
+        color: #1e293b;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .step1-container .country-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .step1-container .country-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

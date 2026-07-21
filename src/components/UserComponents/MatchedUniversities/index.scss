@@ -1,0 +1,222 @@
+#matched-universities {
+  padding: 80px 24px;
+  background-color: #ffffff;
+  
+  .mu-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .mu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+    
+    @media (max-width: 640px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .mu-header-left {
+      .mu-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: #f3f0ff;
+        color: #7b4dff;
+        border-radius: 100px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 16px;
+      }
+
+      .mu-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #0f172a;
+      }
+    }
+
+    .btn-browse-all {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 10px 20px;
+      border-radius: 100px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #f1f5f9;
+      }
+    }
+  }
+
+  .mu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+
+    .mu-card {
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #f1f5f9;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+
+      .mu-card-img-wrapper {
+        position: relative;
+        height: 180px;
+
+        .mu-card-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .mu-card-tags {
+          position: absolute;
+          top: 12px;
+          left: 12px;
+          right: 12px;
+          display: flex;
+          justify-content: space-between;
+
+          .mu-tag-match {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 100px;
+          }
+
+          .mu-tag-scholarship {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #f59e0b;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 100px;
+          }
+        }
+      }
+
+      .mu-card-body {
+        padding: 20px;
+
+        .mu-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 8px;
+
+          .mu-uni-name {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #0f172a;
+            margin: 0;
+            line-height: 1.4;
+          }
+
+          .mu-uni-rank {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 500;
+            white-space: nowrap;
+          }
+        }
+
+        .mu-uni-location {
+          display: block;
+          font-size: 0.875rem;
+          color: #64748b;
+          margin-bottom: 8px;
+        }
+
+        .mu-uni-program {
+          display: block;
+          font-size: 0.875rem;
+          color: #7b4dff;
+          font-weight: 500;
+          margin-bottom: 20px;
+        }
+
+        .mu-uni-stats {
+          display: flex;
+          gap: 12px;
+          margin-bottom: 20px;
+
+          .stat-box {
+            flex: 1;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 1px solid #f1f5f9;
+
+            .stat-label {
+              font-size: 0.7rem;
+              color: #94a3b8;
+              margin-bottom: 4px;
+            }
+
+            .stat-val {
+              font-size: 0.875rem;
+              font-weight: 500;
+              color: #334155;
+            }
+          }
+        }
+
+        .mu-card-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 16px;
+          border-top: 1px solid #f1f5f9;
+          color: #94a3b8;
+
+          .mu-deadline {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.875rem;
+          }
+          
+          svg {
+            color: #7b4dff;
+          }
+        }
+      }
+    }
+  }
+}

@@ -9,6 +9,7 @@
   z-index: 1000;
   display: flex;
   align-items: center;
+  transition: all 0.3s ease;
 
   .container {
     width: 100%;
@@ -69,12 +70,19 @@
 
     .nav-link-item {
       font-size: 14px;
-      font-weight: 400;
+      font-weight: 500;
       color: var(--nav-link-color);
-      transition: color 0.2s ease;
+      transition: all 0.2s ease;
+      padding: 8px 16px;
+      border-radius: 100px;
       
       &:hover {
         color: var(--nav-link-hover);
+      }
+
+      &.active {
+        background: rgba(122, 92, 255, 0.08);
+        color: #7A5CFF;
       }
     }
   }
@@ -131,6 +139,55 @@
     align-items: center;
     justify-content: center;
   }
+
+  &.scrolled {
+    background: rgba(12, 11, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    height: 64px;
+  }
+
+  &.light-mode {
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+    
+    .logo-text {
+      color: #0c0b1e;
+    }
+    
+    .nav-link-item {
+      color: #64748b;
+      
+      &:hover {
+        color: #0c0b1e;
+      }
+      &.active {
+        background: rgba(122, 92, 255, 0.08);
+        color: #7A5CFF;
+      }
+    }
+    
+    .btn-signin {
+      color: #1e293b;
+      border-color: #e2e8f0;
+      
+      &:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+      }
+    }
+    
+    .mobile-toggle-btn {
+      color: #0c0b1e;
+    }
+
+    &.scrolled {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    }
+  }
 }
 
 // Mobile drawer styling
@@ -172,14 +229,21 @@
 
     .mobile-nav-link-item {
       font-size: 17px;
-      font-weight: 400;
+      font-weight: 500;
       color: var(--nav-link-color);
       display: block;
-      padding: 8px 0;
+      padding: 12px 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
 
       &:hover {
         color: var(--nav-link-hover);
+      }
+
+      &.active {
+        background: rgba(122, 92, 255, 0.08);
+        color: #7A5CFF;
+        border-bottom: none;
       }
     }
   }

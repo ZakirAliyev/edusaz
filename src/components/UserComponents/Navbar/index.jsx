@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import './index.scss';
 import { useTranslation } from "react-i18next";
 
@@ -36,55 +37,72 @@ const CloseIcon = () => (
 function Navbar() {
     const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+    const location = useLocation();
+
+    const isLightMode = location.pathname !== '/';
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 20) {
+                setIsScrolled(true);
+            } else {
+                setIsScrolled(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
     return (
-        <section id="navbar">
+        <section id="navbar" className={`${isScrolled ? 'scrolled' : ''} ${isLightMode ? 'light-mode' : ''}`}>
             <div className="container">
                 <nav className="nav-wrapper">
                     {/* Logo Section */}
-                    <div className="logo-section">
+                    <Link to="/" className="logo-section">
                         <div className="logo-icon-wrapper">
                             <BrainIcon />
                         </div>
                         <span className="logo-text">
                             EDU<span className="logo-text-saz">SAZ</span>
                         </span>
-                    </div>
+                    </Link>
 
                     {/* Desktop Menu Links */}
                     <ul className="nav-links">
                         <li>
-                            <a href="#browse-universities" className="nav-link-item">
+                            <NavLink to="/universities" className={({ isActive }) => `nav-link-item ${isActive ? 'active' : ''}`}>
                                 {t('nav.browseUniversities')}
-                            </a>
+                            </NavLink>
                         </li>
                         <li>
-                            <a href="#scholarships" className="nav-link-item">
+                            <NavLink to="/scholarships" className={({ isActive }) => `nav-link-item ${isActive ? 'active' : ''}`}>
                                 {t('nav.scholarships')}
-                            </a>
+                            </NavLink>
                         </li>
                         <li>
-                            <a href="#destinations" className="nav-link-item">
+                            <NavLink to="/destinations" className={({ isActive }) => `nav-link-item ${isActive ? 'active' : ''}`}>
                                 {t('nav.destinations')}
-                            </a>
+                            </NavLink>
                         </li>
                         <li>
-                            <a href="#for-universities" className="nav-link-item">
+                            <NavLink to="/for-universities" className={({ isActive }) => `nav-link-item ${isActive ? 'active' : ''}`}>
                                 {t('nav.forUniversities')}
-                            </a>
+                            </NavLink>
                         </li>
                     </ul>
 
                     {/* Action Buttons */}
                     <div className="nav-actions">
-                        <a href="#signin" className="btn-signin">
+                        <Link to="/signin" className="btn-signin">
                             {t('nav.signIn')}
-                        </a>
-                        <button className="btn-ai-discovery">
+                        </Link>
+                        <button className="btn-ai-discovery" onClick={() => navigate('/ai-discovery')}>
                             <span>{t('nav.aiDiscovery')}</span>
                             <SparklesIcon />
                         </button>
@@ -102,30 +120,30 @@ function Navbar() {
                 <div className="mobile-drawer-content">
                     <ul className="mobile-nav-links">
                         <li>
-                            <a href="#browse-universities" className="mobile-nav-link-item" onClick={toggleMenu}>
+                            <NavLink to="/universities" className={({ isActive }) => `mobile-nav-link-item ${isActive ? 'active' : ''}`} onClick={toggleMenu}>
                                 {t('nav.browseUniversities')}
-                            </a>
+                            </NavLink>
                         </li>
                         <li>
-                            <a href="#scholarships" className="mobile-nav-link-item" onClick={toggleMenu}>
+                            <NavLink to="/scholarships" className={({ isActive }) => `mobile-nav-link-item ${isActive ? 'active' : ''}`} onClick={toggleMenu}>
                                 {t('nav.scholarships')}
-                            </a>
+                            </NavLink>
                         </li>
                         <li>
-                            <a href="#destinations" className="mobile-nav-link-item" onClick={toggleMenu}>
+                            <NavLink to="/destinations" className={({ isActive }) => `mobile-nav-link-item ${isActive ? 'active' : ''}`} onClick={toggleMenu}>
                                 {t('nav.destinations')}
-                            </a>
+                            </NavLink>
                         </li>
                         <li>
-                            <a href="#for-universities" className="mobile-nav-link-item" onClick={toggleMenu}>
+                            <NavLink to="/for-universities" className={({ isActive }) => `mobile-nav-link-item ${isActive ? 'active' : ''}`} onClick={toggleMenu}>
                                 {t('nav.forUniversities')}
-                            </a>
+                            </NavLink>
                         </li>
                     </ul>
                     <div className="mobile-nav-actions">
-                        <a href="#signin" className="mobile-btn-signin" onClick={toggleMenu}>
+                        <Link to="/signin" className="mobile-btn-signin" onClick={toggleMenu}>
                             {t('nav.signIn')}
-                        </a>
+                        </Link>
                         <button className="mobile-btn-ai-discovery" onClick={toggleMenu}>
                             <span>{t('nav.aiDiscovery')}</span>
                             <SparklesIcon />

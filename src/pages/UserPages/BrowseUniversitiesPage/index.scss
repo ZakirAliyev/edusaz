@@ -1,0 +1,353 @@
+#browse-universities-page {
+  padding: 140px 24px 80px;
+  background-color: #ffffff;
+  min-height: 100vh;
+
+  .bu-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 40px;
+
+    .bu-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(122, 92, 255, 0.1);
+      border-radius: 100px;
+      color: #7A5CFF;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .bu-title {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #0c0b1e;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+
+      .bu-title-colored {
+        color: #7A5CFF;
+        font-family: inherit;
+        font-weight: 700;
+      }
+
+      @media (max-width: 768px) {
+        font-size: 2.5rem;
+      }
+    }
+
+    .bu-subtitle {
+      font-size: 1.125rem;
+      color: #64748b;
+      line-height: 1.6;
+    }
+  }
+
+  .bu-filter-card {
+    max-width: 900px;
+    margin: 0 auto 60px;
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    gap: 24px;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 24px;
+      flex: 1;
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+      }
+    }
+
+    .filter-field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .filter-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #94a3b8;
+        letter-spacing: 1px;
+      }
+
+      .filter-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .filter-select {
+          width: 100%;
+          appearance: none;
+          background: transparent;
+          border: none;
+          font-family: 'Manrope', sans-serif !important;
+          font-size: 1rem;
+          font-weight: 500;
+          color: #1e293b;
+          padding-right: 24px;
+          cursor: pointer;
+          outline: none;
+        }
+
+        svg {
+          position: absolute;
+          right: 0;
+          color: #64748b;
+          pointer-events: none;
+        }
+      }
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+      }
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Manrope', sans-serif !important;
+      }
+
+      .btn-apply-filters {
+        background: #7A5CFF;
+        color: white;
+        border: none;
+
+        &:hover {
+          background: #6a4cee;
+        }
+      }
+
+      .btn-use-ai {
+        background: rgba(122, 92, 255, 0.05);
+        color: #7A5CFF;
+        border: 1px solid rgba(122, 92, 255, 0.2);
+
+        &:hover {
+          background: rgba(122, 92, 255, 0.1);
+        }
+      }
+    }
+  }
+
+  .bu-grid-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .bu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .bu-card {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    .bu-card-img-wrapper {
+      position: relative;
+      height: 200px;
+
+      .bu-card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .bu-card-tags {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      .bu-tag-match {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #ffffff;
+
+        &.high { background: #10b981; }
+        &.med { background: #7A5CFF; }
+        &.low { background: #f59e0b; }
+      }
+
+      .bu-tag-scholarship {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: #f59e0b;
+        color: #ffffff;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+    }
+
+    .bu-card-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+
+      .bu-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+
+        .bu-card-title {
+          font-family: 'Manrope', sans-serif !important;
+          font-size: 1.125rem;
+          font-weight: 700;
+          color: #0c0b1e;
+          margin-bottom: 4px;
+        }
+
+        .bu-card-location {
+          font-size: 0.8125rem;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .bu-card-ranking {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #94a3b8;
+        }
+      }
+
+      .bu-card-program {
+        font-size: 0.875rem;
+        color: #7A5CFF;
+        font-weight: 500;
+        margin-bottom: 20px;
+      }
+
+      .bu-card-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #f1f5f9;
+
+        .bu-card-stat {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          background: #f8fafc;
+          padding: 10px;
+          border-radius: 8px;
+          text-align: center;
+
+          span {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: 600;
+          }
+
+          strong {
+            font-size: 0.8125rem;
+            color: #0c0b1e;
+            font-weight: 700;
+          }
+        }
+      }
+
+      .bu-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+
+        .bu-deadline {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8125rem;
+          color: #64748b;
+        }
+
+        .bu-card-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(122, 92, 255, 0.1);
+          color: #7A5CFF;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: #7A5CFF;
+            color: white;
+          }
+        }
+      }
+    }
+  }
+}

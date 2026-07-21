@@ -1,0 +1,144 @@
+#top-destinations {
+  padding: 80px 24px;
+  background-color: #ffffff;
+  
+  .td-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .td-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+    
+    @media (max-width: 640px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .td-header-left {
+      .td-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: #f3f0ff;
+        color: #7b4dff;
+        border-radius: 100px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 16px;
+      }
+
+      .td-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #0f172a;
+      }
+    }
+
+    .btn-view-all {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 10px 20px;
+      border-radius: 100px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+      }
+    }
+  }
+
+  .td-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
+
+    .td-card {
+      position: relative;
+      height: 280px;
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+
+      &:hover {
+        .td-card-img {
+          transform: scale(1.05);
+        }
+      }
+
+      .td-card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      .td-card-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 20px;
+      }
+
+      .td-card-content {
+        color: white;
+
+        .td-card-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 4px;
+
+          .td-flag {
+            font-size: 1.125rem;
+          }
+
+          h3 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin: 0;
+          }
+        }
+
+        .td-count {
+          display: block;
+          font-size: 0.75rem;
+          color: #cbd5e1;
+          margin-bottom: 4px;
+        }
+
+        .td-label {
+          display: block;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: #a5b4fc;
+        }
+      }
+    }
+  }
+}

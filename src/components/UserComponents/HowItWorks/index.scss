@@ -1,0 +1,118 @@
+#how-it-works {
+  padding: 80px 24px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+
+  .hiw-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .hiw-header {
+    margin-bottom: 64px;
+
+    .hiw-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: #f3f0ff;
+      color: #7b4dff;
+      border-radius: 100px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .hiw-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+
+      .hiw-title-colored {
+        color: #7b4dff;
+      }
+    }
+  }
+
+  .hiw-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    text-align: left;
+    margin-bottom: 64px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .hiw-step {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+
+      .step-icon-wrapper {
+        .step-icon {
+          width: 56px;
+          height: 56px;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+
+          &.blue { background-color: #6366f1; }
+          &.purple { background-color: #8b5cf6; }
+          &.indigo { background-color: #4f46e5; }
+        }
+      }
+
+      .step-content {
+        .step-number {
+          display: block;
+          color: #94a3b8;
+          font-weight: 500;
+          font-size: 0.875rem;
+          margin-bottom: 8px;
+        }
+
+        .step-title {
+          font-size: 1.25rem;
+          font-weight: 500;
+          color: #0f172a;
+          margin-bottom: 12px;
+        }
+
+        .step-desc {
+          color: #64748b;
+          font-size: 1rem;
+          line-height: 1.6;
+        }
+      }
+    }
+  }
+
+  .hiw-action {
+    .btn-start {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 32px;
+      background-color: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #4f46e5;
+      }
+    }
+  }
+}
