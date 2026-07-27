@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useRegisterUserMutation } from '../../../services/apis/userApi';
 import './index.scss';
 
@@ -10,9 +11,10 @@ const CheckIcon = () => (
 );
 
 function RegisterDetailsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const role = location.state?.role || 'student';
+  const role = location.state?.role || localStorage.getItem('userRole') || 'student';
   const [registerUser, { isLoading }] = useRegisterUserMutation();
 
   const [formData, setFormData] = useState({
@@ -28,7 +30,12 @@ function RegisterDetailsPage() {
     e.preventDefault();
     try {
       await registerUser(formData).unwrap();
-      navigate('/signin');
+      alert("Account created successfully!");
+      if (role === 'university') {
+        navigate('/university-portal');
+      } else {
+        navigate('/signin');
+      }
     } catch (err) {
       alert("Registration failed: " + (err.data?.message || err.error || "Unknown error"));
     }
@@ -49,33 +56,33 @@ function RegisterDetailsPage() {
         {/* Card */}
         <div className="register-card">
           <div className="rc-header">
-            <h2>Create your account</h2>
-            <p>Already registered? <Link to="/signin">Sign in</Link></p>
+            <h2>{t('auth.submitRegister')}</h2>
+            <p><Link to="/signin">{t('auth.signInTitle')}</Link></p>
           </div>
 
           <form className="register-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>First Name</label>
-              <input type="text" name="firstName" placeholder="First Name" onChange={handleChange} required />
+              <label>{t('auth.firstName')}</label>
+              <input type="text" name="firstName" placeholder={t('auth.firstName')} onChange={handleChange} required />
             </div>
 
             <div className="form-group">
-              <label>Last Name</label>
-              <input type="text" name="lastName" placeholder="Last Name" onChange={handleChange} required />
+              <label>{t('auth.lastName')}</label>
+              <input type="text" name="lastName" placeholder={t('auth.lastName')} onChange={handleChange} required />
             </div>
 
             <div className="form-group">
-              <label>Email Address</label>
+              <label>{t('auth.emailLabel')}</label>
               <input type="email" name="email" placeholder="you@example.com" onChange={handleChange} required />
             </div>
 
             <div className="form-group">
-              <label>Password</label>
+              <label>{t('auth.passwordLabel')}</label>
               <input type="password" name="password" placeholder="Minimum 8 characters" onChange={handleChange} required />
             </div>
 
             <button type="submit" className="btn-submit" disabled={isLoading}>
-              {isLoading ? 'Creating...' : 'Create Account'} <span>&rarr;</span>
+              {isLoading ? '...' : t('auth.submitRegister')} <span>&rarr;</span>
             </button>
           </form>
         </div>
@@ -85,3 +92,4 @@ function RegisterDetailsPage() {
 }
 
 export default RegisterDetailsPage;
+

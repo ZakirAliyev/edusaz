@@ -36,6 +36,10 @@ export const userApi = createApi({
             query: () => `/Languages`,
             transformResponse: (response) => response.data,
         }),
+        getUniversityById: builder.query({
+            query: ({ id, lang = 'en' }) => `/Universities/${id}?lang=${lang}`,
+            transformResponse: (response) => response.data,
+        }),
         createUniversity: builder.mutation({
             query: (universityData) => ({
                 url: '/Universities',
@@ -50,6 +54,7 @@ export const {
     useLoginUserMutation,
     useRegisterUserMutation,
     useGetUniversitiesQuery,
+    useGetUniversityByIdQuery,
     useGetLanguagesQuery,
     useCreateUniversityMutation
 } = userApi;

@@ -6,13 +6,16 @@ import {Provider} from "react-redux";
 import {store} from "./services/store.jsx";
 import {ThemeProvider} from "./context/ThemeContext/index.jsx";
 import {LanguageProvider} from "./context/LanguageContext/index.jsx";
+import {ToastProvider} from "./context/ToastContext/index.jsx";
 
 createRoot(document.getElementById('root')).render(
     <ThemeProvider>
         <LanguageProvider>
-            <Provider store={store}>
-                <App/>
-            </Provider>
+            <ToastProvider>
+                <Provider store={store}>
+                    <App/>
+                </Provider>
+            </ToastProvider>
         </LanguageProvider>
     </ThemeProvider>
 )

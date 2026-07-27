@@ -1,0 +1,98 @@
+{
+  "welcome": "Bienvenue",
+  "login": "Se connecter",
+  "nav": {
+    "browseUniversities": "Universités",
+    "scholarships": "Bourses",
+    "destinations": "Pays",
+    "forUniversities": "Pour les Universités",
+    "signIn": "Se connecter",
+    "aiDiscovery": "Recherche IA"
+  },
+  "hero": {
+    "badge": "Découverte mondiale des universités alimentée par l'IA",
+    "titlePart1": "Trouvez votre avenir",
+    "titlePart2": "Grâce à l'IA",
+    "subtitle": "Dites-nous qui vous êtes. Notre IA vous met en relation avec les meilleures universités du monde.",
+    "labels": {
+      "from": "PAYS D'ORIGINE",
+      "to": "PAYS DE DESTINATION",
+      "field": "DOMAINE D'ÉTUDES",
+      "level": "NIVEAU D'ÉTUDES"
+    },
+    "placeholders": {
+      "from": "Votre pays",
+      "to": "Choisissez un pays",
+      "field": "Choisissez un domaine",
+      "level": "Choisissez un niveau"
+    },
+    "buttons": {
+      "find": "Trouver des universités",
+      "ai": "Recherche IA complète"
+    },
+    "stats": {
+      "universities": "Universités",
+      "countries": "Pays",
+      "scholarships": "Bourses",
+      "languages": "Langues"
+    }
+  },
+  "howItWorks": {
+    "badge": "Comment fonctionne EDUSAZ",
+    "titlePart1": "Du profil à la sélection idéale",
+    "titlePart2": "En 3 minutes",
+    "step1": {
+      "title": "Parlez-nous de vous",
+      "desc": "Indiquez votre domaine, votre pays préféré, votre budget et vos langues."
+    },
+    "step2": {
+      "title": "L'IA analyse tout",
+      "desc": "Analyse de 2 500+ universités, 150 000+ bourses et règles de visa."
+    },
+    "step3": {
+      "title": "Obtenez votre liste",
+      "desc": "Liste personnalisée avec score de correspondance IA et plan d'action."
+    },
+    "button": "Lancer la recherche IA"
+  },
+  "topDestinations": {
+    "badge": "Pays",
+    "title": "Destinations d'études les plus populaires",
+    "viewAll": "Voir tout",
+    "countSuffix": "universités"
+  },
+  "matchedUniversities": {
+    "badge": "Universités",
+    "title": "Universités adaptées aux étudiants internationaux",
+    "browseAll": "Tout parcourir",
+    "match": "Correspondance",
+    "scholarship": "Bourse",
+    "labels": {
+      "tuition": "Frais de scolarité",
+      "acceptance": "Taux d'admission",
+      "language": "Langue d'enseignement"
+    }
+  },
+  "auth": {
+    "signInTitle": "Connexion",
+    "welcomeBack": "Bon retour sur EDUSAZ",
+    "subtitle": "Votre parcours vers les meilleures universités continue ici.",
+    "newToEdusaz": "Nouveau sur EDUSAZ?",
+    "createAccount": "Créer un compte",
+    "emailLabel": "Adresse e-mail",
+    "passwordLabel": "Mot de passe",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "whoAreYou": "Qui êtes-vous?",
+    "selectRole": "Choisissez votre rôle.",
+    "studentRole": "Étudiant",
+    "studentDesc": "Je souhaite trouver ma future université",
+    "universityRole": "Université / Institution",
+    "universityDesc": "Je souhaite accueillir des étudiants internationaux",
+    "agentRole": "Conseiller d'orientation",
+    "agentDesc": "J'aide les étudiants dans leur candidature",
+    "continue": "Continuer",
+    "submitSignIn": "Se connecter",
+    "submitRegister": "Créer un compte"
+  }
+}

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import { useTranslation } from 'react-i18next';
 import { useLoginUserMutation } from '../../../services/apis/userApi';
+import { useToast } from '../../../context/ToastContext';
 import './index.scss';
 
 const BrainIcon = () => (
@@ -34,6 +36,8 @@ const MailIcon = () => (
 );
 
 function SignInPage() {
+  const { t } = useTranslation();
+  const toast = useToast();
   const navigate = useNavigate();
   const [loginUser, { isLoading }] = useLoginUserMutation();
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -44,15 +48,22 @@ function SignInPage() {
     e.preventDefault();
     try {
       const response = await loginUser(formData).unwrap();
-      // Save token (Cookies logic)
-      Cookies.set('userToken', response.data, { expires: 1 }); // 1 day
+      const token = response.data?.accessToken || response.data;
+      Cookies.set('userToken', token, { expires: 1 });
+      toast.showSuccess(t('auth.loginSuccess') || "Uğurla daxil oldunuz!");
       
-      // We don't have role returned yet from API, but we'll navigate to home for now.
-      navigate('/');
+      // If email or saved role indicates university, redirect to portal
+      const savedRole = localStorage.getItem('userRole');
+      if (savedRole === 'university' || formData.email.includes('admin') || formData.email.includes('uni')) {
+        navigate('/university-portal');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
-      alert("Login failed: " + (err.data?.message || err.error || "Unknown error"));
+      toast.showError(err.data?.message || err.error || "Daxil olma zamanı xəta baş verdi");
     }
   };
+
 
   return (
     <div className="signin-page">
@@ -62,21 +73,21 @@ function SignInPage() {
           <div className="sl-logo-wrapper">
             <BrainIcon />
           </div>
-          <h1>Welcome back to EDUSAZ</h1>
-          <p>Your path to the world's best universities<br />continues here.</p>
+          <h1>{t('auth.welcomeBack')}</h1>
+          <p>{t('auth.subtitle')}</p>
 
           <div className="sl-stats-grid">
             <div className="sl-stat-card">
               <h3>2,500+</h3>
-              <span>Universities</span>
+              <span>{t('hero.stats.universities')}</span>
             </div>
             <div className="sl-stat-card">
               <h3>150K+</h3>
-              <span>Scholarships</span>
+              <span>{t('hero.stats.scholarships')}</span>
             </div>
             <div className="sl-stat-card">
               <h3>80+</h3>
-              <span>Countries</span>
+              <span>{t('hero.stats.countries')}</span>
             </div>
             <div className="sl-stat-card">
               <h3>500K+</h3>
@@ -90,22 +101,13 @@ function SignInPage() {
       <div className="signin-right">
         <div className="sr-content">
           <div className="sr-header">
-            <h1>Sign in</h1>
-            <p>New to EDUSAZ? <Link to="/register">Create free account</Link></p>
-          </div>
-
-          <div className="sr-social">
-            <button className="btn-social">Continue with Google</button>
-            <button className="btn-social">Continue with Apple</button>
-          </div>
-
-          <div className="sr-divider">
-            <span>or email</span>
+            <h1>{t('auth.signInTitle')}</h1>
+            <p>{t('auth.newToEdusaz')} <Link to="/register">{t('auth.createAccount')}</Link></p>
           </div>
 
           <form className="sr-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Email</label>
+              <label>{t('auth.emailLabel')}</label>
               <div className="input-wrapper">
                 <MailIcon />
                 <input type="email" name="email" placeholder="you@example.com" onChange={handleChange} required />
@@ -114,20 +116,16 @@ function SignInPage() {
 
             <div className="form-group">
               <div className="label-row">
-                <label>Password</label>
-                <a href="#forgot" className="forgot-link">Forgot?</a>
+                <label>{t('auth.passwordLabel')}</label>
               </div>
               <div className="input-wrapper">
                 <LockIcon />
                 <input type="password" name="password" placeholder="••••••••" onChange={handleChange} required />
-                <button type="button" className="btn-toggle-visibility">
-                  <EyeIcon />
-                </button>
               </div>
             </div>
 
             <button type="submit" className="btn-submit" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign In'} <span>&rarr;</span>
+              {isLoading ? '...' : t('auth.submitSignIn')} <span>&rarr;</span>
             </button>
           </form>
         </div>
@@ -137,3 +135,4 @@ function SignInPage() {
 }
 
 export default SignInPage;
+

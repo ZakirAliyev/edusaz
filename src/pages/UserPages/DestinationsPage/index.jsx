@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 
 const GlobeIcon = () => (
@@ -10,31 +11,34 @@ const GlobeIcon = () => (
 );
 
 const destinations = [
-  { id: 'az', name: 'Azerbaijan', count: 48, cost: '$1,500-$8,000/yr', label: 'Affordable & Growing', img: 'https://images.unsplash.com/photo-1600122553956-618d3615291f?auto=format&fit=crop&w=400&q=80', flag: '🇦🇿' },
-  { id: 'tr', name: 'Turkey', count: 186, cost: '$2,000-$10,000/yr', label: 'Popular Destination', img: 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&w=400&q=80', flag: '🇹🇷' },
-  { id: 'de', name: 'Germany', count: 300, cost: '€0-€3,500/yr', label: 'Tuition-Free Options', img: 'https://images.unsplash.com/photo-1467269204594-9661b134dc2b?auto=format&fit=crop&w=400&q=80', flag: '🇩🇪' },
-  { id: 'uk', name: 'United Kingdom', count: 165, cost: '£9,000-£38,000/yr', label: 'World-Class Rankings', img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=400&q=80', flag: '🇬🇧' },
-  { id: 'ca', name: 'Canada', count: 220, cost: '$15,000-$35,000/yr', label: 'Post-Study Work Visa', img: 'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?auto=format&fit=crop&w=400&q=80', flag: '🇨🇦' },
-  { id: 'my', name: 'Malaysia', count: 95, cost: '$3,000-$12,000/yr', label: 'Affordable English', img: 'https://images.unsplash.com/photo-1596422846543-74c6eb24f628?auto=format&fit=crop&w=400&q=80', flag: '🇲🇾' },
-  { id: 'pl', name: 'Poland', count: 130, cost: '$2,500-$8,000/yr', label: 'EU Recognition', img: 'https://images.unsplash.com/photo-1519658253479-79a6d71317d7?auto=format&fit=crop&w=400&q=80', flag: '🇵🇱' },
-  { id: 'hu', name: 'Hungary', count: 78, cost: '$3,000-$12,000/yr', label: 'Stipendium Scholarships', img: 'https://images.unsplash.com/photo-1569972394105-89104f762744?auto=format&fit=crop&w=400&q=80', flag: '🇭🇺' },
-  { id: 'it', name: 'Italy', count: 99, cost: '€1,000-€18,000/yr', label: 'Historic Universities', img: 'https://images.unsplash.com/photo-1515542622106-78b28af7815d?auto=format&fit=crop&w=400&q=80', flag: '🇮🇹' },
-  { id: 'ae', name: 'UAE', count: 67, cost: '$8,000-$25,000/yr', label: 'Global Business Hub', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=400&q=80', flag: '🇦🇪' },
+  { id: 'az', name: 'Azerbaijan', count: 48, cost: '$1,500-$8,000/yr', label: 'Affordable & Growing', img: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80', flag: '🇦🇿' },
+  { id: 'tr', name: 'Turkey', count: 186, cost: '$2,000-$10,000/yr', label: 'Popular Destination', img: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=800&q=80', flag: '🇹🇷' },
+  { id: 'de', name: 'Germany', count: 300, cost: '€0-€3,500/yr', label: 'Tuition-Free Options', img: 'https://images.unsplash.com/photo-1599946347371-68eb71b16afc?auto=format&fit=crop&w=800&q=80', flag: '🇩🇪' },
+  { id: 'uk', name: 'United Kingdom', count: 165, cost: '£9,000-£38,000/yr', label: 'World-Class Rankings', img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80', flag: '🇬🇧' },
+  { id: 'ca', name: 'Canada', count: 220, cost: '$15,000-$35,000/yr', label: 'Post-Study Work Visa', img: 'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?auto=format&fit=crop&w=800&q=80', flag: '🇨🇦' },
+  { id: 'my', name: 'Malaysia', count: 95, cost: '$3,000-$12,000/yr', label: 'Affordable English', img: 'https://images.unsplash.com/photo-1596422846543-74c6eb24f628?auto=format&fit=crop&w=800&q=80', flag: '🇲🇾' },
+  { id: 'pl', name: 'Poland', count: 130, cost: '$2,500-$8,000/yr', label: 'EU Recognition', img: 'https://images.unsplash.com/photo-1519197924294-4ac978a3e048?auto=format&fit=crop&w=800&q=80', flag: '🇵🇱' },
+  { id: 'hu', name: 'Hungary', count: 78, cost: '$3,000-$12,000/yr', label: 'Stipendium Scholarships', img: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80', flag: '🇭🇺' },
+  { id: 'it', name: 'Italy', count: 99, cost: '€1,000-€18,000/yr', label: 'Historic Universities', img: 'https://images.unsplash.com/photo-1529260830199-42c24126f198?auto=format&fit=crop&w=800&q=80', flag: '🇮🇹' },
+  { id: 'ae', name: 'UAE', count: 67, cost: '$8,000-$25,000/yr', label: 'Global Business Hub', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80', flag: '🇦🇪' },
 ];
 
+
 function DestinationsPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="destinations-page">
       <div className="dp-header">
         <span className="dp-badge">
           <GlobeIcon />
-          Study Destinations
+          {t('topDestinations.badge')}
         </span>
         <h1 className="dp-title">
-          Explore study destinations <span className="dp-title-highlight">worldwide</span>
+          {t('topDestinations.title')}
         </h1>
         <p className="dp-subtitle">
-          Compare countries by cost, quality, visa ease, and career opportunities.
+          {t('hero.subtitle')}
         </p>
       </div>
 
@@ -50,15 +54,16 @@ function DestinationsPage() {
                   <div className="dp-country">
                     <span className="dp-flag">{dest.flag}</span>
                   </div>
-                  <span className="dp-label">{dest.label}</span>
+                  <span className="dp-label">{t(`destinations.labels.${dest.id}`) || dest.label}</span>
                 </div>
                 <h3 className="dp-name">{dest.name}</h3>
                 <p className="dp-stats">
-                  {dest.count} universities &bull; {dest.cost}
+                  {dest.count} {t('topDestinations.countSuffix')} &bull; {dest.cost}
                 </p>
                 <Link to={`/destinations/${dest.id}`} className="dp-explore-link">
-                  Explore <span>&rarr;</span>
+                  {t('destinations.explore')} <span>&rarr;</span>
                 </Link>
+
               </div>
             </div>
           ))}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 
 const GradCapIcon = () => (
@@ -33,11 +34,13 @@ const BriefcaseIcon = () => (
 );
 
 function RegisterRolePage() {
+  const { t } = useTranslation();
   const [selectedRole, setSelectedRole] = useState(null);
   const navigate = useNavigate();
 
   const handleSelect = (role) => {
     setSelectedRole(role);
+    localStorage.setItem('userRole', role);
   };
 
   const handleContinue = () => {
@@ -59,8 +62,8 @@ function RegisterRolePage() {
         {/* Card */}
         <div className="register-card">
           <div className="rc-header">
-            <h2>Who are you?</h2>
-            <p>Select your role to personalize your experience.</p>
+            <h2>{t('auth.whoAreYou')}</h2>
+            <p>{t('auth.selectRole')}</p>
           </div>
 
           <div className="role-options">
@@ -72,8 +75,8 @@ function RegisterRolePage() {
                 <GradCapIcon />
               </div>
               <div className="role-text">
-                <h4>Student</h4>
-                <p>I want to find my future university</p>
+                <h4>{t('auth.studentRole')}</h4>
+                <p>{t('auth.studentDesc')}</p>
               </div>
             </div>
 
@@ -85,8 +88,8 @@ function RegisterRolePage() {
                 <BuildingIcon />
               </div>
               <div className="role-text">
-                <h4>University / Institution</h4>
-                <p>I want to recruit international students</p>
+                <h4>{t('auth.universityRole')}</h4>
+                <p>{t('auth.universityDesc')}</p>
               </div>
             </div>
 
@@ -98,8 +101,8 @@ function RegisterRolePage() {
                 <BriefcaseIcon />
               </div>
               <div className="role-text">
-                <h4>Education Agent</h4>
-                <p>I help students with applications</p>
+                <h4>{t('auth.agentRole')}</h4>
+                <p>{t('auth.agentDesc')}</p>
               </div>
             </div>
           </div>
@@ -110,7 +113,7 @@ function RegisterRolePage() {
               onClick={handleContinue}
               disabled={!selectedRole}
             >
-              Continue
+              {t('auth.continue')}
             </button>
           </div>
         </div>
@@ -120,3 +123,4 @@ function RegisterRolePage() {
 }
 
 export default RegisterRolePage;
+

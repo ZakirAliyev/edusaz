@@ -1,0 +1,131 @@
+{
+  "welcome": "Welcome",
+  "login": "Sign In",
+  "nav": {
+    "browseUniversities": "Universities",
+    "scholarships": "Scholarships",
+    "destinations": "Destinations",
+    "forUniversities": "For Universities",
+    "signIn": "Sign In",
+    "aiDiscovery": "AI Discovery"
+  },
+  "hero": {
+    "badge": "AI-Powered Global University Discovery",
+    "titlePart1": "Find your future",
+    "titlePart2": "with Artificial Intelligence",
+    "subtitle": "Tell us who you are. Our AI matches you with the world’s best universities — complete with scholarships, visa guidance, and admission probability.",
+    "labels": {
+      "from": "I'M FROM",
+      "to": "I WANT TO STUDY IN",
+      "field": "FIELD OF STUDY",
+      "level": "DEGREE LEVEL"
+    },
+    "placeholders": {
+      "from": "Select your home country",
+      "to": "Select country",
+      "field": "Select field",
+      "level": "Select level"
+    },
+    "buttons": {
+      "find": "Find My Universities",
+      "ai": "Full AI Discovery"
+    },
+    "stats": {
+      "universities": "Universities",
+      "countries": "Countries",
+      "scholarships": "Scholarships",
+      "languages": "Languages"
+    }
+  },
+  "howItWorks": {
+    "badge": "How EDUSAZ Works",
+    "titlePart1": "From your profile to your matched list",
+    "titlePart2": "in under 3 minutes",
+    "step1": {
+      "title": "Tell us about yourself",
+      "desc": "Specify your subject, preferred country, budget, and language proficiency."
+    },
+    "step2": {
+      "title": "AI analyzes everything",
+      "desc": "Scans 2,500+ universities, 150,000+ scholarships, visa rules, and admission data."
+    },
+    "step3": {
+      "title": "Get your ranked match list",
+      "desc": "Receive a personalized match list with AI fit scores and next action steps."
+    },
+    "button": "Start AI Discovery"
+  },
+  "topDestinations": {
+    "badge": "Destinations",
+    "title": "Top study destinations worldwide",
+    "viewAll": "View all",
+    "countSuffix": "universities"
+  },
+  "destinations": {
+    "explore": "Explore",
+    "labels": {
+      "az": "Affordable & Growing",
+      "tr": "Popular Destination",
+      "de": "Tuition-Free Options",
+      "uk": "World-Class Rankings",
+      "ca": "Post-Study Work Visa",
+      "my": "Affordable English",
+      "pl": "EU Recognition",
+      "hu": "Stipendium Scholarships",
+      "it": "Historic Universities",
+      "ae": "Global Business Hub"
+    }
+  },
+  "matchedUniversities": {
+    "badge": "Universities",
+    "title": "Matched for international students",
+    "browseAll": "Browse all",
+    "match": "Match",
+    "scholarship": "Scholarship",
+    "est": "Est.",
+    "labels": {
+      "tuition": "Tuition",
+      "acceptance": "Acceptance",
+      "language": "Language"
+    }
+  },
+  "footer": {
+    "desc": "The world's most intelligent platform for finding, comparing, and applying to universities globally.",
+    "studentsTitle": "STUDENTS",
+    "universitiesTitle": "UNIVERSITIES",
+    "platformTitle": "PLATFORM",
+    "universityDashboard": "University Dashboard",
+    "rightsReserved": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookies",
+    "stats": {
+      "universities": "Universities",
+      "countries": "Countries",
+      "scholarships": "Scholarships",
+      "students": "Students"
+    }
+  },
+  "auth": {
+    "signInTitle": "Sign In",
+    "welcomeBack": "Welcome back to EDUSAZ",
+    "subtitle": "Your pathway to the world's top universities continues here.",
+    "newToEdusaz": "New to EDUSAZ?",
+    "createAccount": "Create an account",
+    "emailLabel": "Email address",
+    "passwordLabel": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "whoAreYou": "Who are you?",
+    "selectRole": "Select your role to personalize your experience.",
+    "studentRole": "Student",
+    "studentDesc": "I want to find my future university",
+    "universityRole": "University / Institution",
+    "universityDesc": "I want to recruit international students",
+    "agentRole": "Education Agent",
+    "agentDesc": "I help students with application process",
+    "continue": "Continue",
+    "submitSignIn": "Sign In",
+    "submitRegister": "Create Account"
+  }
+}

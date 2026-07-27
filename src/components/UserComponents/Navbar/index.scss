@@ -92,6 +92,74 @@
     align-items: center;
     gap: 16px;
 
+    .language-selector, .mobile-language-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 100px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--btn-signin-border);
+      color: var(--nav-link-color);
+
+      .lang-select {
+        background: transparent;
+        border: none;
+        color: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        outline: none;
+
+        option {
+          background: #111029;
+          color: #ffffff;
+        }
+      }
+    }
+
+    .logged-in-profile {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .btn-profile {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--btn-signin-text);
+        padding: 8px 16px;
+        border: 1px solid var(--btn-signin-border);
+        border-radius: 100px;
+        background: rgba(99, 102, 241, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(99, 102, 241, 0.2);
+          border-color: #6366f1;
+        }
+      }
+
+      .btn-signout {
+        font-size: 13px;
+        font-weight: 500;
+        color: #ef4444;
+        padding: 8px 14px;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 100px;
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: #ef4444;
+        }
+      }
+    }
+
     .btn-signin {
       font-size: 14px;
       font-weight: 500;
@@ -107,6 +175,7 @@
         border-color: var(--nav-link-hover);
       }
     }
+
 
     .btn-ai-discovery {
       font-size: 14px;

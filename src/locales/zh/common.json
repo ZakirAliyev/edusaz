@@ -1,0 +1,131 @@
+{
+  "welcome": "欢迎",
+  "login": "登录",
+  "nav": {
+    "browseUniversities": "大学",
+    "scholarships": "奖学金",
+    "destinations": "留学国家",
+    "forUniversities": "高校合作",
+    "signIn": "登录",
+    "aiDiscovery": "AI 智能探索"
+  },
+  "hero": {
+    "badge": "AI 驱动的全球大学探索平台",
+    "titlePart1": "用人工智能",
+    "titlePart2": "开启你的未来",
+    "subtitle": "告诉我们你的背景。我们的 AI 为你匹配全球顶尖名校 — 包含奖学金、签证指南及录取概率。",
+    "labels": {
+      "from": "国籍/地区",
+      "to": "意向留学国家",
+      "field": "专业领域",
+      "level": "学位层级"
+    },
+    "placeholders": {
+      "from": "选择你的祖国",
+      "to": "选择国家",
+      "field": "选择专业",
+      "level": "选择学位"
+    },
+    "buttons": {
+      "find": "查找适合我的大学",
+      "ai": "全方位 AI 探索"
+    },
+    "stats": {
+      "universities": "所大学",
+      "countries": "个国家",
+      "scholarships": "项奖学金",
+      "languages": "种语言"
+    }
+  },
+  "howItWorks": {
+    "badge": "EDUSAZ 如何运作",
+    "titlePart1": "从个人背景到精准匹配列表",
+    "titlePart2": "仅需 3 分钟",
+    "step1": {
+      "title": "填写个人信息",
+      "desc": "输入你的专业、意向国家、预算及语言水平。"
+    },
+    "step2": {
+      "title": "AI 深度分析",
+      "desc": "扫描 2,500+ 所高校、150,000+ 奖学金项目及签证录取数据。"
+    },
+    "step3": {
+      "title": "获取专属推荐列表",
+      "desc": "获得包含 AI 匹配得分及下一步规划的个性化清单。"
+    },
+    "button": "开启 AI 探索"
+  },
+  "topDestinations": {
+    "badge": "留学国家",
+    "title": "全球热门留学目的地",
+    "viewAll": "查看全部",
+    "countSuffix": "所大学"
+  },
+  "destinations": {
+    "explore": "探索",
+    "labels": {
+      "az": "高性价比与快速发展",
+      "tr": "热门留学地",
+      "de": "免学费优质教育",
+      "uk": "世界顶尖名校",
+      "ca": "毕业工作签证",
+      "my": "高性价比英语教学",
+      "pl": "欧盟学历认证",
+      "hu": "匈牙利国家奖学金",
+      "it": "百年历史名校",
+      "ae": "全球商业枢纽"
+    }
+  },
+  "matchedUniversities": {
+    "badge": "大学列表",
+    "title": "适合国际学生的大学推荐",
+    "browseAll": "浏览全部",
+    "match": "匹配度",
+    "scholarship": "奖学金",
+    "est": "建校时间：",
+    "labels": {
+      "tuition": "学费",
+      "acceptance": "录取率",
+      "language": "授课语言"
+    }
+  },
+  "footer": {
+    "desc": "全球最智能的大学搜索、对比及申请平台。",
+    "studentsTitle": "学生服务",
+    "universitiesTitle": "高校合作",
+    "platformTitle": "平台信息",
+    "universityDashboard": "大学管理后台",
+    "rightsReserved": "保留所有权利。",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "cookies": "Cookie 设置",
+    "stats": {
+      "universities": "所大学",
+      "countries": "个国家",
+      "scholarships": "项奖学金",
+      "students": "名学生"
+    }
+  },
+  "auth": {
+    "signInTitle": "登录",
+    "welcomeBack": "欢迎回到 EDUSAZ",
+    "subtitle": "通往世界顶尖名校之旅在此继续。",
+    "newToEdusaz": "首次使用 EDUSAZ？",
+    "createAccount": "创建新账号",
+    "emailLabel": "电子邮箱",
+    "passwordLabel": "密码",
+    "firstName": "名字",
+    "lastName": "姓氏",
+    "whoAreYou": "你的身份？",
+    "selectRole": "选择身份以定制个性化体验。",
+    "studentRole": "学生",
+    "studentDesc": "我想寻找适合我的大学",
+    "universityRole": "大学 / 院校",
+    "universityDesc": "我想招收优质国际学生",
+    "agentRole": "留学顾问",
+    "agentDesc": "我帮助学生办理留学申请",
+    "continue": "下一步",
+    "submitSignIn": "登录",
+    "submitRegister": "创建账号"
+  }
+}

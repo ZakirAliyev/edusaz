@@ -1,0 +1,131 @@
+{
+  "welcome": "Hoş geldiniz",
+  "login": "Giriş Yap",
+  "nav": {
+    "browseUniversities": "Üniversiteler",
+    "scholarships": "Burslar",
+    "destinations": "Ülkeler",
+    "forUniversities": "Üniversiteler İçin",
+    "signIn": "Giriş Yap",
+    "aiDiscovery": "AI Keşif"
+  },
+  "hero": {
+    "badge": "Yapay Zeka Destekli Küresel Üniversite Keşfi",
+    "titlePart1": "Geleceğinizi",
+    "titlePart2": "Yapay Zeka İle Bulun",
+    "subtitle": "Bize kendinizden bahsedin. Yapay zekamız sizi dünyanın en iyi üniversiteleriyle eşleştirir — burslar, vize rehberi ve kabul olasılığı dahil.",
+    "labels": {
+      "from": "NEREDENSİNİZ",
+      "to": "EĞİTİM ALMAK İSTEDİĞİM ÜLKE",
+      "field": "BÖLÜM ALANI",
+      "level": "DERECE"
+    },
+    "placeholders": {
+      "from": "Ülkeniz",
+      "to": "Ülke",
+      "field": "Bölüm seçin",
+      "level": "Derece seçin"
+    },
+    "buttons": {
+      "find": "Üniversiteleri Bul",
+      "ai": "Tam AI Keşif"
+    },
+    "stats": {
+      "universities": "Üniversite",
+      "countries": "Ülke",
+      "scholarships": "Burs",
+      "languages": "Dil"
+    }
+  },
+  "howItWorks": {
+    "badge": "EDUSAZ Nasıl Çalışır",
+    "titlePart1": "Profilinizden eşleşen listeye",
+    "titlePart2": "3 dakikada",
+    "step1": {
+      "title": "Hakkınızda bilgi verin",
+      "desc": "Bölümünüzü, tercih ettiğiniz ülkeyi, bütçenizi ve dil seviyenizi belirtin."
+    },
+    "step2": {
+      "title": "AI her şeyi analiz eder",
+      "desc": "2,500+ üniversite, 150,000+ burs programı, vize kuralları ve kabul istatistiklerini inceler."
+    },
+    "step3": {
+      "title": "Sıralanmış listenizi alın",
+      "desc": "AI eşleşme skoru, burs imkanları ve adım adım eylem planı içeren kişiselleştirilmiş listeniz."
+    },
+    "button": "AI Keşfine Başla"
+  },
+  "topDestinations": {
+    "badge": "Ülkeler",
+    "title": "En popüler eğitim ülkeleri",
+    "viewAll": "Hepsini gör",
+    "countSuffix": "üniversite"
+  },
+  "destinations": {
+    "explore": "Keşfet",
+    "labels": {
+      "az": "Uygun Fiyatlı ve Gelişen",
+      "tr": "Popüler Hedef",
+      "de": "Ücretsiz Eğitim Seçenekleri",
+      "uk": "Dünya Çapında Sıralama",
+      "ca": "Mezuniyet Sonrası Çalışma Vizesi",
+      "my": "Uygun Fiyatlı İngilizce",
+      "pl": "AB Tanınırlığı",
+      "hu": "Stipendium Bursları",
+      "it": "Tarihi Üniversiteler",
+      "ae": "Küresel İş Merkezi"
+    }
+  },
+  "matchedUniversities": {
+    "badge": "Üniversiteler",
+    "title": "Uluslararası öğrenciler için uygun üniversiteler",
+    "browseAll": "Tümünü incele",
+    "match": "Eşleşme",
+    "scholarship": "Burs",
+    "est": "Kuruluş:",
+    "labels": {
+      "tuition": "Eğitim ücreti",
+      "acceptance": "Kabul oranı",
+      "language": "Eğitim dili"
+    }
+  },
+  "footer": {
+    "desc": "Dünyanın en akıllı üniversite bulma, karşılaştırma ve başvuru platformu.",
+    "studentsTitle": "ÖĞRENCİLER",
+    "universitiesTitle": "ÜNİVERSİTELER",
+    "platformTitle": "PLATFORM",
+    "universityDashboard": "Üniversite Paneli",
+    "rightsReserved": "Tüm hakları saklıdır.",
+    "privacy": "Gizlilik Politikası",
+    "terms": "Kullanım Şartları",
+    "cookies": "Çerezler",
+    "stats": {
+      "universities": "Üniversite",
+      "countries": "Ülke",
+      "scholarships": "Burs",
+      "students": "Öğrenci"
+    }
+  },
+  "auth": {
+    "signInTitle": "Giriş Yapın",
+    "welcomeBack": "EDUSAZ'a Tekrar Hoş Geldiniz",
+    "subtitle": "Dünyanın en iyi üniversitelerine giden yolunuz burada devam ediyor.",
+    "newToEdusaz": "EDUSAZ'da yeni misiniz?",
+    "createAccount": "Hesap oluşturun",
+    "emailLabel": "E-posta adresi",
+    "passwordLabel": "Şifre",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "whoAreYou": "Kimsiniz?",
+    "selectRole": "Deneyiminizi kişiselleştirmek için rolünüzü seçin.",
+    "studentRole": "Öğrenci",
+    "studentDesc": "Gelecekteki üniversitemi bulmak istiyorum",
+    "universityRole": "Üniversite / Kurum",
+    "universityDesc": "Uluslararası öğrenci kabul etmek istiyorum",
+    "agentRole": "Eğitim Danışmanı",
+    "agentDesc": "Öğrencilere başvuru sürecinde yardımcı oluyorum",
+    "continue": "Devam Et",
+    "submitSignIn": "Giriş Yap",
+    "submitRegister": "Hesap Oluştur"
+  }
+}

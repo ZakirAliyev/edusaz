@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 
 const ScholarshipIcon = () => (
@@ -85,25 +86,27 @@ const scholarships = [
 ];
 
 function ScholarshipsPage() {
+  const { t } = useTranslation();
+
   return (
     <main id="scholarships-page">
       <div className="sp-header">
         <div className="sp-badge">
           <ScholarshipIcon />
-          Scholarships
+          {t('hero.stats.scholarships')}
         </div>
         
         <h1 className="sp-title">
-          150,000+ scholarships for <span className="sp-title-colored">international students</span>
+          150,000+ {t('hero.stats.scholarships').toLowerCase()} <span className="sp-title-colored">international students</span>
         </h1>
         
         <p className="sp-subtitle">
-          AI matches scholarships to your nationality, program, degree level, and academic background.
+          {t('hero.subtitle')}
         </p>
 
         <Link to="/ai-discovery" style={{ textDecoration: 'none' }}>
           <button className="btn-find-scholarships">
-            Find My Scholarships <SparkleIcon />
+            {t('hero.buttons.ai')} <SparkleIcon />
           </button>
         </Link>
       </div>
@@ -125,7 +128,7 @@ function ScholarshipsPage() {
               
               <div className="sp-card-details">
                 <div className="sp-detail-row">
-                  <span className="sp-detail-label">Amount</span>
+                  <span className="sp-detail-label">{t('matchedUniversities.labels.tuition')}</span>
                   <span className="sp-detail-value">{sch.amount}</span>
                 </div>
                 <div className="sp-detail-row">
@@ -135,10 +138,6 @@ function ScholarshipsPage() {
                 <div className="sp-detail-row">
                   <span className="sp-detail-label">Eligible</span>
                   <span className="sp-detail-value">{sch.eligible}</span>
-                </div>
-                <div className="sp-detail-row">
-                  <span className="sp-detail-label">Places</span>
-                  <span className="sp-detail-value">{sch.places}</span>
                 </div>
               </div>
               
@@ -156,3 +155,4 @@ function ScholarshipsPage() {
 }
 
 export default ScholarshipsPage;
+

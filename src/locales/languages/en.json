@@ -36,5 +36,65 @@
       "scholarships": "Scholarships",
       "languages": "Languages"
     }
+  },
+  "howItWorks": {
+    "badge": "How EDUSAZ Works",
+    "titlePart1": "From profile to shortlist in",
+    "titlePart2": "3 minutes",
+    "step1": {
+      "title": "Tell us about you",
+      "desc": "Share your background, destination preferences, program, budget, and language. Our 7-step intake takes under 3 minutes."
+    },
+    "step2": {
+      "title": "AI analyzes everything",
+      "desc": "Cross-references 2,500+ universities, 150,000+ scholarships, visa rules, admission statistics, and career outcomes."
+    },
+    "step3": {
+      "title": "Get your ranked shortlist",
+      "desc": "A personalized list of matching universities with AI match scores, scholarship options, and step-by-step next actions."
+    },
+    "button": "Start AI Discovery"
+  },
+  "topDestinations": {
+    "badge": "Destinations",
+    "title": "Top study destinations",
+    "viewAll": "View all",
+    "countSuffix": "universities"
+  },
+  "matchedUniversities": {
+    "badge": "Universities",
+    "title": "Matched for international students",
+    "browseAll": "Browse all",
+    "match": "Match",
+    "scholarship": "Scholarship",
+    "labels": {
+      "tuition": "Tuition",
+      "acceptance": "Acceptance",
+      "language": "Language"
+    }
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "welcomeBack": "Welcome back to EDUSAZ",
+    "subtitle": "Your path to the world's best universities continues here.",
+    "newToEdusaz": "New to EDUSAZ?",
+    "createAccount": "Create free account",
+    "emailLabel": "Email Address",
+    "passwordLabel": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "whoAreYou": "Who are you?",
+    "selectRole": "Select your role to personalize your experience.",
+    "studentRole": "Student",
+    "studentDesc": "I want to find my future university",
+    "universityRole": "University / Institution",
+    "universityDesc": "I want to recruit international students",
+    "agentRole": "Education Agent",
+    "agentDesc": "I help students with applications",
+    "continue": "Continue",
+    "submitSignIn": "Sign In",
+    "submitRegister": "Create Account"
   }
 }
+
+

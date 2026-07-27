@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCreateUniversityMutation } from '../../../services/apis/userApi';
+import { autoTranslateCourseData } from '../../../services/translationService';
+import { useToast } from '../../../context/ToastContext';
 import './index.scss';
 
 // Mock SVG Icons
@@ -79,8 +81,97 @@ const BellIcon = () => (
 
 function UniversityPortalPage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState('Overview');
   const [createUniversity, { isLoading: isCreatingUni }] = useCreateUniversityMutation();
+
+  const [showAddProgramModal, setShowAddProgramModal] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  const [programsList, setProgramsList] = useState([
+    { titleAz: 'BSc Kompüter Elmləri', titleEn: 'BSc Computer Science', titleRu: 'Бакалавр компьютерных наук', level: 'Bachelor', duration: '4 Years', tuitionFee: '$6,500/yr' },
+    { titleAz: 'BBA Biznesin İdarə Edilməsi', titleEn: 'BBA Business Administration', titleRu: 'Бакалавр делового администрирования', level: 'Bachelor', duration: '4 Years', tuitionFee: '$6,000/yr' },
+    { titleAz: 'MSc Məlumatşünaslıq', titleEn: 'MSc Data Science', titleRu: 'Магистр наук о данных', level: 'Master', duration: '2 Years', tuitionFee: '$7,500/yr' },
+  ]);
+
+  const [programForm, setProgramForm] = useState({
+    titleAz: '',
+    descriptionAz: '',
+    titleEn: '',
+    descriptionEn: '',
+    titleRu: '',
+    descriptionRu: '',
+    titleTr: '',
+    descriptionTr: '',
+    level: 'Bachelor',
+    tuitionFee: '$5,000/yr',
+    duration: '4 Years'
+  });
+
+  const handleAiTranslate = async () => {
+    if (!programForm.titleAz) {
+      toast.showError("Zəhmət olmasa ilk növbədə Azərbaycan dilində İxtisas Adını daxil edin!");
+      return;
+    }
+    setIsTranslating(true);
+    try {
+      const translations = await autoTranslateCourseData({
+        title: programForm.titleAz,
+        description: programForm.descriptionAz
+      }, ['en', 'ru', 'tr']);
+
+      setProgramForm(prev => ({
+        ...prev,
+        titleEn: translations.en?.title || prev.titleAz,
+        descriptionEn: translations.en?.description || prev.descriptionAz,
+        titleRu: translations.ru?.title || prev.titleAz,
+        descriptionRu: translations.ru?.description || prev.descriptionAz,
+        titleTr: translations.tr?.title || prev.titleAz,
+        descriptionTr: translations.tr?.description || prev.descriptionAz,
+      }));
+      toast.showSuccess("AI ilə avto-tərcümə uğurla tamamlandı!");
+    } catch (err) {
+      toast.showError("AI tərcümə xətası: " + err.message);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  const handleAddProgramSubmit = () => {
+    if (!programForm.titleAz) {
+      toast.showError("Zəhmət olmasa proqram adını daxil edin!");
+      return;
+    }
+
+    setProgramsList(prev => [
+      ...prev,
+      {
+        titleAz: programForm.titleAz,
+        titleEn: programForm.titleEn || programForm.titleAz,
+        titleRu: programForm.titleRu || programForm.titleAz,
+        level: programForm.level,
+        duration: programForm.duration,
+        tuitionFee: programForm.tuitionFee
+      }
+    ]);
+
+    toast.showSuccess("Yeni ixtisas uğurla əlavə olundu!");
+    setShowAddProgramModal(false);
+    setProgramForm({
+      titleAz: '',
+      descriptionAz: '',
+      titleEn: '',
+      descriptionEn: '',
+      titleRu: '',
+      descriptionRu: '',
+      titleTr: '',
+      descriptionTr: '',
+      level: 'Bachelor',
+      tuitionFee: '$5,000/yr',
+      duration: '4 Years'
+    });
+  };
+
 
   const [uniFormData, setUniFormData] = useState({
     Name: '',
@@ -365,10 +456,10 @@ function UniversityPortalPage() {
             <div className="portal-panel programs-panel">
               <div className="panel-header flex-header">
                 <div>
-                  <h2>Programs</h2>
-                  <p>Manage your academic degrees and courses.</p>
+                  <h2>Programs & Courses</h2>
+                  <p>Manage your academic degrees, courses, and localized translations.</p>
                 </div>
-                <button className="btn-primary">+ Add Program</button>
+                <button className="btn-primary" onClick={() => setShowAddProgramModal(true)}>+ Add Program</button>
               </div>
               <div className="panel-body">
                 <div className="data-table-wrapper">
@@ -383,31 +474,144 @@ function UniversityPortalPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td><strong>BSc Computer Science</strong></td>
-                        <td>Bachelor</td>
-                        <td>4 Years</td>
-                        <td>$6,500/yr</td>
-                        <td><span className="status-badge open">Active</span></td>
-                      </tr>
-                      <tr>
-                        <td><strong>BBA Business Administration</strong></td>
-                        <td>Bachelor</td>
-                        <td>4 Years</td>
-                        <td>$6,000/yr</td>
-                        <td><span className="status-badge open">Active</span></td>
-                      </tr>
-                      <tr>
-                        <td><strong>MSc Data Science</strong></td>
-                        <td>Master</td>
-                        <td>2 Years</td>
-                        <td>$7,500/yr</td>
-                        <td><span className="status-badge open">Active</span></td>
-                      </tr>
+                      {programsList.map((prog, idx) => (
+                        <tr key={idx}>
+                          <td>
+                            <strong>{prog.titleAz}</strong>
+                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                              🇬🇧 {prog.titleEn} | 🇷🇺 {prog.titleRu}
+                            </div>
+                          </td>
+                          <td>{prog.level}</td>
+                          <td>{prog.duration}</td>
+                          <td>{prog.tuitionFee}</td>
+                          <td><span className="status-badge open">Active</span></td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               </div>
+
+              {/* Add Program Modal with AI Auto-Translation */}
+              {showAddProgramModal && (
+                <div className="modal-backdrop">
+                  <div className="portal-modal">
+                    <div className="modal-header">
+                      <h3>✨ Yeni İxtisas/Kurs Əlavə Et (AI Tərcümə İlə)</h3>
+                      <button className="close-btn" onClick={() => setShowAddProgramModal(false)}>✕</button>
+                    </div>
+                    <div className="modal-body">
+                      <div className="ai-notice-box" style={{ background: 'rgba(122, 92, 255, 0.1)', padding: '12px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #7A5CFF' }}>
+                        <strong>💡 Məsləhət:</strong> Məlumatları Azərbaycan dilində yazın və <strong>"✨ AI ilə Digər Dillərə Tərcümə Et"</strong> düyməsini sıxın. Bütün digər dillər avtomatik doldurulacaq və istədiyiniz kimi redaktə edə biləcəksiniz.
+                      </div>
+
+                      <div className="form-group full-width">
+                        <label>İxtisas Adı (Azərbaycanca) *</label>
+                        <input 
+                          type="text" 
+                          placeholder="Məs: Kompüter Elmləri və Süni İntellekt"
+                          value={programForm.titleAz}
+                          onChange={(e) => setProgramForm({ ...programForm, titleAz: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="form-group full-width">
+                        <label>Haqqında Ətraflı (Azərbaycanca) *</label>
+                        <textarea 
+                          rows="3" 
+                          placeholder="İxtisasın təsviri və tələbləri..."
+                          value={programForm.descriptionAz}
+                          onChange={(e) => setProgramForm({ ...programForm, descriptionAz: e.target.value })}
+                        />
+                      </div>
+
+                      <button 
+                        type="button" 
+                        className="btn-ai-translate" 
+                        onClick={handleAiTranslate} 
+                        disabled={isTranslating}
+                        style={{
+                          background: 'linear-gradient(90deg, #7c6ee8 0%, #9d4edd 100%)',
+                          color: '#fff',
+                          padding: '10px 18px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontWeight: '600',
+                          marginBottom: '20px'
+                        }}
+                      >
+                        {isTranslating ? '⏳ AI Tərcümə Edir...' : '✨ AI İlə Digər Dillərə Avto-Tərcümə Et'}
+                      </button>
+
+                      <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '16px 0' }} />
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="form-group">
+                          <label>🇬🇧 Program Title (English)</label>
+                          <input 
+                            type="text" 
+                            value={programForm.titleEn}
+                            onChange={(e) => setProgramForm({ ...programForm, titleEn: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>🇷🇺 Название программы (Русский)</label>
+                          <input 
+                            type="text" 
+                            value={programForm.titleRu}
+                            onChange={(e) => setProgramForm({ ...programForm, titleRu: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>🇹🇷 Program Adı (Türkçe)</label>
+                          <input 
+                            type="text" 
+                            value={programForm.titleTr}
+                            onChange={(e) => setProgramForm({ ...programForm, titleTr: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Təhsil Dərəcəsi</label>
+                          <select 
+                            value={programForm.level}
+                            onChange={(e) => setProgramForm({ ...programForm, level: e.target.value })}
+                          >
+                            <option value="Bachelor">Bachelor (Bakalavr)</option>
+                            <option value="Master">Master (Magistr)</option>
+                            <option value="PhD">PhD (Doktorantura)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '12px' }}>
+                        <div className="form-group">
+                          <label>İllik Təhsil Haqqı</label>
+                          <input 
+                            type="text" 
+                            value={programForm.tuitionFee}
+                            onChange={(e) => setProgramForm({ ...programForm, tuitionFee: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Müddət</label>
+                          <input 
+                            type="text" 
+                            value={programForm.duration}
+                            onChange={(e) => setProgramForm({ ...programForm, duration: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                    </div>
+                    <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                      <button className="btn-secondary" onClick={() => setShowAddProgramModal(false)}>Ləğv et</button>
+                      <button className="btn-primary" onClick={handleAddProgramSubmit}>Yadda saxla</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

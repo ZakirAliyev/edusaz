@@ -61,16 +61,49 @@
     "viewAll": "Hamısına bax",
     "countSuffix": "universitet"
   },
+  "destinations": {
+    "explore": "Kəşf et",
+    "labels": {
+      "az": "Münasib və İnkişaf Edən",
+      "tr": "Məşhur İstiqamət",
+      "de": "Ödənişsiz Təhsil İmkanları",
+      "uk": "Dünya Səviyyəli Reytinq",
+      "ca": "Təhsildən Sonra İş Vizası",
+      "my": "Münasib İngilis Dili",
+      "pl": "Aİ Tərəfindən Tanınma",
+      "hu": "Stipendium Təqaüdləri",
+      "it": "Tarixi Universitetlər",
+      "ae": "Qlobal Biznes Mərkəzi"
+    }
+  },
   "matchedUniversities": {
     "badge": "Universitetlər",
     "title": "Xarici tələbələr üçün uyğun universitetlər",
     "browseAll": "Hamısını araşdır",
     "match": "Uyğunluq",
     "scholarship": "Təqaüd",
+    "est": "Təsis:",
     "labels": {
       "tuition": "Təhsil haqqı",
       "acceptance": "Qəbul şansı",
       "language": "Təhsil dili"
+    }
+  },
+  "footer": {
+    "desc": "Dünyanın ən ağıllı təhsil platforması - universitetləri tapın, müqayisə edin və müraciət edin.",
+    "studentsTitle": "TƏLƏBƏLƏR",
+    "universitiesTitle": "UNİVERSİTETLƏR",
+    "platformTitle": "PLATFORMA",
+    "universityDashboard": "Universitet Paneli",
+    "rightsReserved": "Bütün hüquqlar qorunur.",
+    "privacy": "Məxfilik Siyasəti",
+    "terms": "İstifadə Şərtləri",
+    "cookies": "Kukilər",
+    "stats": {
+      "universities": "Universitet",
+      "countries": "Ölkə",
+      "scholarships": "Təqaüd",
+      "students": "Tələbə"
     }
   },
   "auth": {
@@ -96,5 +129,3 @@
     "submitRegister": "Hesab Yaradın"
   }
 }
-
-

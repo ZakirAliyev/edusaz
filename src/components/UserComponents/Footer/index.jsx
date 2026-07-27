@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import './index.scss';
 
 const LogoIcon = () => (
@@ -7,6 +9,8 @@ const LogoIcon = () => (
 );
 
 function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer id="footer">
       <div className="footer-inner">
@@ -21,53 +25,53 @@ function Footer() {
             </div>
             
             <p className="footer-desc">
-              The world's most intelligent platform for finding, comparing, and applying to universities globally.
+              {t('footer.desc')}
             </p>
             
             <div className="footer-stats">
               <div className="footer-stat">
                 <h4>2,500+</h4>
-                <p>Universities</p>
+                <p>{t('footer.stats.universities')}</p>
               </div>
               <div className="footer-stat">
                 <h4>80+</h4>
-                <p>Countries</p>
+                <p>{t('footer.stats.countries')}</p>
               </div>
               <div className="footer-stat">
                 <h4>150K+</h4>
-                <p>Scholarships</p>
+                <p>{t('footer.stats.scholarships')}</p>
               </div>
               <div className="footer-stat">
                 <h4>500K+</h4>
-                <p>Students</p>
+                <p>{t('footer.stats.students')}</p>
               </div>
             </div>
           </div>
 
           <div className="footer-links-group">
             <div className="footer-col">
-              <h4>STUDENTS</h4>
+              <h4>{t('footer.studentsTitle')}</h4>
               <ul>
-                <li><a href="#">AI Discovery</a></li>
-                <li><a href="#">Browse Universities</a></li>
-                <li><a href="#">Scholarships</a></li>
-                <li><a href="#">Destinations</a></li>
+                <li><Link to="/ai-discovery">{t('nav.aiDiscovery')}</Link></li>
+                <li><Link to="/universities">{t('nav.browseUniversities')}</Link></li>
+                <li><Link to="/scholarships">{t('nav.scholarships')}</Link></li>
+                <li><Link to="/destinations">{t('nav.destinations')}</Link></li>
               </ul>
             </div>
             
             <div className="footer-col">
-              <h4>UNIVERSITIES</h4>
+              <h4>{t('footer.universitiesTitle')}</h4>
               <ul>
-                <li><a href="#">For Universities</a></li>
-                <li><a href="#">University Dashboard</a></li>
+                <li><Link to="/for-universities">{t('nav.forUniversities')}</Link></li>
+                <li><Link to="/university-portal">{t('footer.universityDashboard')}</Link></li>
               </ul>
             </div>
             
             <div className="footer-col">
-              <h4>PLATFORM</h4>
+              <h4>{t('footer.platformTitle')}</h4>
               <ul>
-                <li><a href="#">Sign In</a></li>
-                <li><a href="#">Register</a></li>
+                <li><Link to="/signin">{t('nav.signIn')}</Link></li>
+                <li><Link to="/signin">{t('auth.createAccount')}</Link></li>
               </ul>
             </div>
           </div>
@@ -75,11 +79,11 @@ function Footer() {
         </div>
 
         <div className="footer-bottom">
-          <p>© 2024 EDUSAZ. All rights reserved.</p>
+          <p>© 2026 EDUSAZ. {t('footer.rightsReserved')}</p>
           <div className="footer-legal">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Cookies</a>
+            <a href="#">{t('footer.privacy')}</a>
+            <a href="#">{t('footer.terms')}</a>
+            <a href="#">{t('footer.cookies')}</a>
           </div>
         </div>
       </div>

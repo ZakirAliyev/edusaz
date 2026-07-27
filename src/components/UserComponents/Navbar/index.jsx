@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import './index.scss';
 import { useTranslation } from "react-i18next";
+import { LanguageSelector } from '../LanguageSelector';
 
 const BrainIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="brain-svg">
@@ -34,14 +36,30 @@ const CloseIcon = () => (
   </svg>
 );
 
+const UserIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+  </svg>
+);
+
 function Navbar() {
     const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userRole, setUserRole] = useState(null);
     const location = useLocation();
     const navigate = useNavigate();
 
     const isLightMode = location.pathname !== '/';
+
+    useEffect(() => {
+        const token = Cookies.get('userToken');
+        const role = localStorage.getItem('userRole');
+        setIsLoggedIn(!!token);
+        setUserRole(role);
+    }, [location]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -58,6 +76,14 @@ function Navbar() {
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
+    };
+
+    const handleSignOut = () => {
+        Cookies.remove('userToken');
+        localStorage.removeItem('userRole');
+        setIsLoggedIn(false);
+        setUserRole(null);
+        navigate('/');
     };
 
     return (
@@ -98,11 +124,25 @@ function Navbar() {
                         </li>
                     </ul>
 
-                    {/* Action Buttons */}
+                    {/* Action Buttons & Language Selector */}
                     <div className="nav-actions">
-                        <Link to="/signin" className="btn-signin">
-                            {t('nav.signIn')}
-                        </Link>
+                        <LanguageSelector />
+
+                        {isLoggedIn ? (
+                            <div className="logged-in-profile">
+                                <Link to={userRole === 'University' ? '/university-portal' : '/'} className="btn-profile">
+                                    <UserIcon /> {userRole === 'University' ? 'Portal' : 'Profile'}
+                                </Link>
+                                <button className="btn-signout" onClick={handleSignOut}>
+                                    Exit
+                                </button>
+                            </div>
+                        ) : (
+                            <Link to="/signin" className="btn-signin">
+                                {t('nav.signIn')}
+                            </Link>
+                        )}
+
                         <button className="btn-ai-discovery" onClick={() => navigate('/ai-discovery')}>
                             <span>{t('nav.aiDiscovery')}</span>
                             <SparklesIcon />
@@ -142,9 +182,16 @@ function Navbar() {
                         </li>
                     </ul>
                     <div className="mobile-nav-actions">
-                        <Link to="/signin" className="mobile-btn-signin" onClick={toggleMenu}>
-                            {t('nav.signIn')}
-                        </Link>
+                        <LanguageSelector isMobile={true} />
+                        {isLoggedIn ? (
+                            <button className="mobile-btn-signin" onClick={() => { handleSignOut(); toggleMenu(); }}>
+                                Exit (Sign Out)
+                            </button>
+                        ) : (
+                            <Link to="/signin" className="mobile-btn-signin" onClick={toggleMenu}>
+                                {t('nav.signIn')}
+                            </Link>
+                        )}
                         <button className="mobile-btn-ai-discovery" onClick={() => { toggleMenu(); navigate('/ai-discovery'); }}>
                             <span>{t('nav.aiDiscovery')}</span>
                             <SparklesIcon />

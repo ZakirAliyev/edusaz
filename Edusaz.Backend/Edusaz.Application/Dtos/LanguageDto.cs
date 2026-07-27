@@ -7,8 +7,10 @@ public class LanguageDto
     public Guid Id { get; set; }
     public string Code { get; set; }
     public string Name { get; set; }
+    public string Flag { get; set; }
     public bool IsActive { get; set; }
 }
+
 
 public class CreateLanguageDto
 {

@@ -1,0 +1,131 @@
+{
+  "welcome": "Benvenuto",
+  "login": "Accedi",
+  "nav": {
+    "browseUniversities": "Università",
+    "scholarships": "Borse di studio",
+    "destinations": "Paesi",
+    "forUniversities": "Per le Università",
+    "signIn": "Accedi",
+    "aiDiscovery": "Ricerca IA"
+  },
+  "hero": {
+    "badge": "Ricerca universitaria globale basata sull'IA",
+    "titlePart1": "Trova il tuo futuro",
+    "titlePart2": "con l'Intelligenza Artificiale",
+    "subtitle": "Raccontaci chi sei. La nostra IA ti connette con le migliori università del mondo.",
+    "labels": {
+      "from": "SONO DI",
+      "to": "VOGLIO STUDIARE IN",
+      "field": "CAMPO DI STUDIO",
+      "level": "LIVELLO DI STUDIO"
+    },
+    "placeholders": {
+      "from": "Il tuo paese di origine",
+      "to": "Seleziona paese",
+      "field": "Seleziona campo",
+      "level": "Seleziona livello"
+    },
+    "buttons": {
+      "find": "Trova Università",
+      "ai": "Ricerca IA Completa"
+    },
+    "stats": {
+      "universities": "Università",
+      "countries": "Paesi",
+      "scholarships": "Borse di studio",
+      "languages": "Lingue"
+    }
+  },
+  "howItWorks": {
+    "badge": "Come funziona EDUSAZ",
+    "titlePart1": "Dal tuo profilo alla lista ideale",
+    "titlePart2": "in 3 minuti",
+    "step1": {
+      "title": "Parlaci di te",
+      "desc": "Indica il tuo corso, paese preferito, budget e lingue."
+    },
+    "step2": {
+      "title": "L'IA analizza tutto",
+      "desc": "Scansiona oltre 2.500 università e 150.000 borse di studio."
+    },
+    "step3": {
+      "title": "Ottieni la tua lista",
+      "desc": "Ricevi una lista personalizzata con punteggio di affinità IA."
+    },
+    "button": "Avvia Ricerca IA"
+  },
+  "topDestinations": {
+    "badge": "Paesi",
+    "title": "Principali destinazioni di studio",
+    "viewAll": "Vedi tutti",
+    "countSuffix": "università"
+  },
+  "destinations": {
+    "explore": "Esplora",
+    "labels": {
+      "az": "Economico e in Crescita",
+      "tr": "Destinazione Popolare",
+      "de": "Opzioni Gratuite",
+      "uk": "Classifiche Mondiali",
+      "ca": "Visto di Lavoro Post-Studio",
+      "my": "Inglese Accessibile",
+      "pl": "Riconoscimento UE",
+      "hu": "Borse Stipendium",
+      "it": "Università Storiche",
+      "ae": "Centro d'Affari Globale"
+    }
+  },
+  "matchedUniversities": {
+    "badge": "Università",
+    "title": "Adatte per studenti internazionali",
+    "browseAll": "Esplora tutte",
+    "match": "Affinità",
+    "scholarship": "Borsa di studio",
+    "est": "Fondata:",
+    "labels": {
+      "tuition": "Tassa di iscrizione",
+      "acceptance": "Tasso di ammissione",
+      "language": "Lingua di insegnamento"
+    }
+  },
+  "footer": {
+    "desc": "La piattaforma più intelligente al mondo per trovare, confrontare e candidarsi alle università.",
+    "studentsTitle": "STUDENTI",
+    "universitiesTitle": "UNIVERSITÀ",
+    "platformTitle": "PIATTAFORMA",
+    "universityDashboard": "Dashboard Università",
+    "rightsReserved": "Tutti i diritti riservati.",
+    "privacy": "Informativa sulla Privacy",
+    "terms": "Termini di Servizio",
+    "cookies": "Cookie",
+    "stats": {
+      "universities": "Università",
+      "countries": "Paesi",
+      "scholarships": "Borse di studio",
+      "students": "Studenti"
+    }
+  },
+  "auth": {
+    "signInTitle": "Accedi",
+    "welcomeBack": "Bentornato su EDUSAZ",
+    "subtitle": "Il tuo percorso verso le migliori università del mondo continua qui.",
+    "newToEdusaz": "Nuovo su EDUSAZ?",
+    "createAccount": "Crea un account",
+    "emailLabel": "Indirizzo e-mail",
+    "passwordLabel": "Password",
+    "firstName": "Nome",
+    "lastName": "Cognome",
+    "whoAreYou": "Chi sei?",
+    "selectRole": "Seleziona il tuo ruolo.",
+    "studentRole": "Studente",
+    "studentDesc": "Voglio trovare la mia futura università",
+    "universityRole": "Università / Istituto",
+    "universityDesc": "Voglio reclutare studenti internazionali",
+    "agentRole": "Consulente Educativo",
+    "agentDesc": "Aiuto gli studenti nel processo di candidatura",
+    "continue": "Continua",
+    "submitSignIn": "Accedi",
+    "submitRegister": "Crea Account"
+  }
+}

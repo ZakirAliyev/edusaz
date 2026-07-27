@@ -1,0 +1,131 @@
+{
+  "welcome": "Willkommen",
+  "login": "Anmelden",
+  "nav": {
+    "browseUniversities": "Universitäten",
+    "scholarships": "Stipendien",
+    "destinations": "Länder",
+    "forUniversities": "Für Universitäten",
+    "signIn": "Anmelden",
+    "aiDiscovery": "KI-Suche"
+  },
+  "hero": {
+    "badge": "KI-gestützte globale Universitätssuche",
+    "titlePart1": "Finden Sie Ihre Zukunft",
+    "titlePart2": "Mit Künstlicher Intelligenz",
+    "subtitle": "Erzählen Sie uns von sich. Unsere KI verbindet Sie mit den besten Universitäten der Welt — inklusive Stipendien, Visabestimmungen und Zulassungschancen.",
+    "labels": {
+      "from": "HERKUNFTSLAND",
+      "to": "STUDIENORT",
+      "field": "STUDIENFACH",
+      "level": "ABSCHLUSS"
+    },
+    "placeholders": {
+      "from": "Ihr Heimatland",
+      "to": "Land wählen",
+      "field": "Fach wählen",
+      "level": "Abschluss wählen"
+    },
+    "buttons": {
+      "find": "Universitäten finden",
+      "ai": "Vollständige KI-Suche"
+    },
+    "stats": {
+      "universities": "Universitäten",
+      "countries": "Länder",
+      "scholarships": "Stipendien",
+      "languages": "Sprachen"
+    }
+  },
+  "howItWorks": {
+    "badge": "Wie EDUSAZ funktioniert",
+    "titlePart1": "Vom Profil zur passenden Liste",
+    "titlePart2": "In nur 3 Minuten",
+    "step1": {
+      "title": "Erzählen Sie uns von sich",
+      "desc": "Geben Sie Ihr Fachgebiet, Wunschland, Budget und Sprachkenntnisse an."
+    },
+    "step2": {
+      "title": "KI analysiert alles",
+      "desc": "Analysiert 2.500+ Universitäten, 150.000+ Stipendien und Visaregeln."
+    },
+    "step3": {
+      "title": "Erhalten Sie Ihre Liste",
+      "desc": "Personalisierte Liste mit KI-Match-Score und Schritt-für-Schritt-Plan."
+    },
+    "button": "KI-Suche starten"
+  },
+  "topDestinations": {
+    "badge": "Länder",
+    "title": "Beliebteste Studienländer",
+    "viewAll": "Alle anzeigen",
+    "countSuffix": "Universitäten"
+  },
+  "destinations": {
+    "explore": "Erkunden",
+    "labels": {
+      "az": "Günstig & Wachsend",
+      "tr": "Beliebtes Ziel",
+      "de": "Gebührenfreie Optionen",
+      "uk": "Weltklasse-Rankings",
+      "ca": "Visum nach dem Studium",
+      "my": "Günstiges Englisch",
+      "pl": "EU-Anerkennung",
+      "hu": "Stipendium-Stipendien",
+      "it": "Historische Universitäten",
+      "ae": "Globales Geschäftszentrum"
+    }
+  },
+  "matchedUniversities": {
+    "badge": "Universitäten",
+    "title": "Passende Universitäten für internationale Studierende",
+    "browseAll": "Alle durchsuchen",
+    "match": "Übereinstimmung",
+    "scholarship": "Stipendium",
+    "est": "Gegr.:",
+    "labels": {
+      "tuition": "Studiengebühren",
+      "acceptance": "Zulassungsquote",
+      "language": "Unterrichtssprache"
+    }
+  },
+  "footer": {
+    "desc": "Die weltweit intelligenteste Plattform zum Suchen, Vergleichen und Bewerben an Universitäten.",
+    "studentsTitle": "STUDENTEN",
+    "universitiesTitle": "UNIVERSITÄTEN",
+    "platformTitle": "PLATTFORM",
+    "universityDashboard": "Universitäts-Dashboard",
+    "rightsReserved": "Alle Rechte vorbehalten.",
+    "privacy": "Datenschutz",
+    "terms": "Nutzungsbedingungen",
+    "cookies": "Cookies",
+    "stats": {
+      "universities": "Universitäten",
+      "countries": "Länder",
+      "scholarships": "Stipendien",
+      "students": "Studenten"
+    }
+  },
+  "auth": {
+    "signInTitle": "Anmelden",
+    "welcomeBack": "Willkommen zurück bei EDUSAZ",
+    "subtitle": "Ihr Weg zu den besten Universitäten der Welt geht hier weiter.",
+    "newToEdusaz": "Neu bei EDUSAZ?",
+    "createAccount": "Konto erstellen",
+    "emailLabel": "E-Mail-Adresse",
+    "passwordLabel": "Passwort",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "whoAreYou": "Wer sind Sie?",
+    "selectRole": "Wählen Sie Ihre Rolle aus.",
+    "studentRole": "Student",
+    "studentDesc": "Ich möchte meine zukünftige Universität finden",
+    "universityRole": "Universität / Institution",
+    "universityDesc": "Ich möchte internationale Studierende aufnehmen",
+    "agentRole": "Bildungsberater",
+    "agentDesc": "Ich helfe Studierenden beim Bewerbungsprozess",
+    "continue": "Weiter",
+    "submitSignIn": "Anmelden",
+    "submitRegister": "Konto erstellen"
+  }
+}

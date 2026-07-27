@@ -1,0 +1,131 @@
+{
+  "welcome": "Bienvenido",
+  "login": "Iniciar sesión",
+  "nav": {
+    "browseUniversities": "Universidades",
+    "scholarships": "Becas",
+    "destinations": "Países",
+    "forUniversities": "Para Universidades",
+    "signIn": "Iniciar sesión",
+    "aiDiscovery": "Búsqueda IA"
+  },
+  "hero": {
+    "badge": "Búsqueda global de universidades impulsada por IA",
+    "titlePart1": "Encuentra tu futuro",
+    "titlePart2": "con Inteligencia Artificial",
+    "subtitle": "Cuéntanos quién eres. Nuestra IA te conecta con las mejores universidades del mundo.",
+    "labels": {
+      "from": "SOY DE",
+      "to": "QUIERO ESTUDIAR EN",
+      "field": "CAMPO DE ESTUDIO",
+      "level": "NIVEL DE ESTUDIOS"
+    },
+    "placeholders": {
+      "from": "Tu país de origen",
+      "to": "Seleccionar país",
+      "field": "Seleccionar campo",
+      "level": "Seleccionar nivel"
+    },
+    "buttons": {
+      "find": "Buscar Universidades",
+      "ai": "Búsqueda IA Completa"
+    },
+    "stats": {
+      "universities": "Universidades",
+      "countries": "Países",
+      "scholarships": "Becas",
+      "languages": "Idiomas"
+    }
+  },
+  "howItWorks": {
+    "badge": "Cómo funciona EDUSAZ",
+    "titlePart1": "De tu perfil a tu lista ideal",
+    "titlePart2": "en 3 minutos",
+    "step1": {
+      "title": "Cuéntanos sobre ti",
+      "desc": "Especifica tu carrera, país de preferencia, presupuesto e idiomas."
+    },
+    "step2": {
+      "title": "La IA analiza todo",
+      "desc": "Analiza más de 2,500 universidades y 150,000 becas."
+    },
+    "step3": {
+      "title": "Obtén tu lista clasificada",
+      "desc": "Recibe una lista personalizada con puntaje de coincidencia IA."
+    },
+    "button": "Iniciar Búsqueda IA"
+  },
+  "topDestinations": {
+    "badge": "Países",
+    "title": "Principales destinos de estudio",
+    "viewAll": "Ver todos",
+    "countSuffix": "universidades"
+  },
+  "destinations": {
+    "explore": "Explorar",
+    "labels": {
+      "az": "Asequible y en Crecimiento",
+      "tr": "Destino Popular",
+      "de": "Opciones Gratuitas",
+      "uk": "Rankings Mundiales",
+      "ca": "Visa de Trabajo Postestudio",
+      "my": "Inglés Asequible",
+      "pl": "Reconocimiento de la UE",
+      "hu": "Becas Stipendium",
+      "it": "Universidades Históricas",
+      "ae": "Centro Global de Negocios"
+    }
+  },
+  "matchedUniversities": {
+    "badge": "Universidades",
+    "title": "Adaptadas para estudiantes internacionales",
+    "browseAll": "Explorar todas",
+    "match": "Coincidencia",
+    "scholarship": "Beca",
+    "est": "Fundada:",
+    "labels": {
+      "tuition": "Matrícula",
+      "acceptance": "Tasa de admisión",
+      "language": "Idioma de enseñanza"
+    }
+  },
+  "footer": {
+    "desc": "La plataforma más inteligente para buscar, comparar y postular a universidades del mundo.",
+    "studentsTitle": "ESTUDIANTES",
+    "universitiesTitle": "UNIVERSIDADES",
+    "platformTitle": "PLATAFORMA",
+    "universityDashboard": "Panel Universitario",
+    "rightsReserved": "Todos los derechos reservados.",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio",
+    "cookies": "Cookies",
+    "stats": {
+      "universities": "Universidades",
+      "countries": "Países",
+      "scholarships": "Becas",
+      "students": "Estudiantes"
+    }
+  },
+  "auth": {
+    "signInTitle": "Iniciar Sesión",
+    "welcomeBack": "Bienvenido de nuevo a EDUSAZ",
+    "subtitle": "Tu camino hacia las mejores universidades del mundo continúa aquí.",
+    "newToEdusaz": "¿Nuevo en EDUSAZ?",
+    "createAccount": "Crear una cuenta",
+    "emailLabel": "Correo electrónico",
+    "passwordLabel": "Contraseña",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "whoAreYou": "¿Quién eres?",
+    "selectRole": "Selecciona tu rol.",
+    "studentRole": "Estudiante",
+    "studentDesc": "Quiero encontrar mi futura universidad",
+    "universityRole": "Universidad / Institución",
+    "universityDesc": "Quiero reclutar estudiantes internacionales",
+    "agentRole": "Agente Educativo",
+    "agentDesc": "Ayudo a los estudiantes en su postulación",
+    "continue": "Continuar",
+    "submitSignIn": "Iniciar Sesión",
+    "submitRegister": "Crear Cuenta"
+  }
+}

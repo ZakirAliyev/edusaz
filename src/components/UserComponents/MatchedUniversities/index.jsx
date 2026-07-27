@@ -1,4 +1,7 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../../../context/LanguageContext';
+import { useGetUniversitiesQuery } from '../../../services/apis/userApi';
 import './index.scss';
 
 const BuildingIcon = () => (
@@ -38,100 +41,12 @@ const ChevronIcon = () => (
   </svg>
 );
 
-const universities = [
-  {
-    id: 1,
-    name: "ADA University",
-    match: "96%",
-    matchColor: "#10b981",
-    rank: "#1 in AZ",
-    location: "🇦🇿 Baku, Azerbaijan",
-    program: "Bachelor in Computer Science",
-    tuition: "$6,500/yr",
-    acceptance: "42%",
-    language: "English",
-    deadline: "Apr 30, 2025",
-    hasScholarship: true,
-    img: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    id: 2,
-    name: "Baku State University",
-    match: "91%",
-    matchColor: "#10b981",
-    rank: "#2 in AZ",
-    location: "🇦🇿 Baku, Azerbaijan",
-    program: "Bachelor in Computer Science",
-    tuition: "$2,800/yr",
-    acceptance: "55%",
-    language: "Azerbaijani",
-    deadline: "May 15, 2025",
-    hasScholarship: true,
-    img: "https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    id: 3,
-    name: "Istanbul Technical University",
-    match: "88%",
-    matchColor: "#8b5cf6",
-    rank: "#501-600 QS",
-    location: "🇹🇷 Istanbul, Turkey",
-    program: "Bachelor in Computer Engineering",
-    tuition: "$3,200/yr",
-    acceptance: "38%",
-    language: "Turkish",
-    deadline: "Mar 1, 2025",
-    hasScholarship: true,
-    img: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    id: 4,
-    name: "University of Warsaw",
-    match: "84%",
-    matchColor: "#8b5cf6",
-    rank: "#351-400 QS",
-    location: "🇵🇱 Warsaw, Poland",
-    program: "Bachelor in Computer Science",
-    tuition: "$2,500/yr",
-    acceptance: "48%",
-    language: "English",
-    deadline: "Jun 30, 2025",
-    hasScholarship: false,
-    img: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    id: 5,
-    name: "Universiti Malaya",
-    match: "79%",
-    matchColor: "#f59e0b",
-    rank: "#65 QS Asia",
-    location: "🇲🇾 Kuala Lumpur, Malaysia",
-    program: "Bachelor in Computer Science",
-    tuition: "$4,100/yr",
-    acceptance: "35%",
-    language: "English",
-    deadline: "May 31, 2025",
-    hasScholarship: true,
-    img: "https://images.unsplash.com/photo-1596422846543-74c6eb24f628?auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    id: 6,
-    name: "University of Pecs",
-    match: "74%",
-    matchColor: "#f59e0b",
-    rank: "#801-1000 QS",
-    location: "🇭🇺 Pecs, Hungary",
-    program: "Bachelor in Computer Science",
-    tuition: "$3,800/yr",
-    acceptance: "62%",
-    language: "English",
-    deadline: "Jan 15, 2025",
-    hasScholarship: true,
-    img: "https://images.unsplash.com/photo-1569972394105-89104f762744?auto=format&fit=crop&w=600&q=80"
-  }
-];
-
 function MatchedUniversities() {
+  const { t } = useTranslation();
+  const { language } = useLanguage();
+  const navigate = useNavigate();
+  const { data: apiUniversities = [], isLoading } = useGetUniversitiesQuery(language);
+
   return (
     <section id="matched-universities">
       <div className="mu-inner">
@@ -139,69 +54,79 @@ function MatchedUniversities() {
           <div className="mu-header-left">
             <span className="mu-badge">
               <BuildingIcon />
-              Universities
+              {t('matchedUniversities.badge')}
             </span>
-            <h2 className="mu-title">Matched for international students</h2>
+            <h2 className="mu-title">{t('matchedUniversities.title')}</h2>
           </div>
-          <button className="btn-browse-all">Browse all &gt;</button>
+          <button className="btn-browse-all" onClick={() => navigate('/universities')}>
+            {t('matchedUniversities.browseAll')} &gt;
+          </button>
         </div>
 
-        <div className="mu-grid">
-          {universities.map(uni => (
-            <Link to="/universities/ada" key={uni.id} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="mu-card">
-                <div className="mu-card-img-wrapper">
-                  <img src={uni.img} alt={uni.name} className="mu-card-img" />
-                  <div className="mu-card-tags">
-                    <div className="mu-tag-match" style={{ backgroundColor: uni.matchColor }}>
-                      <SparkleIcon /> {uni.match} Match
-                    </div>
-                    {uni.hasScholarship && (
-                      <div className="mu-tag-scholarship">
-                        <ScholarshipIcon /> Scholarship
+        {isLoading ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading backend universities...</div>
+        ) : (
+          <div className="mu-grid">
+            {apiUniversities.slice(0, 6).map(uni => (
+              <Link to={`/universities/${uni.id}`} key={uni.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div className="mu-card">
+                  <div className="mu-card-img-wrapper">
+                    <img src={uni.logoUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"} alt={uni.name} className="mu-card-img" />
+                    <div className="mu-card-tags">
+                      <div className="mu-tag-match" style={{ backgroundColor: "#10b981" }}>
+                        <SparkleIcon /> 96% {t('matchedUniversities.match')}
                       </div>
-                    )}
+                      {uni.hasScholarship && (
+                        <div className="mu-tag-scholarship">
+                          <ScholarshipIcon /> {t('matchedUniversities.scholarship')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mu-card-body">
+                    <div className="mu-card-header">
+                      <h3 className="mu-uni-name">{uni.name}</h3>
+                      <span className="mu-uni-rank">{uni.ranking || (`${t('matchedUniversities.est')} ${uni.establishedYear}`)}</span>
+
+                    </div>
+                    
+                    <span className="mu-uni-location">{uni.city ? `${uni.city}, ${uni.country}` : uni.country}</span>
+                    <span className="mu-uni-program">{uni.description ? uni.description.substring(0, 50) + "..." : "Bachelor in Computer Science"}</span>
+
+
+                    <div className="mu-uni-stats">
+                      <div className="stat-box">
+                        <span className="stat-label">{t('matchedUniversities.labels.tuition')}</span>
+                        <span className="stat-val">{uni.tuition || "$6,500/yr"}</span>
+                      </div>
+                      <div className="stat-box">
+                        <span className="stat-label">{t('matchedUniversities.labels.acceptance')}</span>
+                        <span className="stat-val">{uni.acceptanceRate || "45%"}</span>
+                      </div>
+                      <div className="stat-box">
+                        <span className="stat-label">{t('matchedUniversities.labels.language')}</span>
+                        <span className="stat-val">{uni.teachingLanguage || "English"}</span>
+                      </div>
+                    </div>
+
+                    <div className="mu-card-footer">
+                      <div className="mu-deadline">
+                        <CalendarIcon /> {uni.deadline || "Apr 30, 2025"}
+                      </div>
+                      <ChevronIcon />
+                    </div>
                   </div>
                 </div>
-
-                <div className="mu-card-body">
-                  <div className="mu-card-header">
-                    <h3 className="mu-uni-name">{uni.name}</h3>
-                    <span className="mu-uni-rank">{uni.rank}</span>
-                  </div>
-                  
-                  <span className="mu-uni-location">{uni.location}</span>
-                  <span className="mu-uni-program">{uni.program}</span>
-
-                  <div className="mu-uni-stats">
-                    <div className="stat-box">
-                      <span className="stat-label">Tuition</span>
-                      <span className="stat-val">{uni.tuition}</span>
-                    </div>
-                    <div className="stat-box">
-                      <span className="stat-label">Acceptance</span>
-                      <span className="stat-val">{uni.acceptance}</span>
-                    </div>
-                    <div className="stat-box">
-                      <span className="stat-label">Language</span>
-                      <span className="stat-val">{uni.language}</span>
-                    </div>
-                  </div>
-
-                  <div className="mu-card-footer">
-                    <div className="mu-deadline">
-                      <CalendarIcon /> {uni.deadline}
-                    </div>
-                    <ChevronIcon />
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
 export default MatchedUniversities;
+
+

@@ -35,11 +35,11 @@ public class UniversityService : IUniversityService
     {
         var universities = await _universityReadRepository.GetAllAsync(
             predicate: u => !u.IsDeleted,
-            include: q => q.Include(u => u.Translations.Where(t => t.Language.Code == langCode && !t.IsDeleted)).ThenInclude(t => t.Language)
+            include: q => q.Include(u => u.Translations.Where(t => !t.IsDeleted)).ThenInclude(t => t.Language)
         );
 
         return universities.Select(u => {
-            var translation = u.Translations.FirstOrDefault();
+            var translation = u.Translations.FirstOrDefault(t => t.Language.Code == langCode) ?? u.Translations.FirstOrDefault();
             return new UniversityDto
             {
                 Id = u.Id,
@@ -47,7 +47,7 @@ public class UniversityService : IUniversityService
                 LogoUrl = u.LogoUrl,
                 WebsiteUrl = u.WebsiteUrl,
                 EstablishedYear = u.EstablishedYear,
-                Name = translation?.Name ?? "",
+                Name = translation?.Name ?? "University",
                 Description = translation?.Description ?? "",
                 City = translation?.City ?? "",
                 Tuition = u.Tuition,
@@ -64,12 +64,12 @@ public class UniversityService : IUniversityService
     {
         var u = await _universityReadRepository.GetAsync(
             predicate: x => x.Id == id && !x.IsDeleted,
-            include: q => q.Include(x => x.Translations.Where(t => t.Language.Code == langCode && !t.IsDeleted)).ThenInclude(t => t.Language)
+            include: q => q.Include(x => x.Translations.Where(t => !t.IsDeleted)).ThenInclude(t => t.Language)
         );
 
         if (u == null) return null;
 
-        var translation = u.Translations.FirstOrDefault();
+        var translation = u.Translations.FirstOrDefault(t => t.Language.Code == langCode) ?? u.Translations.FirstOrDefault();
         return new UniversityDto
         {
             Id = u.Id,
@@ -77,7 +77,7 @@ public class UniversityService : IUniversityService
             LogoUrl = u.LogoUrl,
             WebsiteUrl = u.WebsiteUrl,
             EstablishedYear = u.EstablishedYear,
-            Name = translation?.Name ?? "",
+            Name = translation?.Name ?? "University",
             Description = translation?.Description ?? "",
             City = translation?.City ?? "",
             Tuition = u.Tuition,
@@ -88,6 +88,7 @@ public class UniversityService : IUniversityService
             HasScholarship = u.HasScholarship
         };
     }
+
 
     public async Task<UniversityDto> CreateUniversityAsync(CreateUniversityDto dto)
     {
