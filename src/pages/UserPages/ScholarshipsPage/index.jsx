@@ -97,7 +97,7 @@ function ScholarshipsPage() {
         </div>
         
         <h1 className="sp-title">
-          150,000+ {t('hero.stats.scholarships').toLowerCase()} <span className="sp-title-colored">international students</span>
+          150,000+ {t('hero.stats.scholarships')} <span className="sp-title-colored">{t('matchedUniversities.title')}</span>
         </h1>
         
         <p className="sp-subtitle">
@@ -143,7 +143,7 @@ function ScholarshipsPage() {
               
               <Link to="/register" style={{ textDecoration: 'none' }}>
                 <button className={`sp-card-btn ${sch.buttonType}`}>
-                  {sch.buttonType === 'check' ? 'Check Eligibility' : 'Get Notified'}
+                  {sch.buttonType === 'check' ? t('matchedUniversities.browseAll') : t('nav.signIn')}
                 </button>
               </Link>
             </div>
@@ -155,4 +155,5 @@ function ScholarshipsPage() {
 }
 
 export default ScholarshipsPage;
+
 

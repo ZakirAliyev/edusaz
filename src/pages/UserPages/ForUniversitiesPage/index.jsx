@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './index.scss';
 
 const BuildingIcon = () => (
@@ -61,7 +62,10 @@ const CheckIcon = () => (
   </svg>
 );
 
+
 function ForUniversitiesPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="for-universities-page">
       {/* Hero Section */}
@@ -70,21 +74,21 @@ function ForUniversitiesPage() {
           <div className="fu-hero-content">
             <span className="fu-badge">
               <BuildingIcon />
-              For Universities
+              {t('nav.forUniversities')}
             </span>
             <h1 className="fu-title">
-              Recruit global students <br />
-              with <span className="fu-highlight">AI precision</span>
+              {t('hero.titlePart1')} <br />
+              <span className="fu-highlight">{t('hero.titlePart2')}</span>
             </h1>
             <p className="fu-desc">
-              Join 180+ universities using EDUSAZ to reach pre-qualified international students. Verified profiles, AI-powered matching, and real-time recruitment analytics.
+              {t('hero.subtitle')}
             </p>
             <div className="fu-actions">
               <Link to="/register" className="btn-primary">
-                Create University Profile <span>&rarr;</span>
+                {t('auth.createAccount')} <span>&rarr;</span>
               </Link>
               <button className="btn-secondary">
-                <PlayIcon /> Watch Demo
+                <PlayIcon /> {t('hero.buttons.ai')}
               </button>
             </div>
           </div>
@@ -98,22 +102,22 @@ function ForUniversitiesPage() {
             <div className="stat-item">
               <div className="stat-icon"><UsersIcon /></div>
               <h3>500K+</h3>
-              <p>Active students on platform</p>
+              <p>{t('footer.stats.students')}</p>
             </div>
             <div className="stat-item">
               <div className="stat-icon"><GlobeOutlineIcon /></div>
               <h3>35+</h3>
-              <p>Student source countries</p>
+              <p>{t('footer.stats.countries')}</p>
             </div>
             <div className="stat-item">
               <div className="stat-icon"><TargetIcon /></div>
               <h3>12K+</h3>
-              <p>Monthly qualified leads</p>
+              <p>{t('footer.stats.universities')}</p>
             </div>
             <div className="stat-item">
               <div className="stat-icon"><RibbonIcon /></div>
               <h3>94%</h3>
-              <p>Lead quality score</p>
+              <p>{t('matchedUniversities.match')}</p>
             </div>
           </div>
         </div>
@@ -123,21 +127,21 @@ function ForUniversitiesPage() {
       <section className="fu-pricing">
         <div className="container">
           <div className="pricing-header">
-            <span className="pricing-badge">University Products</span>
-            <h2>Choose your recruitment <span className="pricing-highlight">strategy</span></h2>
+            <span className="pricing-badge">{t('nav.forUniversities')}</span>
+            <h2>{t('hero.titlePart1')} <span className="pricing-highlight">{t('hero.titlePart2')}</span></h2>
           </div>
 
           <div className="pricing-cards">
             {/* Verified Profile */}
             <div className="price-card">
               <div className="pc-header">
-                <h3>Verified Profile</h3>
+                <h3>Verified Partner</h3>
                 <p>Get found by qualified students</p>
               </div>
               <div className="pc-price">
                 <h2>$299<span>/mo</span></h2>
               </div>
-              <button className="btn-outline">Get Started</button>
+              <button className="btn-outline">{t('howItWorks.button')}</button>
               <ul className="pc-features">
                 <li><CheckIcon /> Official verified badge</li>
                 <li><CheckIcon /> Basic university profile</li>
@@ -157,7 +161,7 @@ function ForUniversitiesPage() {
               <div className="pc-price">
                 <h2>$799<span>/mo</span></h2>
               </div>
-              <button className="btn-solid">Get Started</button>
+              <button className="btn-solid">{t('howItWorks.button')}</button>
               <ul className="pc-features">
                 <li><CheckIcon /> Everything in Verified</li>
                 <li><CheckIcon /> Featured placement in results</li>
@@ -178,7 +182,7 @@ function ForUniversitiesPage() {
               <div className="pc-price">
                 <h2>Custom</h2>
               </div>
-              <button className="btn-outline">Contact Sales</button>
+              <button className="btn-outline">{t('nav.forUniversities')}</button>
               <ul className="pc-features">
                 <li><CheckIcon /> Everything in Premium</li>
                 <li><CheckIcon /> Unlimited sponsored programs</li>
@@ -197,3 +201,4 @@ function ForUniversitiesPage() {
 }
 
 export default ForUniversitiesPage;
+

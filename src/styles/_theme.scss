@@ -15,3 +15,25 @@
   --btn-signin-text: #ffffff;
   --btn-signin-hover-bg: rgba(255, 255, 255, 0.06);
 }
+
+/* Global RTL Support Rules */
+html[dir="rtl"] {
+  body {
+    text-align: right;
+    direction: rtl;
+  }
+
+  .lang-selector-component .lang-dropdown-menu {
+    left: 0;
+    right: auto;
+  }
+
+  .nav-links, .mobile-nav-links, .footer-links-group, .hero-actions {
+    direction: rtl;
+  }
+
+  .btn-apply-primary svg, .btn-view-all svg, .dp-explore-link span {
+    transform: scaleX(-1);
+    display: inline-block;
+  }
+}

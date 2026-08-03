@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useRegisterUserMutation } from '../../../services/apis/userApi';
+import { useToast } from '../../../context/ToastContext';
 import './index.scss';
 
 const CheckIcon = () => (
@@ -12,6 +13,7 @@ const CheckIcon = () => (
 
 function RegisterDetailsPage() {
   const { t } = useTranslation();
+  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const role = location.state?.role || localStorage.getItem('userRole') || 'student';
@@ -30,16 +32,17 @@ function RegisterDetailsPage() {
     e.preventDefault();
     try {
       await registerUser(formData).unwrap();
-      alert("Account created successfully!");
+      toast.showSuccess(t('auth.submitRegister') + " - Success!");
       if (role === 'university') {
         navigate('/university-portal');
       } else {
         navigate('/signin');
       }
     } catch (err) {
-      alert("Registration failed: " + (err.data?.message || err.error || "Unknown error"));
+      toast.showError("Registration failed: " + (err.data?.message || err.error || "Unknown error"));
     }
   };
+
 
   return (
     <div className="register-details-page">

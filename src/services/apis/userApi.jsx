@@ -47,6 +47,17 @@ export const userApi = createApi({
                 body: universityData,
             }),
         }),
+        getPrograms: builder.query({
+            query: (lang = 'en') => `/Programs?lang=${lang}`,
+            transformResponse: (response) => response.data,
+        }),
+        createProgram: builder.mutation({
+            query: (programData) => ({
+                url: '/Programs',
+                method: 'POST',
+                body: programData,
+            }),
+        }),
     }),
 })
 
@@ -56,5 +67,7 @@ export const {
     useGetUniversitiesQuery,
     useGetUniversityByIdQuery,
     useGetLanguagesQuery,
-    useCreateUniversityMutation
+    useCreateUniversityMutation,
+    useGetProgramsQuery,
+    useCreateProgramMutation
 } = userApi;

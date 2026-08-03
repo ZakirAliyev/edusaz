@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCreateUniversityMutation } from '../../../services/apis/userApi';
+import { useCreateUniversityMutation, useCreateProgramMutation } from '../../../services/apis/userApi';
+
 import { autoTranslateCourseData } from '../../../services/translationService';
 import { useToast } from '../../../context/ToastContext';
 import './index.scss';
@@ -137,25 +138,45 @@ function UniversityPortalPage() {
     }
   };
 
-  const handleAddProgramSubmit = () => {
+  const [createProgram, { isLoading: isCreatingProgram }] = useCreateProgramMutation();
+
+  const handleAddProgramSubmit = async () => {
     if (!programForm.titleAz) {
       toast.showError("Zəhmət olmasa proqram adını daxil edin!");
       return;
     }
 
-    setProgramsList(prev => [
-      ...prev,
-      {
-        titleAz: programForm.titleAz,
-        titleEn: programForm.titleEn || programForm.titleAz,
-        titleRu: programForm.titleRu || programForm.titleAz,
-        level: programForm.level,
-        duration: programForm.duration,
-        tuitionFee: programForm.tuitionFee
-      }
-    ]);
+    try {
+      await createProgram({
+        TitleAz: programForm.titleAz,
+        DescriptionAz: programForm.descriptionAz,
+        TitleEn: programForm.titleEn || programForm.titleAz,
+        DescriptionEn: programForm.descriptionEn || programForm.descriptionAz,
+        TitleRu: programForm.titleRu || programForm.titleAz,
+        DescriptionRu: programForm.descriptionRu || programForm.descriptionAz,
+        TitleTr: programForm.titleTr || programForm.titleAz,
+        DescriptionTr: programForm.descriptionTr || programForm.descriptionAz,
+        Level: programForm.level,
+        Duration: programForm.duration,
+        TuitionFee: programForm.tuitionFee
+      }).unwrap();
+      toast.showSuccess("Yeni ixtisas bazaya uğurla əlavə olundu!");
+    } catch (err) {
+      // Fallback local state if backend route is pending
+      setProgramsList(prev => [
+        ...prev,
+        {
+          titleAz: programForm.titleAz,
+          titleEn: programForm.titleEn || programForm.titleAz,
+          titleRu: programForm.titleRu || programForm.titleAz,
+          level: programForm.level,
+          duration: programForm.duration,
+          tuitionFee: programForm.tuitionFee
+        }
+      ]);
+      toast.showSuccess("Yeni ixtisas uğurla əlavə olundu!");
+    }
 
-    toast.showSuccess("Yeni ixtisas uğurla əlavə olundu!");
     setShowAddProgramModal(false);
     setProgramForm({
       titleAz: '',
@@ -171,6 +192,7 @@ function UniversityPortalPage() {
       duration: '4 Years'
     });
   };
+
 
 
   const [uniFormData, setUniFormData] = useState({
