@@ -1233,3 +1233,75 @@
   }
 }
 
+/* University Portal Responsive Media Queries */
+@media screen and (max-width: 992px) {
+  .university-portal {
+    flex-direction: column;
+
+    .portal-sidebar {
+      width: 100%;
+      height: auto;
+      position: relative;
+      overflow-y: visible;
+
+      .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 8px 16px;
+      }
+    }
+
+    .portal-main {
+      margin-left: 0;
+      width: 100%;
+
+      .main-header {
+        height: auto;
+        padding: 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .dashboard-content {
+        padding: 20px 16px;
+
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+
+          @media (max-width: 480px) {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .charts-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .portal-panel {
+          .panel-header {
+            padding: 24px 20px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+
+          .panel-body {
+            padding: 24px 20px;
+          }
+        }
+
+        .profile-form-grid {
+          grid-template-columns: 1fr;
+          gap: 16px;
+
+          .form-group.full-width {
+            grid-column: span 1;
+          }
+        }
+      }
+    }
+  }
+}
+

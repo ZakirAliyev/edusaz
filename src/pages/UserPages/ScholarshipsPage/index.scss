@@ -1,12 +1,20 @@
 #scholarships-page {
-  padding: 140px 24px 80px;
+  padding: 130px 24px 80px;
   background-color: #ffffff;
   min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 100px 16px 50px;
+  }
 
   .sp-header {
     text-align: center;
     max-width: 800px;
     margin: 0 auto 60px;
+
+    @media (max-width: 640px) {
+      margin-bottom: 32px;
+    }
 
     .sp-badge {
       display: inline-flex;
@@ -36,7 +44,11 @@
       }
 
       @media (max-width: 768px) {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 1.75rem;
       }
     }
 
@@ -223,16 +235,23 @@
     border-radius: 20px;
     max-width: 520px;
     width: 100%;
-    padding: 32px;
+    padding: 32px 24px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     border: 1px solid #e2e8f0;
     position: relative;
     animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 90vh;
+    overflow-y: auto;
+
+    @media (max-width: 520px) {
+      padding: 24px 16px;
+      border-radius: 16px;
+    }
 
     .sp-modal-close {
       position: absolute;
-      top: 20px;
-      right: 20px;
+      top: 16px;
+      right: 16px;
       background: #f1f5f9;
       border: none;
       width: 32px;
@@ -272,6 +291,10 @@
         font-weight: 700;
         color: #0f172a;
         margin-bottom: 6px;
+
+        @media (max-width: 480px) {
+          font-size: 1.25rem;
+        }
       }
 
       .sp-modal-subtitle {
@@ -321,6 +344,10 @@
     .sp-modal-actions {
       display: flex;
       gap: 12px;
+
+      @media (max-width: 480px) {
+        flex-direction: column;
+      }
 
       button {
         flex: 1;

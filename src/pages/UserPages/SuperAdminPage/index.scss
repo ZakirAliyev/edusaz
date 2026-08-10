@@ -1116,3 +1116,65 @@
     box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
   }
 }
+
+/* SuperAdmin Responsive Media Queries */
+@media screen and (max-width: 992px) {
+  .super-admin-page {
+    .admin-dashboard {
+      flex-direction: column;
+
+      .admin-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 16px 20px;
+
+        .admin-nav {
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: 6px;
+
+          .admin-nav-item {
+            padding: 8px 12px;
+            font-size: 13px;
+          }
+        }
+      }
+
+      .admin-main {
+        padding: 20px 16px;
+        width: 100%;
+
+        .admin-header {
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .super-table-container {
+          padding: 16px;
+
+          .table-header-row {
+            flex-direction: column;
+            gap: 12px;
+          }
+        }
+      }
+    }
+
+    .modal-overlay {
+      padding: 12px;
+
+      .modal-card {
+        padding: 20px 16px;
+        max-height: 92vh;
+
+        .modal-form {
+          .form-row {
+            flex-direction: column;
+            gap: 12px;
+          }
+        }
+      }
+    }
+  }
+}

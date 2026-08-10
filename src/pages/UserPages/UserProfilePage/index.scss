@@ -288,3 +288,29 @@
     }
   }
 }
+
+/* UserProfilePage Mobile Responsiveness */
+@media (max-width: 600px) {
+  #user-profile-page {
+    padding: 85px 16px 40px;
+
+    .profile-header-card {
+      flex-direction: column;
+      text-align: center;
+      padding: 24px 16px;
+
+      .profile-badges {
+        justify-content: center;
+      }
+    }
+
+    .profile-card {
+      padding: 24px 16px;
+
+      .btn-save-profile {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+}

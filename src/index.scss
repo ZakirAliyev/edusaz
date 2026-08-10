@@ -16,14 +16,22 @@ h1, h2, h3, h4, h5, h6,
   font-family: 'Lora', serif !important;
 }
 
-html {
+html, body {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
 }
 
 button, a, .link {
@@ -34,6 +42,11 @@ button, a, .link {
 .container {
   max-width: 1240px;
   margin: 0 auto;
+  padding: 0 20px;
+
+  @media (max-width: 640px) {
+    padding: 0 16px;
+  }
 }
 
 .row {
@@ -47,6 +60,11 @@ button, a, .link {
     .#{$prefix}#{$i} {
       width: #{$width};
       padding: 16px;
+
+      @media (max-width: 640px) {
+        width: 100%;
+        padding: 10px 0;
+      }
     }
   }
 }
