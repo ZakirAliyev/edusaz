@@ -92,12 +92,15 @@ function Navbar() {
                 <nav className="nav-wrapper">
                     {/* Logo Section */}
                     <Link to="/" className="logo-section">
-                        <div className="logo-icon-wrapper">
-                            <BrainIcon />
-                        </div>
-                        <span className="logo-text">
-                            EDU<span className="logo-text-saz">SAZ</span>
-                        </span>
+                        <img
+  src="../../../../public/edusaz-yan.png"
+  alt="Edusaz Logo"
+  style={{
+   height: "max-content",
+   width:"30%",
+    filter: "brightness(0) invert(1)"
+  }}
+/>
                     </Link>
 
                     {/* Desktop Menu Links */}
