@@ -78,7 +78,7 @@ function PartnerModal({ isOpen, onClose }) {
             <h3>{t('partnerModal.successTitle', 'Tərəfdaşlıq Müraciətiniz Qəbul Olundu!')}</h3>
             <p>{responseMsg}</p>
             <div style={{ marginTop: '12px', fontSize: '0.8125rem', color: '#10b981', background: '#ecfdf5', padding: '10px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
-              ✉️ {formData.email} ünvanına təsdiq məktubu və Admin (bd7bl34lt@code.edu.az) ünvanına yeni müraciət bildirişi göndərildi.
+              ✉️ {formData.email} {t('partnerModal.successEmailNote', 'ünvanına təsdiq məktubu və Admin ünvanına yeni müraciət bildirişi göndərildi.')}
             </div>
           </div>
         ) : (
@@ -96,7 +96,7 @@ function PartnerModal({ isOpen, onClose }) {
               <input
                 type="text"
                 required
-                placeholder="məs. ADA Universiteti"
+                placeholder={t('partnerModal.institutionName', 'Universitet / Müəssisə Adı')}
                 value={formData.institutionName}
                 onChange={(e) => setFormData({ ...formData, institutionName: e.target.value })}
               />
@@ -108,7 +108,7 @@ function PartnerModal({ isOpen, onClose }) {
                 <input
                   type="text"
                   required
-                  placeholder="Əli Əliyev"
+                  placeholder={t('partnerModal.contactName', 'Nümayəndənin Adı Soyadı')}
                   value={formData.contactName}
                   onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
                 />
@@ -141,7 +141,7 @@ function PartnerModal({ isOpen, onClose }) {
                 <label>{t('partnerModal.country', 'Ölkə')}</label>
                 <input
                   type="text"
-                  placeholder="Azərbaycan"
+                  placeholder={t('partnerModal.country', 'Ölkə')}
                   value={formData.country}
                   onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                 />
@@ -152,14 +152,14 @@ function PartnerModal({ isOpen, onClose }) {
               <label>{t('partnerModal.message', 'Əlavə Qeyd / Mesaj')}</label>
               <textarea
                 rows="3"
-                placeholder="Tərəfdaşlıq təklifiniz haqqında qısa məlumat..."
+                placeholder={t('partnerModal.message', 'Əlavə Qeyd / Mesaj')}
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               ></textarea>
             </div>
 
             <button type="submit" className="btn-submit-partner" disabled={isLoading}>
-              {isLoading ? 'Göndərilir...' : (
+              {isLoading ? t('profile.saving', 'Göndərilir...') : (
                 <>{t('partnerModal.sendBtn', 'Müraciəti Göndər')} &rarr;</>
               )}
             </button>

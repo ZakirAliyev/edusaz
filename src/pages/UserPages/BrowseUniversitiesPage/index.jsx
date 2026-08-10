@@ -202,7 +202,7 @@ function BrowseUniversitiesPage() {
                 <div className="autocomplete-dropdown">
                   {matchingPrograms.length > 0 && (
                     <div style={{ padding: '4px 14px', fontSize: '0.65rem', fontWeight: '700', color: '#94a3b8', letterSpacing: '0.5px' }}>
-                      İXTİSASLAR ({matchingPrograms.length})
+                      {t('portal.programs', 'İXTİSASLAR').toUpperCase()} ({matchingPrograms.length})
                     </div>
                   )}
 
@@ -224,7 +224,7 @@ function BrowseUniversitiesPage() {
 
                   {matchingUnis.length > 0 && (
                     <div style={{ padding: '8px 14px 4px', fontSize: '0.65rem', fontWeight: '700', color: '#94a3b8', letterSpacing: '0.5px' }}>
-                      UNİVERSİTETLƏR ({matchingUnis.length})
+                      {t('matchedUniversities.badge', 'UNİVERSİTETLƏR').toUpperCase()} ({matchingUnis.length})
                     </div>
                   )}
 
@@ -246,7 +246,7 @@ function BrowseUniversitiesPage() {
 
                   {matchingPrograms.length === 0 && matchingUnis.length === 0 && (
                     <div className="ac-empty">
-                      Uyğun ixtisas və ya universitet tapılmadı
+                      {t('search.noMatchesFound', 'Uyğun ixtisas və ya universitet tapılmadı')}
                     </div>
                   )}
                 </div>
@@ -264,7 +264,7 @@ function BrowseUniversitiesPage() {
 
       <div className="bu-grid-container">
         {isLoadingUnis ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>Loading universities from backend...</div>
+          <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>{t('profile.saving', 'Loading...')}</div>
         ) : filteredUniversities.length === 0 ? (
           <div style={{
             background: '#ffffff',
@@ -280,10 +280,10 @@ function BrowseUniversitiesPage() {
               <SearchXIcon />
             </div>
             <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>
-              Axtarışınıza uyğun universitet tapılmadı
+              {t('search.noResultsTitle', 'Axtarışınıza uyğun universitet tapılmadı')}
             </h3>
             <p style={{ color: '#64748b', fontSize: '0.925rem', lineHeight: '1.6', marginBottom: '24px' }}>
-              Seçilmiş ölkə və ya ixtisas meyarlarına cavab verən universitet tapılmadı. Filtrləri sıfırlayaraq bütün universitetləri nəzərdən keçirə bilərsiniz.
+              {t('search.noResultsDesc', 'Seçilmiş ölkə və ya ixtisas meyarlarına cavab verən universitet tapılmadı. Filtrləri sıfırlayaraq bütün universitetləri nəzərdən keçirə bilərsiniz.')}
             </p>
             <button 
               onClick={resetFilters}
@@ -300,7 +300,7 @@ function BrowseUniversitiesPage() {
                 boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)'
               }}
             >
-              Filtrləri Sıfırla
+              {t('search.resetFiltersBtn', 'Filtrləri Sıfırla')}
             </button>
           </div>
         ) : (

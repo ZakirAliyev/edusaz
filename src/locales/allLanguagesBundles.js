@@ -1,6 +1,14 @@
 // 31-Language Complete Translation Bundles Generator for EDUSAZ Platform & University Portal
 import en from './en/common.json';
 import az from './az/common.json';
+import tr from './tr/common.json';
+import ru from './ru/common.json';
+import de from './de/common.json';
+import fr from './fr/common.json';
+import es from './es/common.json';
+import it from './it/common.json';
+import ar from './ar/common.json';
+import zh from './zh/common.json';
 
 const portalBaseAz = az.portal || {};
 
@@ -179,44 +187,32 @@ const portalTranslations = {
   }
 };
 
+const mainBundles = {
+  en, az, tr, ru, de, fr, es, it, ar, zh
+};
+
 // Aliases for all 31 supported codes to guarantee full translation mapping
 const ALL_CODES = [
   'en', 'az', 'tr', 'ru', 'de', 'fr', 'es', 'it', 'ar', 'zh',
   'pt', 'nl', 'se', 'no', 'fi', 'dk', 'gr', 'hu', 'cz', 'ro',
-  'bg', 'hr', 'sk', 'ua', 'ka', 'hy', 'ge', 'am', 'kz', 'uz', 'jp', 'kr'
+  'bg', 'hr', 'sk', 'ua', 'ge', 'am', 'kz', 'uz', 'jp', 'kr'
 ];
 
 export function buildAllResourceBundles() {
-  const resources = {
-    en: { translation: en },
-    az: { translation: az }
-  };
+  const resources = {};
 
   ALL_CODES.forEach(code => {
-    if (code === 'en' || code === 'az') return;
-
-    // Pick specific translation dictionary or fallback smoothly to English/Turkish/Russian base
+    const baseDict = mainBundles[code] || mainBundles[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en'] || mainBundles.en;
     const pDict = portalTranslations[code] 
-      || portalTranslations[code === 'ge' || code === 'ka' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en'] 
+      || portalTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en'] 
       || portalTranslations.en;
 
     resources[code] = {
       translation: {
         ...en,
-        nav: {
-          ...en.nav,
-          portal: pDict.dashboard || "University Portal",
-          browseUniversities: code === 'tr' ? 'Üniversiteler' : code === 'ru' ? 'Университеты' : 'Universities',
-          scholarships: code === 'tr' ? 'Burslar' : code === 'ru' ? 'Стипендии' : 'Scholarships',
-          destinations: code === 'tr' ? 'Ülkeler' : code === 'ru' ? 'Страны' : 'Destinations',
-          forUniversities: code === 'tr' ? 'Üniversiteler İçin' : code === 'ru' ? 'Для Университетов' : 'For Universities',
-          signIn: code === 'tr' ? 'Giriş Yap' : code === 'ru' ? 'Войти' : 'Sign In',
-          aiDiscovery: code === 'tr' ? 'AI Keşif' : code === 'ru' ? 'ИИ Поиск' : 'AI Discovery',
-          profile: code === 'tr' ? 'Profil' : code === 'ru' ? 'Профиль' : 'Profile',
-          exit: code === 'tr' ? 'Çıkış' : code === 'ru' ? 'Выйти' : 'Exit'
-        },
+        ...baseDict,
         portal: {
-          ...en.portal,
+          ...(baseDict.portal || {}),
           ...pDict
         }
       }

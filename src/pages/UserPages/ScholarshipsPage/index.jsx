@@ -187,29 +187,29 @@ function ScholarshipsPage() {
 
             <div className="sp-modal-header">
               <span className="sp-modal-badge">
-                🎯 {analysisResult ? `${analysisResult.matchScore}% Real Profil Uyğunluğu` : 'Profil Hesablanır...'}
+                🎯 {analysisResult ? `${analysisResult.matchScore}% ${t('matchedUniversities.match', 'Uyğunluq')}` : t('profile.saving', 'Hesablanır...')}
               </span>
               <h3 className="sp-modal-title">{selectedSch.name}</h3>
               <p className="sp-modal-subtitle">
-                {analysisResult ? analysisResult.summary : 'Backend üzərindən istifadəçinin akademik göstəriciləri təhlil edilir...'}
+                {analysisResult ? analysisResult.summary : t('scholarshipsSection.evaluating', 'Backend üzərindən istifadəçinin akademik göstəriciləri təhlil edilir...')}
               </p>
             </div>
 
             {isEvaluating ? (
               <div style={{ padding: '30px', textAlign: 'center', color: '#7A5CFF', fontWeight: '600' }}>
-                Süni İntellekt istifadəçi profilini analız edir...
+                {t('scholarshipsSection.evaluating', 'Süni İntellekt istifadəçi profilini analız edir...')}
               </div>
             ) : (
               <div className="sp-modal-checklist">
                 {(analysisResult?.highlights || [
-                  `Təhsil Haqqı: ${selectedSch.amount}`,
-                  `Son Müraciət Tarixi: ${selectedSch.deadline}`,
-                  `Kimlər Üçün: ${selectedSch.eligible}`
+                  `${t('matchedUniversities.labels.tuition', 'Təhsil Haqqı')}: ${selectedSch.amount}`,
+                  `${t('scholarshipsSection.deadline', 'Son Müraciət Tarixi')}: ${selectedSch.deadline}`,
+                  `${t('scholarshipsSection.eligible', 'Kimlər Üçün')}: ${selectedSch.eligible}`
                 ]).map((hl, idx) => (
                   <div className="checklist-item" key={idx}>
                     <span className="chk-icon"><CheckCircleIcon /></span>
                     <div className="chk-text">
-                      <strong>Analiz Meyarı #{idx + 1}</strong>
+                      <strong>{t('scholarshipsSection.criteria', 'Analiz Meyarı')} #{idx + 1}</strong>
                       <span>{hl}</span>
                     </div>
                   </div>
@@ -225,18 +225,18 @@ function ScholarshipsPage() {
 
             {applicationSubmitted ? (
               <div style={{ background: '#ecfdf5', color: '#065f46', padding: '14px', borderRadius: '10px', fontSize: '0.875rem', textAlign: 'center', fontWeight: '600', marginBottom: '16px' }}>
-                ✅ Müraciətiniz bazada saxlanıldı və təlimat e-poçtunuza göndərildi!
+                ✅ {t('scholarshipsSection.appSavedMsg', 'Müraciətiniz bazada saxlanıldı və təlimat e-poçtunuza göndərildi!')}
               </div>
             ) : null}
 
             <div className="sp-modal-actions">
               {!applicationSubmitted ? (
                 <button className="btn-primary-modal" onClick={() => setApplicationSubmitted(true)}>
-                  Rəsmi Səhifədən Müraciət Et
+                  {t('scholarshipsSection.applyBtn', 'Rəsmi Səhifədən Müraciət Et')}
                 </button>
               ) : null}
               <button className="btn-secondary-modal" onClick={closeModal}>
-                Bağla
+                {t('portal.cancel', 'Bağla')}
               </button>
             </div>
           </div>
@@ -253,11 +253,11 @@ function ScholarshipsPage() {
 
             <div className="sp-modal-header">
               <span className="sp-modal-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
-                🔔 Xəbərdarlıq Xidməti
+                🔔 {t('scholarshipsSection.notifyBadge', 'Xəbərdarlıq Xidməti')}
               </span>
               <h3 className="sp-modal-title">{selectedSch.name}</h3>
               <p className="sp-modal-subtitle">
-                Bu təqaüd proqramının növbəti müraciət mərhələsi açılan kimi dərhal xəbərdar olacaqsınız.
+                {t('scholarshipsSection.notifySub', 'Bu təqaüd proqramının növbəti müraciət mərhələsi açılan kimi dərhal xəbərdar olacaqsınız.')}
               </p>
             </div>
 
@@ -265,26 +265,26 @@ function ScholarshipsPage() {
               <div className="checklist-item">
                 <span className="chk-icon" style={{ color: '#f59e0b' }}><BellIcon /></span>
                 <div className="chk-text">
-                  <strong>E-Poçt və SMS Bildirişləri</strong>
-                  <span>Müraciətlər açılan kimi profil e-poçt ünvanınıza avtomatik bildiriş göndəriləcəkdir.</span>
+                  <strong>{t('scholarshipsSection.emailNotifyTitle', 'E-Poçt və SMS Bildirişləri')}</strong>
+                  <span>{t('scholarshipsSection.emailNotifyDesc', 'Müraciətlər açılan kimi profil e-poçt ünvanınıza avtomatik bildiriş göndəriləcəkdir.')}</span>
                 </div>
               </div>
             </div>
 
             {notificationSaved ? (
               <div style={{ background: '#ecfdf5', color: '#065f46', padding: '14px', borderRadius: '10px', fontSize: '0.875rem', textAlign: 'center', fontWeight: '600', marginBottom: '16px' }}>
-                🔔 Xəbərdarlıq sorğunuz PostgreSQL bazasında saxlanıldı və e-poçt göndəriş növbəsinə əlavə olundu!
+                🔔 {t('scholarshipsSection.notifySavedMsg', 'Xəbərdarlıq sorğunuz PostgreSQL bazasında saxlanıldı və e-poçt göndəriş növbəsinə əlavə olundu!')}
               </div>
             ) : null}
 
             <div className="sp-modal-actions">
               {!notificationSaved ? (
                 <button className="btn-primary-modal" onClick={handleActivateNotification} disabled={isSubscribing}>
-                  {isSubscribing ? 'Yadda Saxlanılır...' : 'Bildirişi Aktivləşdir'}
+                  {isSubscribing ? t('profile.saving', 'Yadda Saxlanılır...') : t('scholarshipsSection.activateNotifyBtn', 'Bildirişi Aktivləşdir')}
                 </button>
               ) : null}
               <button className="btn-secondary-modal" onClick={closeModal}>
-                Bağla
+                {t('portal.cancel', 'Bağla')}
               </button>
             </div>
           </div>

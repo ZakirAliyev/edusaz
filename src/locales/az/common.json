@@ -324,5 +324,16 @@
     "scholarshipsSubtitle": "Müəssisənizin təklif etdiyi təqaüdləri yaradın və tənzimləyin.",
     "studentLeadsTitle": "Tələbə Müraciətləri Və Qəbullar",
     "studentLeadsSubtitle": "Sayt vasitəsilə universitetinizə müraciət etmiş yeni tələbələri idarə edin və qəbul statusunu dəyişin."
+  },
+  "partnerModal": {
+    "successTitle": "Tərəfdaşlıq Müraciətiniz Qəbul Olundu!",
+    "subtitle": "Universitetinizi EDUSAZ platformasında qeydiyyatdan keçirin və qlobal tələbələrə çatın.",
+    "institutionName": "Universitet / Müəssisə Adı",
+    "contactName": "Nümayəndənin Adı Soyadı",
+    "email": "Rəsmi E-poçt",
+    "phone": "Əlaqə Nömrəsi",
+    "country": "Ölkə",
+    "message": "Əlavə Qeyd / Mesaj",
+    "sendBtn": "Müraciəti Göndər"
   }
 }

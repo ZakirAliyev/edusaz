@@ -324,5 +324,16 @@
     "scholarshipsSubtitle": "Manage full, partial, and merit-based financial aid options for international students.",
     "studentLeadsTitle": "Student Leads & Applications",
     "studentLeadsSubtitle": "Review and manage student applications received for your institution."
+  },
+  "partnerModal": {
+    "successTitle": "Partnership Application Received!",
+    "subtitle": "Register your university on the EDUSAZ platform and reach global students.",
+    "institutionName": "University / Institution Name",
+    "contactName": "Contact Person Full Name",
+    "email": "Official Email",
+    "phone": "Phone Number",
+    "country": "Country",
+    "message": "Additional Note / Message",
+    "sendBtn": "Submit Application"
   }
 }
