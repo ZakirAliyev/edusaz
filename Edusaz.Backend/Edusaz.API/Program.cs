@@ -95,17 +95,20 @@ using (var scope = app.Services.CreateScope())
     await Edusaz.Infrastructure.Contexts.DataSeeder.SeedAsync(scope.ServiceProvider);
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Enable Swagger UI in all environments (including Production at /swagger)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Edusaz API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapGet("/", () => Results.Redirect("/swagger/index.html"));
+app.MapGet("/swagger", () => Results.Redirect("/swagger/index.html"));
 app.MapControllers();
 
 app.Run();
