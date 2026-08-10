@@ -7,7 +7,10 @@
     "destinations": "الأماكن",
     "forUniversities": "للجامعات",
     "signIn": "تسجيل الدخول",
-    "aiDiscovery": "اكتشاف الذكاء الاصطناعي"
+    "aiDiscovery": "اكتشاف الذكاء الاصطناعي",
+    "profile": "الملف الشخصي",
+    "portal": "بوابة الجامعة",
+    "exit": "تسجيل الخروج"
   },
   "hero": {
     "badge": "اكتشاف الجامعات العالمية بالذكاء الاصطناعي",
@@ -127,5 +130,29 @@
     "continue": "متابعة",
     "submitSignIn": "تسجيل الدخول",
     "submitRegister": "إنشاء حساب"
+  },
+  "profile": {
+    "title": "المعلومات الشخصية والأكاديمية",
+    "updatedSuccess": "تم تحديث بياناتك",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "email": "عنوان البريد الإلكتروني",
+    "phone": "رقم الهاتف",
+    "country": "الجنسية",
+    "degreeLevel": "مستوى التعليم",
+    "gpa": "المعدل التراكمي (GPA 4.0)",
+    "englishScore": "شهادة اللغة",
+    "desiredField": "مجال الدراسة المرغوب",
+    "saveBtn": "حفظ التغييرات",
+    "saving": "جارٍ التحديث...",
+    "applicationStatus": "حالة الطلب",
+    "activeScholarships": "تحليلات المنح النشطة",
+    "emailNotifications": "إشعارات البريد",
+    "profileCompletion": "اكتمال الملف الشخصي",
+    "recentActivity": "النشاط الأخير",
+    "studentAccount": "حساب الطالب",
+    "bachelor": "بكالوريوس",
+    "master": "ماجستير",
+    "phd": "دكتوراه"
   }
 }

@@ -67,7 +67,7 @@ function MatchedUniversities() {
           <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading backend universities...</div>
         ) : (
           <div className="mu-grid">
-            {apiUniversities.slice(0, 6).map(uni => (
+            {(Array.isArray(apiUniversities) ? apiUniversities : (apiUniversities?.data || [])).slice(0, 6).map(uni => (
               <Link to={`/universities/${uni.id}`} key={uni.id} style={{ textDecoration: 'none', color: 'inherit' }}>
                 <div className="mu-card">
                   <div className="mu-card-img-wrapper">

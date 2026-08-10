@@ -94,6 +94,30 @@
     "continue": "Continue",
     "submitSignIn": "Sign In",
     "submitRegister": "Create Account"
+  },
+  "profile": {
+    "title": "Personal & Academic Information",
+    "updatedSuccess": "Məlumatlarınız yeniləndi",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "country": "Country of Citizenship",
+    "degreeLevel": "Degree Level",
+    "gpa": "GPA (Out of 4.0)",
+    "englishScore": "Language Certificate",
+    "desiredField": "Desired Field of Study",
+    "saveBtn": "Save Changes",
+    "saving": "Updating...",
+    "applicationStatus": "Application Status",
+    "activeScholarships": "Active Scholarship Analyses",
+    "emailNotifications": "Email Notifications",
+    "profileCompletion": "Profile Completion",
+    "recentActivity": "Recent Activity",
+    "studentAccount": "Student Account",
+    "bachelor": "Bachelor",
+    "master": "Master",
+    "phd": "PhD"
   }
 }
 

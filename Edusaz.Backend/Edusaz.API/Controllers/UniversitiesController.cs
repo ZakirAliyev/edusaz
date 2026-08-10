@@ -20,9 +20,9 @@ public class UniversitiesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string lang = "en")
+    public async Task<IActionResult> GetAll([FromQuery] string lang = "en", [FromQuery] Guid? countryId = null)
     {
-        var result = await _universityService.GetAllUniversitiesAsync(lang);
+        var result = await _universityService.GetAllUniversitiesAsync(lang, countryId);
         return Ok(ApiResponse<List<UniversityDto>>.SuccessResponse(result));
     }
 
@@ -46,5 +46,35 @@ public class UniversitiesController : ControllerBase
         {
             return BadRequest(ApiResponse<UniversityDto>.ErrorResponse(ex.Message, 400));
         }
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] CreateUniversityDto dto)
+    {
+        try
+        {
+            var result = await _universityService.UpdateUniversityAsync(id, dto);
+            return Ok(ApiResponse<UniversityDto>.SuccessResponse(result, "University updated successfully"));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResponse<UniversityDto>.ErrorResponse(ex.Message, 400));
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var result = await _universityService.DeleteUniversityAsync(id);
+        if (!result) return NotFound(ApiResponse<bool>.ErrorResponse("University not found", 404));
+        return Ok(ApiResponse<bool>.SuccessResponse(true, "University deleted successfully"));
+    }
+
+    [HttpPut("{id}/approve")]
+    public async Task<IActionResult> Approve(Guid id)
+    {
+        var result = await _universityService.ApproveUniversityAsync(id);
+        if (!result) return NotFound(ApiResponse<bool>.ErrorResponse("University not found", 404));
+        return Ok(ApiResponse<bool>.SuccessResponse(true, "University approved successfully"));
     }
 }

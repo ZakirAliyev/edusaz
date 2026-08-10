@@ -15,6 +15,18 @@ public class EdusazDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<Language> Languages { get; set; }
     public DbSet<University> Universities { get; set; }
     public DbSet<UniversityTranslation> UniversityTranslations { get; set; }
+    public DbSet<Program> Programs { get; set; }
+    public DbSet<ProgramTranslation> ProgramTranslations { get; set; }
+    public DbSet<Country> Countries { get; set; }
+    public DbSet<CountryTranslation> CountryTranslations { get; set; }
+    public DbSet<Scholarship> Scholarships { get; set; }
+    public DbSet<ScholarshipTranslation> ScholarshipTranslations { get; set; }
+    public DbSet<ScholarshipSubscription> ScholarshipSubscriptions { get; set; }
+    public DbSet<PartnershipApplication> PartnershipApplications { get; set; }
+    public DbSet<StudentApplication> StudentApplications { get; set; }
+    public DbSet<Campaign> Campaigns { get; set; }
+    public DbSet<CampaignTranslation> CampaignTranslations { get; set; }
+    public DbSet<TeamMember> TeamMembers { get; set; }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

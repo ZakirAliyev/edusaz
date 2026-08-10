@@ -179,7 +179,53 @@
       .header-actions {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 16px;
+
+        // Language selector override for light admin header
+        .portal-lang-selector {
+          .lang-selector-component {
+            .lang-trigger-btn {
+              background: #f1f5f9;
+              border: 1px solid #e2e8f0;
+              color: #0f172a;
+              
+              svg { color: #7A5CFF; }
+
+              &:hover {
+                background: #e9efff;
+                border-color: #7A5CFF;
+              }
+            }
+
+            .lang-dropdown-menu {
+              background: #ffffff;
+              border-color: #e2e8f0;
+              box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+
+              .lang-search-box {
+                background: #f8fafc;
+                border-color: #e2e8f0;
+
+                input { 
+                  color: #0f172a; 
+                  background: transparent;
+                  &::placeholder { color: #94a3b8; }
+                }
+                svg { color: #94a3b8; }
+              }
+
+              .lang-option {
+                color: #0f172a;
+                &:hover { background: #f1f5f9; }
+                &.active { background: rgba(122, 92, 255, 0.1); color: #7A5CFF; }
+                .opt-code { color: #94a3b8; }
+                .opt-check { color: #7A5CFF; }
+              }
+
+              .no-lang-found { color: #94a3b8; }
+            }
+          }
+        }
         
         .btn-icon {
           background: transparent;
@@ -685,7 +731,7 @@
             color: #334155;
           }
 
-          input, textarea {
+          input, textarea, select {
             padding: 16px 20px;
             border: 1px solid #cbd5e1;
             border-radius: 12px;
@@ -701,6 +747,18 @@
               border-color: #7A5CFF;
               box-shadow: 0 0 0 4px rgba(122, 92, 255, 0.1);
             }
+          }
+
+          select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237A5CFF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 20px;
+            padding-right: 44px;
+            cursor: pointer;
           }
           
           textarea {
@@ -1019,10 +1077,159 @@
 @media screen and (max-width: 768px) {
   .university-portal {
     .portal-sidebar {
-      display: none; /* In a real app, this would be a hamburger menu */
+      width: 80px;
+      .brand-name, .portal-badge, .uni-info, .sidebar-footer span { display: none; }
+      .sidebar-header { justify-content: center; padding: 16px; }
+      .university-identity { padding: 16px; justify-content: center; }
+      .sidebar-nav .nav-item { justify-content: center; padding: 12px; }
     }
     .portal-main {
-      margin-left: 0;
+      margin-left: 80px;
     }
   }
 }
+
+/* Modal Overlay & High Contrast Responsive Styling */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(8, 7, 24, 0.85);
+  backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.portal-modal {
+  width: 100%;
+  max-width: 750px;
+  max-height: 90vh;
+  background: #110e2b;
+  border: 1px solid rgba(122, 92, 255, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .modal-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+
+    h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #94a3b8;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 32px;
+    overflow-y: auto;
+    flex: 1;
+
+    .ai-notice-box {
+      background: rgba(122, 92, 255, 0.12) !important;
+      border: 1px solid rgba(122, 92, 255, 0.4) !important;
+      color: #e2e8f0 !important;
+      font-size: 14px;
+      line-height: 1.5;
+
+      strong {
+        color: #a78bfa;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+
+      label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #cbd5e1 !important;
+      }
+
+      input, select, textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #ffffff !important;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.2s ease;
+
+        &::placeholder {
+          color: #64748b !important;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: #7A5CFF !important;
+          box-shadow: 0 0 0 3px rgba(122, 92, 255, 0.25) !important;
+          background: rgba(255, 255, 255, 0.09) !important;
+        }
+
+        option {
+          background: #110e2b;
+          color: #ffffff;
+        }
+      }
+    }
+  }
+
+  .modal-footer {
+    padding: 20px 32px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+  }
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+

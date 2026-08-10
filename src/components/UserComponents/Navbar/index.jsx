@@ -130,11 +130,11 @@ function Navbar() {
 
                         {isLoggedIn ? (
                             <div className="logged-in-profile">
-                                <Link to={userRole === 'University' ? '/university-portal' : '/'} className="btn-profile">
-                                    <UserIcon /> {userRole === 'University' ? 'Portal' : 'Profile'}
+                                <Link to={userRole === 'University' || userRole === 'university' ? '/university-portal' : (userRole === 'Admin' || userRole === 'admin' ? '/superadmin' : '/profile')} className="btn-profile">
+                                    <UserIcon /> {userRole === 'University' || userRole === 'university' ? t('nav.portal') : t('nav.profile')}
                                 </Link>
                                 <button className="btn-signout" onClick={handleSignOut}>
-                                    Exit
+                                    {t('nav.exit')}
                                 </button>
                             </div>
                         ) : (
@@ -185,9 +185,10 @@ function Navbar() {
                         <LanguageSelector isMobile={true} />
                         {isLoggedIn ? (
                             <button className="mobile-btn-signin" onClick={() => { handleSignOut(); toggleMenu(); }}>
-                                Exit (Sign Out)
+                                {t('nav.exit')}
                             </button>
                         ) : (
+
                             <Link to="/signin" className="mobile-btn-signin" onClick={toggleMenu}>
                                 {t('nav.signIn')}
                             </Link>

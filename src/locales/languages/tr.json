@@ -94,5 +94,29 @@
     "continue": "Devam Et",
     "submitSignIn": "Giriş Yap",
     "submitRegister": "Hesap Oluştur"
+  },
+  "profile": {
+    "title": "Kişisel ve Akademik Bilgiler",
+    "updatedSuccess": "Bilgileriniz güncellendi",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "email": "E-posta Adresi",
+    "phone": "İletişim Numarası",
+    "country": "Vatandaşlık Ülkesi",
+    "degreeLevel": "Eğitim Derecesi",
+    "gpa": "Not Ortalaması (GPA 4.0)",
+    "englishScore": "Yabancı Dil Sertifikası",
+    "desiredField": "İstediğiniz Alan / Bölüm",
+    "saveBtn": "Değişiklikleri Kaydet",
+    "saving": "Güncelleniyor...",
+    "applicationStatus": "Başvuru Durumu",
+    "activeScholarships": "Aktif Burs Analizleri",
+    "emailNotifications": "E-posta Bildirimleri",
+    "profileCompletion": "Profil Tamamlanma",
+    "recentActivity": "Son Etkinlikler",
+    "studentAccount": "Öğrenci Hesabı",
+    "bachelor": "Lisans",
+    "master": "Yüksek Lisans",
+    "phd": "Doktora"
   }
 }

@@ -1,5 +1,9 @@
-import './index.scss';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../../../context/LanguageContext';
+import { useGetCountriesQuery } from '../../../services/apis/userApi';
+import './index.scss';
 
 const SparklesIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
@@ -50,6 +54,23 @@ const GradCapIcon = () => (
 
 function Hero() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
+  const navigate = useNavigate();
+  const { data: countries = [] } = useGetCountriesQuery(language);
+
+  const [fromCountry, setFromCountry] = useState('');
+  const [toCountry, setToCountry] = useState('');
+  const [fieldOfStudy, setFieldOfStudy] = useState('');
+  const [degreeLevel, setDegreeLevel] = useState('');
+
+  const handleSearch = () => {
+    const queryParams = new URLSearchParams();
+    if (toCountry) queryParams.set('country', toCountry);
+    if (fieldOfStudy) queryParams.set('field', fieldOfStudy);
+    if (degreeLevel) queryParams.set('level', degreeLevel);
+    
+    navigate(`/universities?${queryParams.toString()}`);
+  };
 
   return (
     <section id="hero">
@@ -71,12 +92,11 @@ function Hero() {
               <span className="field-label">{t('hero.labels.from')}</span>
               <div className="field-row">
                 <FlagIcon />
-                <select className="field-select" defaultValue="">
+                <select className="field-select" value={fromCountry} onChange={(e) => setFromCountry(e.target.value)}>
                   <option value="" disabled hidden>{t('hero.placeholders.from')}</option>
-                  <option value="AZ">Azerbaijan</option>
-                  <option value="TR">Turkey</option>
-                  <option value="RU">Russia</option>
-                  <option value="US">United States</option>
+                  {countries.map(c => (
+                    <option key={c.id} value={c.code}>{c.flagEmoji} {c.name}</option>
+                  ))}
                 </select>
                 <ChevronIcon />
               </div>
@@ -86,12 +106,11 @@ function Hero() {
               <span className="field-label">{t('hero.labels.to')}</span>
               <div className="field-row">
                 <MapPinIcon />
-                <select className="field-select" defaultValue="">
+                <select className="field-select" value={toCountry} onChange={(e) => setToCountry(e.target.value)}>
                   <option value="" disabled hidden>{t('hero.placeholders.to')}</option>
-                  <option value="UK">United Kingdom</option>
-                  <option value="DE">Germany</option>
-                  <option value="CA">Canada</option>
-                  <option value="AU">Australia</option>
+                  {countries.map(c => (
+                    <option key={c.id} value={c.id}>{c.flagEmoji} {c.name}</option>
+                  ))}
                 </select>
                 <ChevronIcon />
               </div>
@@ -101,12 +120,12 @@ function Hero() {
               <span className="field-label">{t('hero.labels.field')}</span>
               <div className="field-row">
                 <BookIcon />
-                <select className="field-select" defaultValue="">
+                <select className="field-select" value={fieldOfStudy} onChange={(e) => setFieldOfStudy(e.target.value)}>
                   <option value="" disabled hidden>{t('hero.placeholders.field')}</option>
-                  <option value="CS">Computer Science</option>
-                  <option value="ENG">Engineering</option>
-                  <option value="BIZ">Business</option>
-                  <option value="MED">Medicine</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Business">Business</option>
+                  <option value="Medicine">Medicine</option>
                 </select>
                 <ChevronIcon />
               </div>
@@ -116,11 +135,11 @@ function Hero() {
               <span className="field-label">{t('hero.labels.level')}</span>
               <div className="field-row">
                 <GradCapIcon />
-                <select className="field-select" defaultValue="">
+                <select className="field-select" value={degreeLevel} onChange={(e) => setDegreeLevel(e.target.value)}>
                   <option value="" disabled hidden>{t('hero.placeholders.level')}</option>
-                  <option value="B">Bachelor's</option>
-                  <option value="M">Master's</option>
-                  <option value="P">PhD</option>
+                  <option value="Bachelor">Bachelor</option>
+                  <option value="Master">Master</option>
+                  <option value="PhD">PhD</option>
                 </select>
                 <ChevronIcon />
               </div>
@@ -130,11 +149,11 @@ function Hero() {
 
           {/* Actions */}
           <div className="search-actions">
-            <button className="btn-find">
+            <button className="btn-find" onClick={handleSearch}>
               <SearchIcon />
               <span>{t('hero.buttons.find')}</span>
             </button>
-            <button className="btn-ai">
+            <button className="btn-ai" onClick={() => navigate('/ai-discovery')}>
               <SparklesIcon />
               <span>{t('hero.buttons.ai')}</span>
             </button>

@@ -94,6 +94,30 @@
     "continue": "Продолжить",
     "submitSignIn": "Войти",
     "submitRegister": "Создать аккаунт"
+  },
+  "profile": {
+    "title": "Личные и академические данные",
+    "updatedSuccess": "Məlumatlarınız yeniləndi",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "email": "Электронная почта",
+    "phone": "Номер телефона",
+    "country": "Гражданство",
+    "degreeLevel": "Уровень образования",
+    "gpa": "Средний балл (GPA 4.0)",
+    "englishScore": "Языковой сертификат",
+    "desiredField": "Желаемая специальность",
+    "saveBtn": "Сохранить изменения",
+    "saving": "Обновление...",
+    "applicationStatus": "Статус заявки",
+    "activeScholarships": "Активные анализы стипендий",
+    "emailNotifications": "Email уведомления",
+    "profileCompletion": "Заполненность профиля",
+    "recentActivity": "Последняя активность",
+    "studentAccount": "Студенческий аккаунт",
+    "bachelor": "Бакалавриат",
+    "master": "Магистратура",
+    "phd": "Докторантура"
   }
 }
 

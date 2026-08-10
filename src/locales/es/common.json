@@ -7,7 +7,10 @@
     "destinations": "Países",
     "forUniversities": "Para Universidades",
     "signIn": "Iniciar sesión",
-    "aiDiscovery": "Búsqueda IA"
+    "aiDiscovery": "Búsqueda IA",
+    "profile": "Perfil",
+    "portal": "Portal Universitario",
+    "exit": "Salir"
   },
   "hero": {
     "badge": "Búsqueda global de universidades impulsada por IA",
@@ -127,5 +130,29 @@
     "continue": "Continuar",
     "submitSignIn": "Iniciar Sesión",
     "submitRegister": "Crear Cuenta"
+  },
+  "profile": {
+    "title": "Información personal y académica",
+    "updatedSuccess": "Sus datos han sido actualizados",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Correo electrónico",
+    "phone": "Número de teléfono",
+    "country": "Ciudadanía",
+    "degreeLevel": "Nivel educativo",
+    "gpa": "Promedio (GPA 4.0)",
+    "englishScore": "Certificado de idioma",
+    "desiredField": "Campo de estudio deseado",
+    "saveBtn": "Guardar cambios",
+    "saving": "Actualizando...",
+    "applicationStatus": "Estado de solicitud",
+    "activeScholarships": "Análisis de becas activas",
+    "emailNotifications": "Notificaciones por correo",
+    "profileCompletion": "Completitud del perfil",
+    "recentActivity": "Actividad reciente",
+    "studentAccount": "Cuenta de estudiante",
+    "bachelor": "Licenciatura",
+    "master": "Maestría",
+    "phd": "Doctorado"
   }
 }

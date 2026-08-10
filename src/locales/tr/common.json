@@ -7,65 +7,117 @@
     "destinations": "Ülkeler",
     "forUniversities": "Üniversiteler İçin",
     "signIn": "Giriş Yap",
-    "aiDiscovery": "AI Keşif"
+    "aiDiscovery": "AI Keşif",
+    "profile": "Profile",
+    "portal": "University Portal",
+    "exit": "Exit"
   },
   "hero": {
     "badge": "Yapay Zeka Destekli Küresel Üniversite Keşfi",
-    "titlePart1": "Geleceğinizi",
-    "titlePart2": "Yapay Zeka İle Bulun",
-    "subtitle": "Bize kendinizden bahsedin. Yapay zekamız sizi dünyanın en iyi üniversiteleriyle eşleştirir — burslar, vize rehberi ve kabul olasılığı dahil.",
+    "titlePart1": "Geleceğini bul",
+    "titlePart2": "Yapay Zeka İle",
+    "subtitle": "Bize kendinden bahset. Yapay zekamız seni dünyanın en iyi üniversiteleri, burslar ve vize rehberliği ile eşleştirsin.",
     "labels": {
-      "from": "NEREDENSİNİZ",
-      "to": "EĞİTİM ALMAK İSTEDİĞİM ÜLKE",
-      "field": "BÖLÜM ALANI",
-      "level": "DERECE"
+      "from": "NERELİYİM",
+      "to": "NEREDE OKUMAK İSTİYORUM",
+      "field": "EĞİTİM ALANI",
+      "level": "EĞİTİM SEVİYESİ"
     },
     "placeholders": {
-      "from": "Ülkeniz",
-      "to": "Ülke",
-      "field": "Bölüm seçin",
-      "level": "Derece seçin"
+      "from": "Ülkenizi seçin",
+      "to": "Ülke seçin",
+      "field": "Alan seçin",
+      "level": "Seviye seçin"
     },
     "buttons": {
       "find": "Üniversiteleri Bul",
-      "ai": "Tam AI Keşif"
+      "ai": "Tam AI Keşfi"
     },
     "stats": {
       "universities": "Üniversite",
       "countries": "Ülke",
-      "scholarships": "Burs",
+      "scholarships": "Burs Programı",
       "languages": "Dil"
     }
   },
   "howItWorks": {
     "badge": "EDUSAZ Nasıl Çalışır",
-    "titlePart1": "Profilinizden eşleşen listeye",
-    "titlePart2": "3 dakikada",
+    "titlePart1": "Profilinizden eşleşen listenize",
+    "titlePart2": "3 dakikadan kısa sürede",
     "step1": {
-      "title": "Hakkınızda bilgi verin",
+      "title": "Bize kendinizden bahsedin",
       "desc": "Bölümünüzü, tercih ettiğiniz ülkeyi, bütçenizi ve dil seviyenizi belirtin."
     },
     "step2": {
       "title": "AI her şeyi analiz eder",
-      "desc": "2,500+ üniversite, 150,000+ burs programı, vize kuralları ve kabul istatistiklerini inceler."
+      "desc": "2,500+ üniversiteyi, 150,000+ bursu ve kabul şanslarını tarar."
     },
     "step3": {
-      "title": "Sıralanmış listenizi alın",
-      "desc": "AI eşleşme skoru, burs imkanları ve adım adım eylem planı içeren kişiselleştirilmiş listeniz."
+      "title": "Sıralanmış eşleşme listenizi alın",
+      "desc": "AI uyum puanları ve sonraki adımlarla kişiselleştirilmiş listenizi alın."
     },
-    "button": "AI Keşfine Başla"
+    "button": "AI Keşfini Başlat"
+  },
+  "aiAdvisorSection": {
+    "badge": "AI Eğitim Danışmanı",
+    "titlePart1": "Bir arama motoru değil.",
+    "titlePart2": "Sizi anlayan bir Yapay Zeka.",
+    "descPart1": "Manuel aramak yerine AI danışmanımıza söyleyin: ",
+    "descExample": "\"Nijerya'dan geliyorum ve Azerbaycan'da 5.000$ bütçeyle Tıp okumak istiyorum.\"",
+    "descPart2": " Anında kişiselleştirilmiş sonuçlar alın.",
+    "feature1": "Her üniversite için kabul olasılığı",
+    "feature2": "Profilinizle eşleşen mevcut burslar",
+    "feature3": "Vize gereksinimleri ve adım adım rehberlik",
+    "chatTitle": "EDUSAZ AI Danışmanı",
+    "chatSubtitle": "2.500+ üniversite analiz ediliyor",
+    "userMsg": "Nijerya'dan geliyorum. Azerbaycan'da Tıp okumak istiyorum. Bütçe: $5.000/yıl.",
+    "botResponse": "Profilinize uygun 8 üniversite bulundu:",
+    "upTo100": "%100'e kadar",
+    "partial75": "%75 kısmi"
+  },
+  "forUniversitiesSection": {
+    "badge": "Üniversiteler İçin",
+    "titlePart1": "500.000+ küresel öğrenci çekin",
+    "titlePart2": "AI hassasiyetiyle",
+    "subtitle": "Nitelikli uluslararası öğrencilere ulaşmak için EDUSAZ platformunu kullanan 180+ üniversiteye katılın. Doğrulanmış profil, öncelikli görünürlük ve detaylı analitik.",
+    "monthlyLeads": "Aylık öğrenci başvurusu",
+    "leadScore": "Kalite skoru",
+    "sourceCountries": "Öğrenci kaynağı ülke",
+    "partnerUnis": "Partner üniversite",
+    "feature1Title": "Doğrulanmış Üniversite Profili",
+    "feature1Desc": "Resmi rozet, sıralamalar ve akreditasyonlar öğrencilere belirgin şekilde gösterilir",
+    "feature2Title": "Premium Görünürlük ve AI Önceliği",
+    "feature2Desc": "AI önerilerinde ve arama sonuçlarında ön sıralarda yer alın",
+    "feature3Title": "Ön Elemeden Geçmiş Öğrenci Başvuruları",
+    "feature3Desc": "Programlarınıza, şartlarınıza ve bütçenize uygun öğrencilerle bağlantı kurun",
+    "feature4Title": "Öğrenci Çekme Analiz Paneli",
+    "feature4Desc": "Görüntülemeleri, sorguları ve başvuru sonuçlarını gerçek zamanlı takip edin",
+    "partnerBtn": "EDUSAZ ile Partner Olun"
+  },
+  "scholarshipsSection": {
+    "titleSuffix": "uluslararası öğrenciler için",
+    "open": "Açık",
+    "closed": "Kapalı",
+    "checkEligibility": "Uygunluğu Kontrol Et",
+    "getNotified": "Bildirim Al",
+    "deadline": "Son başvuru",
+    "eligible": "Kimler için",
+    "fullFunding": "Tam burs",
+    "fullStipend": "Tam + aylık burs",
+    "allNationalities": "Tüm ülkeler",
+    "developingCountries": "Gelişmekte olan ülkeler"
   },
   "topDestinations": {
     "badge": "Ülkeler",
-    "title": "En popüler eğitim ülkeleri",
+    "title": "Dünyanın en popüler eğitim ülkeleri",
     "viewAll": "Hepsini gör",
     "countSuffix": "üniversite"
   },
   "destinations": {
     "explore": "Keşfet",
     "labels": {
-      "az": "Uygun Fiyatlı ve Gelişen",
-      "tr": "Popüler Hedef",
+      "az": "Uygun Fiyatlı & Büyüyen",
+      "tr": "Popüler Destinasyon",
       "de": "Ücretsiz Eğitim Seçenekleri",
       "uk": "Dünya Çapında Sıralama",
       "ca": "Mezuniyet Sonrası Çalışma Vizesi",
@@ -78,9 +130,9 @@
   },
   "matchedUniversities": {
     "badge": "Üniversiteler",
-    "title": "Uluslararası öğrenciler için uygun üniversiteler",
+    "title": "Uluslararası öğrenciler için eşleşti",
     "browseAll": "Tümünü incele",
-    "match": "Eşleşme",
+    "match": "Uyum",
     "scholarship": "Burs",
     "est": "Kuruluş:",
     "labels": {
@@ -90,14 +142,14 @@
     }
   },
   "footer": {
-    "desc": "Dünyanın en akıllı üniversite bulma, karşılaştırma ve başvuru platformu.",
+    "desc": "Küresel çapta üniversiteleri bulmak, karşılaştırmak ve başvurmak için dünyanın en zeki platformu.",
     "studentsTitle": "ÖĞRENCİLER",
     "universitiesTitle": "ÜNİVERSİTELER",
     "platformTitle": "PLATFORM",
     "universityDashboard": "Üniversite Paneli",
     "rightsReserved": "Tüm hakları saklıdır.",
     "privacy": "Gizlilik Politikası",
-    "terms": "Kullanım Şartları",
+    "terms": "Kullanım Koşulları",
     "cookies": "Çerezler",
     "stats": {
       "universities": "Üniversite",
@@ -107,8 +159,8 @@
     }
   },
   "auth": {
-    "signInTitle": "Giriş Yapın",
-    "welcomeBack": "EDUSAZ'a Tekrar Hoş Geldiniz",
+    "signInTitle": "Giriş Yap",
+    "welcomeBack": "EDUSAZ'a tekrar hoş geldiniz",
     "subtitle": "Dünyanın en iyi üniversitelerine giden yolunuz burada devam ediyor.",
     "newToEdusaz": "EDUSAZ'da yeni misiniz?",
     "createAccount": "Hesap oluşturun",
@@ -116,16 +168,40 @@
     "passwordLabel": "Şifre",
     "firstName": "Ad",
     "lastName": "Soyad",
-    "whoAreYou": "Kimsiniz?",
+    "whoAreYou": "Siz kimsiniz?",
     "selectRole": "Deneyiminizi kişiselleştirmek için rolünüzü seçin.",
     "studentRole": "Öğrenci",
     "studentDesc": "Gelecekteki üniversitemi bulmak istiyorum",
     "universityRole": "Üniversite / Kurum",
-    "universityDesc": "Uluslararası öğrenci kabul etmek istiyorum",
+    "universityDesc": "Uluslararası öğrenciler çekmek istiyorum",
     "agentRole": "Eğitim Danışmanı",
     "agentDesc": "Öğrencilere başvuru sürecinde yardımcı oluyorum",
     "continue": "Devam Et",
     "submitSignIn": "Giriş Yap",
     "submitRegister": "Hesap Oluştur"
+  },
+  "profile": {
+    "title": "Kişisel ve Akademik Bilgiler",
+    "updatedSuccess": "Bilgileriniz güncellendi",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "email": "E-posta Adresi",
+    "phone": "İletişim Numarası",
+    "country": "Vatandaşlık Ülkesi",
+    "degreeLevel": "Eğitim Derecesi",
+    "gpa": "Not Ortalaması (GPA 4.0)",
+    "englishScore": "Yabancı Dil Sertifikası",
+    "desiredField": "İstediğiniz Alan / Bölüm",
+    "saveBtn": "Değişiklikleri Kaydet",
+    "saving": "Güncelleniyor...",
+    "applicationStatus": "Başvuru Durumu",
+    "activeScholarships": "Aktif Burs Analizleri",
+    "emailNotifications": "E-posta Bildirimleri",
+    "profileCompletion": "Profil Tamamlanma",
+    "recentActivity": "Son Etkinlikler",
+    "studentAccount": "Öğrenci Hesabı",
+    "bachelor": "Lisans",
+    "master": "Yüksek Lisans",
+    "phd": "Doktora"
   }
 }

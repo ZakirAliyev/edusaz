@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import PartnerModal from '../../../components/UserComponents/PartnerModal';
 import './index.scss';
 
 const BuildingIcon = () => (
@@ -65,6 +67,7 @@ const CheckIcon = () => (
 
 function ForUniversitiesPage() {
   const { t } = useTranslation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="for-universities-page">
@@ -84,12 +87,12 @@ function ForUniversitiesPage() {
               {t('hero.subtitle')}
             </p>
             <div className="fu-actions">
-              <Link to="/register" className="btn-primary">
-                {t('auth.createAccount')} <span>&rarr;</span>
-              </Link>
-              <button className="btn-secondary">
-                <PlayIcon /> {t('hero.buttons.ai')}
+              <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
+                {t('forUniversitiesSection.partnerBtn', 'Tərəfdaş Olun')} <span>&rarr;</span>
               </button>
+              <Link to="/register" className="btn-secondary">
+                {t('auth.createAccount')}
+              </Link>
             </div>
           </div>
         </div>
@@ -128,77 +131,84 @@ function ForUniversitiesPage() {
         <div className="container">
           <div className="pricing-header">
             <span className="pricing-badge">{t('nav.forUniversities')}</span>
-            <h2>{t('hero.titlePart1')} <span className="pricing-highlight">{t('hero.titlePart2')}</span></h2>
+            <h2>{t('pricingSection.headerTitlePart1')} <span className="pricing-highlight">{t('pricingSection.headerTitlePart2')}</span></h2>
           </div>
 
           <div className="pricing-cards">
             {/* Verified Profile */}
             <div className="price-card">
               <div className="pc-header">
-                <h3>Verified Partner</h3>
-                <p>Get found by qualified students</p>
+                <h3>{t('pricingSection.verifiedPartner')}</h3>
+                <p>{t('pricingSection.verifiedDesc')}</p>
               </div>
               <div className="pc-price">
-                <h2>$299<span>/mo</span></h2>
+                <h2>$299<span>{t('pricingSection.perMonth')}</span></h2>
               </div>
-              <button className="btn-outline">{t('howItWorks.button')}</button>
+              <button className="btn-outline" onClick={() => setIsModalOpen(true)}>
+                {t('forUniversitiesSection.partnerBtn', 'Müraciət Et')}
+              </button>
               <ul className="pc-features">
-                <li><CheckIcon /> Official verified badge</li>
-                <li><CheckIcon /> Basic university profile</li>
-                <li><CheckIcon /> Appear in AI search results</li>
-                <li><CheckIcon /> Student inquiries inbox</li>
-                <li><CheckIcon /> Monthly analytics report</li>
+                <li><CheckIcon /> {t('pricingSection.f1')}</li>
+                <li><CheckIcon /> {t('pricingSection.f2')}</li>
+                <li><CheckIcon /> {t('pricingSection.f3')}</li>
+                <li><CheckIcon /> {t('pricingSection.f4')}</li>
+                <li><CheckIcon /> {t('pricingSection.f5')}</li>
               </ul>
             </div>
 
             {/* Premium */}
             <div className="price-card premium">
-              <div className="popular-badge">Most Popular</div>
+              <div className="popular-badge">{t('pricingSection.mostPopular')}</div>
               <div className="pc-header">
-                <h3>Premium</h3>
-                <p>Maximize your visibility</p>
+                <h3>{t('pricingSection.premiumTitle')}</h3>
+                <p>{t('pricingSection.premiumDesc')}</p>
               </div>
               <div className="pc-price">
-                <h2>$799<span>/mo</span></h2>
+                <h2>$799<span>{t('pricingSection.perMonth')}</span></h2>
               </div>
-              <button className="btn-solid">{t('howItWorks.button')}</button>
+              <button className="btn-solid" onClick={() => setIsModalOpen(true)}>
+                {t('forUniversitiesSection.partnerBtn', 'Müraciət Et')}
+              </button>
               <ul className="pc-features">
-                <li><CheckIcon /> Everything in Verified</li>
-                <li><CheckIcon /> Featured placement in results</li>
-                <li><CheckIcon /> AI recommendation priority</li>
-                <li><CheckIcon /> Sponsored programs (3)</li>
-                <li><CheckIcon /> Full analytics dashboard</li>
-                <li><CheckIcon /> Lead generation tools</li>
-                <li><CheckIcon /> Video & virtual tour hosting</li>
+                <li><CheckIcon /> {t('pricingSection.f6')}</li>
+                <li><CheckIcon /> {t('pricingSection.f7')}</li>
+                <li><CheckIcon /> {t('pricingSection.f8')}</li>
+                <li><CheckIcon /> {t('pricingSection.f9')}</li>
+                <li><CheckIcon /> {t('pricingSection.f10')}</li>
+                <li><CheckIcon /> {t('pricingSection.f11')}</li>
+                <li><CheckIcon /> {t('pricingSection.f12')}</li>
               </ul>
             </div>
 
             {/* Custom */}
             <div className="price-card">
               <div className="pc-header">
-                <h3>Enterprise</h3>
-                <p>Full recruitment partnership</p>
+                <h3>{t('pricingSection.enterpriseTitle')}</h3>
+                <p>{t('pricingSection.enterpriseDesc')}</p>
               </div>
               <div className="pc-price">
-                <h2>Custom</h2>
+                <h2>{t('pricingSection.customPrice')}</h2>
               </div>
-              <button className="btn-outline">{t('nav.forUniversities')}</button>
+              <button className="btn-outline" onClick={() => setIsModalOpen(true)}>
+                {t('forUniversitiesSection.partnerBtn', 'Müraciət Et')}
+              </button>
               <ul className="pc-features">
-                <li><CheckIcon /> Everything in Premium</li>
-                <li><CheckIcon /> Unlimited sponsored programs</li>
-                <li><CheckIcon /> Dedicated account manager</li>
-                <li><CheckIcon /> Custom recruitment campaigns</li>
-                <li><CheckIcon /> White-label student portal</li>
-                <li><CheckIcon /> API integration</li>
-                <li><CheckIcon /> Priority support & SLA</li>
+                <li><CheckIcon /> {t('pricingSection.f13')}</li>
+                <li><CheckIcon /> {t('pricingSection.f14')}</li>
+                <li><CheckIcon /> {t('pricingSection.f15')}</li>
+                <li><CheckIcon /> {t('pricingSection.f16')}</li>
+                <li><CheckIcon /> {t('pricingSection.f17')}</li>
+                <li><CheckIcon /> {t('pricingSection.f18')}</li>
+                <li><CheckIcon /> {t('pricingSection.f19')}</li>
               </ul>
             </div>
           </div>
         </div>
       </section>
+
+      <PartnerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }
 
 export default ForUniversitiesPage;
-

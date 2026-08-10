@@ -90,7 +90,8 @@
   .nav-actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
+    white-space: nowrap;
 
     .language-selector, .mobile-language-selector {
       display: flex;
@@ -124,41 +125,44 @@
       gap: 8px;
 
       .btn-profile {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--btn-signin-text);
-        padding: 8px 16px;
-        border: 1px solid var(--btn-signin-border);
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffffff;
+        padding: 7px 14px;
+        border: 1px solid rgba(122, 92, 255, 0.4);
         border-radius: 100px;
-        background: rgba(99, 102, 241, 0.1);
+        background: rgba(122, 92, 255, 0.15);
         display: flex;
         align-items: center;
         gap: 6px;
         transition: all 0.2s ease;
+        white-space: nowrap;
 
         &:hover {
-          background: rgba(99, 102, 241, 0.2);
-          border-color: #6366f1;
+          background: rgba(122, 92, 255, 0.3);
+          border-color: #7A5CFF;
         }
       }
 
       .btn-signout {
         font-size: 13px;
-        font-weight: 500;
-        color: #ef4444;
-        padding: 8px 14px;
-        border: 1px solid rgba(239, 68, 68, 0.2);
+        font-weight: 600;
+        color: #f87171;
+        padding: 7px 12px;
+        border: 1px solid rgba(239, 68, 68, 0.3);
         border-radius: 100px;
-        background: transparent;
+        background: rgba(239, 68, 68, 0.1);
         cursor: pointer;
         transition: all 0.2s ease;
+        white-space: nowrap;
 
         &:hover {
-          background: rgba(239, 68, 68, 0.1);
+          background: rgba(239, 68, 68, 0.2);
           border-color: #ef4444;
         }
       }
     }
+
 
     .btn-signin {
       font-size: 14px;

@@ -81,6 +81,7 @@
       border-radius: 16px;
       overflow: hidden;
       cursor: pointer;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
 
       &:hover {
         .td-card-img {

@@ -7,7 +7,10 @@
     "destinations": "留学国家",
     "forUniversities": "高校合作",
     "signIn": "登录",
-    "aiDiscovery": "AI 智能探索"
+    "aiDiscovery": "AI 智能探索",
+    "profile": "个人资料",
+    "portal": "大学门户",
+    "exit": "退出"
   },
   "hero": {
     "badge": "AI 驱动的全球大学探索平台",
@@ -127,5 +130,29 @@
     "continue": "下一步",
     "submitSignIn": "登录",
     "submitRegister": "创建账号"
+  },
+  "profile": {
+    "title": "个人与学术信息",
+    "updatedSuccess": "您的信息已更新",
+    "firstName": "名字",
+    "lastName": "姓氏",
+    "email": "电子邮件地址",
+    "phone": "电话号码",
+    "country": "国籍",
+    "degreeLevel": "学历",
+    "gpa": "平均成绩（GPA 4.0）",
+    "englishScore": "语言证书",
+    "desiredField": "期望学习领域",
+    "saveBtn": "保存更改",
+    "saving": "更新中...",
+    "applicationStatus": "申请状态",
+    "activeScholarships": "活跃奖学金分析",
+    "emailNotifications": "电子邮件通知",
+    "profileCompletion": "个人资料完整度",
+    "recentActivity": "最近活动",
+    "studentAccount": "学生账户",
+    "bachelor": "学士",
+    "master": "硕士",
+    "phd": "博士"
   }
 }

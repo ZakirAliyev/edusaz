@@ -7,7 +7,10 @@
     "destinations": "Paesi",
     "forUniversities": "Per le Università",
     "signIn": "Accedi",
-    "aiDiscovery": "Ricerca IA"
+    "aiDiscovery": "Ricerca IA",
+    "profile": "Profilo",
+    "portal": "Portale Universitario",
+    "exit": "Esci"
   },
   "hero": {
     "badge": "Ricerca universitaria globale basata sull'IA",
@@ -127,5 +130,29 @@
     "continue": "Continua",
     "submitSignIn": "Accedi",
     "submitRegister": "Crea Account"
+  },
+  "profile": {
+    "title": "Dati personali e accademici",
+    "updatedSuccess": "I tuoi dati sono stati aggiornati",
+    "firstName": "Nome",
+    "lastName": "Cognome",
+    "email": "Indirizzo email",
+    "phone": "Numero di telefono",
+    "country": "Cittadinanza",
+    "degreeLevel": "Livello di istruzione",
+    "gpa": "Media voti (GPA 4.0)",
+    "englishScore": "Certificato linguistico",
+    "desiredField": "Campo di studio desiderato",
+    "saveBtn": "Salva modifiche",
+    "saving": "Aggiornamento...",
+    "applicationStatus": "Stato domanda",
+    "activeScholarships": "Analisi borse di studio attive",
+    "emailNotifications": "Notifiche email",
+    "profileCompletion": "Completamento profilo",
+    "recentActivity": "Attività recente",
+    "studentAccount": "Account studente",
+    "bachelor": "Laurea triennale",
+    "master": "Laurea magistrale",
+    "phd": "Dottorato"
   }
 }

@@ -32,4 +32,20 @@ public class AuthController : ControllerBase
         if (token == null) return Unauthorized(ApiResponse<TokenDto>.ErrorResponse("Invalid credentials.", 401));
         return Ok(ApiResponse<TokenDto>.SuccessResponse(token, "Login successful."));
     }
+
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile([FromQuery] string? email)
+    {
+        var targetEmail = email ?? User.Identity?.Name ?? "student@edusaz.com";
+        var profile = await _authService.GetUserProfileAsync(targetEmail);
+        return Ok(ApiResponse<UserProfileDto>.SuccessResponse(profile!, "User profile fetched successfully"));
+    }
+
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile([FromQuery] string? email, [FromBody] UpdateUserProfileDto dto)
+    {
+        var targetEmail = email ?? dto.Email ?? User.Identity?.Name ?? "student@edusaz.com";
+        var updated = await _authService.UpdateUserProfileAsync(targetEmail, dto);
+        return Ok(ApiResponse<UserProfileDto>.SuccessResponse(updated, "User profile updated successfully"));
+    }
 }

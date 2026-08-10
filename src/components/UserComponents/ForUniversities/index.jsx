@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import PartnerModal from '../PartnerModal';
 import './index.scss';
 
 const ShieldIcon = () => (
@@ -36,30 +39,33 @@ const ArrowRightIcon = () => (
   </svg>
 );
 
-const features = [
-  {
-    icon: <ShieldIcon />,
-    title: "Verified University Profile",
-    desc: "Official badge, rankings, accreditations displayed prominently to students"
-  },
-  {
-    icon: <TrendIcon />,
-    title: "Premium Visibility & AI Priority",
-    desc: "Appear first in AI recommendations and search results for matched students"
-  },
-  {
-    icon: <TargetIcon />,
-    title: "Pre-Qualified Lead Generation",
-    desc: "Connect with students who match your programs, requirements, and budget range"
-  },
-  {
-    icon: <BarChartIcon />,
-    title: "Recruitment Analytics Dashboard",
-    desc: "Track views, inquiries, applications, and enrollment conversions in real-time"
-  }
-];
-
 function ForUniversities() {
+  const { t } = useTranslation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const features = [
+    {
+      icon: <ShieldIcon />,
+      title: t('forUniversitiesSection.feature1Title'),
+      desc: t('forUniversitiesSection.feature1Desc')
+    },
+    {
+      icon: <TrendIcon />,
+      title: t('forUniversitiesSection.feature2Title'),
+      desc: t('forUniversitiesSection.feature2Desc')
+    },
+    {
+      icon: <TargetIcon />,
+      title: t('forUniversitiesSection.feature3Title'),
+      desc: t('forUniversitiesSection.feature3Desc')
+    },
+    {
+      icon: <BarChartIcon />,
+      title: t('forUniversitiesSection.feature4Title'),
+      desc: t('forUniversitiesSection.feature4Desc')
+    }
+  ];
+
   return (
     <section id="for-universities">
       <div className="fu-inner">
@@ -71,35 +77,34 @@ function ForUniversities() {
               <path d="M4 10l8-8 8 8" />
               <path d="M12 22v-8" />
             </svg>
-            For Universities
+            {t('forUniversitiesSection.badge')}
           </div>
           
           <h2 className="fu-title">
-            Recruit 500,000+ global students <br />
-            <span className="fu-title-colored">with AI precision</span>
+            {t('forUniversitiesSection.titlePart1')} <br />
+            <span className="fu-title-colored">{t('forUniversitiesSection.titlePart2')}</span>
           </h2>
           
           <p className="fu-subtitle">
-            Join 180+ universities using EDUSAZ to reach pre-qualified international students. 
-            Verified profile, premium visibility, AI matching, and detailed analytics.
+            {t('forUniversitiesSection.subtitle')}
           </p>
 
           <div className="fu-stats">
             <div className="fu-stat-card">
               <h3>12K+</h3>
-              <p>Monthly leads</p>
+              <p>{t('forUniversitiesSection.monthlyLeads')}</p>
             </div>
             <div className="fu-stat-card">
               <h3>94%</h3>
-              <p>Lead quality score</p>
+              <p>{t('forUniversitiesSection.leadScore')}</p>
             </div>
             <div className="fu-stat-card">
               <h3>35+</h3>
-              <p>Source countries</p>
+              <p>{t('forUniversitiesSection.sourceCountries')}</p>
             </div>
             <div className="fu-stat-card">
               <h3>180+</h3>
-              <p>Partner universities</p>
+              <p>{t('forUniversitiesSection.partnerUnis')}</p>
             </div>
           </div>
         </div>
@@ -119,11 +124,13 @@ function ForUniversities() {
             ))}
           </div>
           
-          <button className="btn-partner">
-            Partner with EDUSAZ <ArrowRightIcon />
+          <button className="btn-partner" onClick={() => setIsModalOpen(true)}>
+            {t('forUniversitiesSection.partnerBtn')} <ArrowRightIcon />
           </button>
         </div>
       </div>
+
+      <PartnerModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
 }

@@ -32,16 +32,14 @@ function RegisterDetailsPage() {
     e.preventDefault();
     try {
       await registerUser(formData).unwrap();
-      toast.showSuccess(t('auth.submitRegister') + " - Success!");
-      if (role === 'university') {
-        navigate('/university-portal');
-      } else {
-        navigate('/signin');
-      }
+      toast.showSuccess(t('auth.registerSuccess') + " 📧 E-poçtunuza təsdiq məktubu göndərildi.");
+      navigate('/signin');
     } catch (err) {
-      toast.showError("Registration failed: " + (err.data?.message || err.error || "Unknown error"));
+      toast.showError(t('auth.registerError'));
     }
   };
+
+
 
 
   return (

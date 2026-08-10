@@ -22,6 +22,201 @@ namespace Edusaz.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Edusaz.Domain.Entities.Campaign", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Budget")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CampaignType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DailyApplications")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reach")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TargetCountry")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TargetRegion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UniversityId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UniversityId");
+
+                    b.ToTable("Campaigns");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.CampaignTranslation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("LanguageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("CampaignTranslations");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.Country", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AverageCost")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DefaultLabel")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DefaultName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FlagEmoji")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UniversityCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Countries");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.CountryTranslation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CountryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("LanguageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CountryId");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("CountryTranslations");
+                });
+
             modelBuilder.Entity("Edusaz.Domain.Entities.Language", b =>
                 {
                     b.Property<Guid>("Id")
@@ -56,6 +251,157 @@ namespace Edusaz.Infrastructure.Migrations
                     b.ToTable("Languages");
                 });
 
+            modelBuilder.Entity("Edusaz.Domain.Entities.PartnershipApplication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContactName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("InstitutionName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsAdminNotified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsApplicantNotified")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PartnershipApplications");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.Program", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ApplicationDeadline")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DegreeLevel")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Duration")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EntryRequirements")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FieldOfStudy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LanguageOfInstruction")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("StudyMode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TuitionFee")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UniversityId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UniversityId");
+
+                    b.ToTable("Programs");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.ProgramTranslation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("LanguageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ProgramId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("ProgramId");
+
+                    b.ToTable("ProgramTranslations");
+                });
+
             modelBuilder.Entity("Edusaz.Domain.Entities.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -83,6 +429,329 @@ namespace Edusaz.Infrastructure.Migrations
                     b.ToTable("AspNetRoles", (string)null);
                 });
 
+            modelBuilder.Entity("Edusaz.Domain.Entities.Scholarship", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Amount")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ButtonType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("CountryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Deadline")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Eligible")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Places")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UniversityId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CountryId");
+
+                    b.HasIndex("UniversityId");
+
+                    b.ToTable("Scholarships");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.ScholarshipSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AnalysisSummary")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsEmailSent")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MatchScore")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RequirementBreakdown")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ScholarshipId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScholarshipId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ScholarshipSubscriptions");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.ScholarshipTranslation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Eligible")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("LanguageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ScholarshipId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("ScholarshipId");
+
+                    b.ToTable("ScholarshipTranslations");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.StudentApplication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AppliedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CountryFlag")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Initials")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MatchScore")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OriginCountry")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ProgramId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProgramName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StudentName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UniversityId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProgramId");
+
+                    b.HasIndex("UniversityId");
+
+                    b.ToTable("StudentApplications");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.TeamMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("CanCreateCampaigns")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanCreatePrograms")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanCreateScholarships")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanDeleteCampaigns")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanDeletePrograms")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanDeleteScholarships")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanEditCampaigns")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanEditProfile")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanEditPrograms")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanEditScholarships")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanViewCampaigns")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanViewPrograms")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanViewScholarships")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UniversityId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UniversityId");
+
+                    b.ToTable("TeamMembers");
+                });
+
             modelBuilder.Entity("Edusaz.Domain.Entities.University", b =>
                 {
                     b.Property<Guid>("Id")
@@ -96,6 +765,9 @@ namespace Edusaz.Infrastructure.Migrations
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<Guid?>("CountryId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -140,6 +812,8 @@ namespace Edusaz.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CountryId");
 
                     b.ToTable("Universities");
                 });
@@ -208,6 +882,14 @@ namespace Edusaz.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("DegreeLevel")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DesiredField")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -215,9 +897,16 @@ namespace Edusaz.Infrastructure.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("EnglishScore")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<double>("Gpa")
+                        .HasColumnType("double precision");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -380,6 +1069,169 @@ namespace Edusaz.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Edusaz.Domain.Entities.Campaign", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.University", "UniversityRef")
+                        .WithMany()
+                        .HasForeignKey("UniversityId");
+
+                    b.Navigation("UniversityRef");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.CampaignTranslation", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.Campaign", "Campaign")
+                        .WithMany("Translations")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Edusaz.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.CountryTranslation", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.Country", "Country")
+                        .WithMany("Translations")
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Edusaz.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Country");
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.Program", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.University", "University")
+                        .WithMany("Programs")
+                        .HasForeignKey("UniversityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("University");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.ProgramTranslation", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Edusaz.Domain.Entities.Program", "Program")
+                        .WithMany("Translations")
+                        .HasForeignKey("ProgramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Language");
+
+                    b.Navigation("Program");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.Scholarship", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.Country", "CountryRef")
+                        .WithMany("Scholarships")
+                        .HasForeignKey("CountryId");
+
+                    b.HasOne("Edusaz.Domain.Entities.University", "UniversityRef")
+                        .WithMany()
+                        .HasForeignKey("UniversityId");
+
+                    b.Navigation("CountryRef");
+
+                    b.Navigation("UniversityRef");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.ScholarshipSubscription", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.Scholarship", "Scholarship")
+                        .WithMany()
+                        .HasForeignKey("ScholarshipId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Edusaz.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Scholarship");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.ScholarshipTranslation", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Edusaz.Domain.Entities.Scholarship", "Scholarship")
+                        .WithMany("Translations")
+                        .HasForeignKey("ScholarshipId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Language");
+
+                    b.Navigation("Scholarship");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.StudentApplication", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.Program", "ProgramRef")
+                        .WithMany()
+                        .HasForeignKey("ProgramId");
+
+                    b.HasOne("Edusaz.Domain.Entities.University", "University")
+                        .WithMany()
+                        .HasForeignKey("UniversityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProgramRef");
+
+                    b.Navigation("University");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.TeamMember", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.University", "UniversityRef")
+                        .WithMany()
+                        .HasForeignKey("UniversityId");
+
+                    b.Navigation("UniversityRef");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.University", b =>
+                {
+                    b.HasOne("Edusaz.Domain.Entities.Country", "CountryRef")
+                        .WithMany("Universities")
+                        .HasForeignKey("CountryId");
+
+                    b.Navigation("CountryRef");
+                });
+
             modelBuilder.Entity("Edusaz.Domain.Entities.UniversityTranslation", b =>
                 {
                     b.HasOne("Edusaz.Domain.Entities.Language", "Language")
@@ -450,8 +1302,34 @@ namespace Edusaz.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Edusaz.Domain.Entities.Campaign", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.Country", b =>
+                {
+                    b.Navigation("Scholarships");
+
+                    b.Navigation("Translations");
+
+                    b.Navigation("Universities");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.Program", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("Edusaz.Domain.Entities.Scholarship", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
             modelBuilder.Entity("Edusaz.Domain.Entities.University", b =>
                 {
+                    b.Navigation("Programs");
+
                     b.Navigation("Translations");
                 });
 #pragma warning restore 612, 618

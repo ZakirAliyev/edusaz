@@ -94,6 +94,30 @@
     "continue": "Davam et",
     "submitSignIn": "Daxil Ol",
     "submitRegister": "Hesab Yaradın"
+  },
+  "profile": {
+    "title": "Şəxsi & Akademik Məlumatlar",
+    "updatedSuccess": "Məlumatlarınız yeniləndi",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "email": "E-poçt Ünvanı",
+    "phone": "Əlaqə Nömrəsi",
+    "country": "Vətəndaşlıq Ölkəsi",
+    "degreeLevel": "Təhsil Dərəcəsi",
+    "gpa": "Ortalama Ball (GPA 4.0)",
+    "englishScore": "Xarici Dil Sertifikatı",
+    "desiredField": "Arzuladığınız İxtisas Sahəsi",
+    "saveBtn": "Dəyişiklikləri Yadda Saxla",
+    "saving": "Yenilənir...",
+    "applicationStatus": "Müraciət Statusu",
+    "activeScholarships": "Aktiv Təqaüd Analizləri",
+    "emailNotifications": "E-poçt Bildirişləri",
+    "profileCompletion": "Profil Tamlığı",
+    "recentActivity": "Son Fəaliyyət",
+    "studentAccount": "Tələbə Hesabı",
+    "bachelor": "Bakalavr",
+    "master": "Magistratura",
+    "phd": "Doktorantura"
   }
 }
 

@@ -48,21 +48,37 @@ function SignInPage() {
     e.preventDefault();
     try {
       const response = await loginUser(formData).unwrap();
-      const token = response.data?.accessToken || response.data;
+      const tokenData = response.data || response;
+      const token = tokenData?.accessToken || tokenData;
+      const backendRole = tokenData?.role || '';
+
       Cookies.set('userToken', token, { expires: 1 });
-      toast.showSuccess(t('auth.loginSuccess') || "Uğurla daxil oldunuz!");
-      
-      // If email or saved role indicates university, redirect to portal
-      const savedRole = localStorage.getItem('userRole');
-      if (savedRole === 'university' || formData.email.includes('admin') || formData.email.includes('uni')) {
+
+      const isUniUser = backendRole.toLowerCase().includes('uni') ||
+                        backendRole.toLowerCase().includes('admin') ||
+                        formData.email.toLowerCase().includes('code.edu.az') || 
+                        formData.email.toLowerCase().includes('admin') || 
+                        formData.email.toLowerCase().includes('uni') || 
+                        localStorage.getItem('userRole') === 'university';
+
+      if (isUniUser) {
+        localStorage.setItem('userRole', 'university');
+      } else {
+        localStorage.setItem('userRole', 'student');
+      }
+
+      toast.showSuccess(t('auth.loginSuccess'));
+
+      if (isUniUser) {
         navigate('/university-portal');
       } else {
-        navigate('/');
+        navigate('/profile');
       }
     } catch (err) {
-      toast.showError(err.data?.message || err.error || "Daxil olma zamanı xəta baş verdi");
+      toast.showError(t('auth.loginError'));
     }
   };
+
 
 
   return (

@@ -13,6 +13,9 @@ import AiDiscoveryResultsPage from "../pages/UserPages/AiDiscoveryResultsPage/in
 import DestinationDetailPage from "../pages/UserPages/DestinationDetailPage/index.jsx";
 import UniversityDetailPage from "../pages/UserPages/UniversityDetailPage/index.jsx";
 import UniversityPortalPage from "../pages/UserPages/UniversityPortalPage/index.jsx";
+import SuperAdminPage from "../pages/UserPages/SuperAdminPage/index.jsx";
+
+import UserProfilePage from "../pages/UserPages/UserProfilePage/index.jsx";
 
 export const ROUTES = [
     {
@@ -22,6 +25,10 @@ export const ROUTES = [
             {
                 index: true,
                 element: <HomePage/>,
+            },
+            {
+                path: 'profile',
+                element: <UserProfilePage/>
             },
             {
                 path: 'universities',
@@ -72,5 +79,9 @@ export const ROUTES = [
     {
         path: '/university-portal',
         element: <UniversityPortalPage/>
+    },
+    {
+        path: '/superadmin',
+        element: <SuperAdminPage/>
     }
 ];

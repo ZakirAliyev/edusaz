@@ -8,9 +8,10 @@ using Edusaz.Infrastructure.Services;
 using Edusaz.Application.Concretes.Services;
 using Edusaz.Application.Abstracts.AI;
 using Edusaz.Infrastructure.AI;
-using Edusaz.Infrastructure.AI;
 using Edusaz.Infrastructure.Repositories.Languages;
 using Edusaz.Infrastructure.Repositories.Universities;
+using Edusaz.Application.Abstracts.Repositories.Countries;
+using Edusaz.Infrastructure.Repositories.Countries;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -59,10 +60,20 @@ builder.Services.AddScoped<ILanguageReadRepository, LanguageReadRepository>();
 builder.Services.AddScoped<ILanguageWriteRepository, LanguageWriteRepository>();
 builder.Services.AddScoped<IUniversityReadRepository, UniversityReadRepository>();
 builder.Services.AddScoped<IUniversityWriteRepository, UniversityWriteRepository>();
+builder.Services.AddScoped<ICountryReadRepository, CountryReadRepository>();
+builder.Services.AddScoped<ICountryWriteRepository, CountryWriteRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILanguageService, LanguageService>();
 builder.Services.AddScoped<IUniversityService, UniversityService>();
-builder.Services.AddScoped<ITranslationAIService, MockTranslationAIService>();
+builder.Services.AddScoped<ICountryService, CountryService>();
+builder.Services.AddScoped<IProgramService, ProgramService>();
+builder.Services.AddScoped<IScholarshipService, ScholarshipService>();
+builder.Services.AddScoped<ICampaignService, CampaignService>();
+builder.Services.AddScoped<ITeamMemberService, TeamMemberService>();
+builder.Services.AddScoped<IPartnershipService, PartnershipService>();
+builder.Services.AddScoped<ITranslationAIService, GoogleTranslationService>();
+builder.Services.AddHttpClient("GoogleTranslate");
+
 
 // Configure CORS for React Frontend
 builder.Services.AddCors(options =>
