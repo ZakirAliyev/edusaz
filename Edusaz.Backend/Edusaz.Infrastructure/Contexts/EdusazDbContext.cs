@@ -28,6 +28,14 @@ public class EdusazDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<CampaignTranslation> CampaignTranslations { get; set; }
     public DbSet<TeamMember> TeamMembers { get; set; }
 
+    // Instructor & Course
+    public DbSet<Instructor> Instructors { get; set; }
+    public DbSet<Course> Courses { get; set; }
+    public DbSet<CourseTranslation> CourseTranslations { get; set; }
+    public DbSet<CourseSection> CourseSections { get; set; }
+    public DbSet<CourseLecture> CourseLectures { get; set; }
+    public DbSet<CourseEnrollment> CourseEnrollments { get; set; }
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker.Entries<BaseEntity>();

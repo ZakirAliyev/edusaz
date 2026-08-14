@@ -94,6 +94,19 @@ function RegisterRolePage() {
             </div>
 
             <div
+              className={`role-option ${selectedRole === 'instructor' ? 'selected' : ''}`}
+              onClick={() => handleSelect('instructor')}
+            >
+              <div className="role-icon">
+                👨‍🏫
+              </div>
+              <div className="role-text">
+                <h4>Müəllim / Instructor</h4>
+                <p>Kurslarınızı yaradın, video dərslər əlavə edin və tələbələrə tədris edin.</p>
+              </div>
+            </div>
+
+            <div
               className={`role-option ${selectedRole === 'agent' ? 'selected' : ''}`}
               onClick={() => handleSelect('agent')}
             >

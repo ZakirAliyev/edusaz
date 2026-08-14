@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
-import { useLoginUserMutation } from '../../../services/apis/userApi';
+import { useLoginUserMutation, useInstructorLoginMutation } from '../../../services/apis/userApi';
 import { useToast } from '../../../context/ToastContext';
 import './index.scss';
 
@@ -14,17 +14,9 @@ const BrainIcon = () => (
   </svg>
 );
 
-const EyeIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
 const LockIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="#94a3b8" stroke="none">
+    <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7z"/>
   </svg>
 );
 
@@ -39,47 +31,53 @@ function SignInPage() {
   const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
-  const [loginUser, { isLoading }] = useLoginUserMutation();
+  
+  const [selectedRole, setSelectedRole] = useState('student'); // 'student' | 'instructor' | 'university'
+  const [loginUser, { isLoading: isUserLoading }] = useLoginUserMutation();
+  const [instructorLogin, { isLoading: isInstructorLoading }] = useInstructorLoginMutation();
+  
   const [formData, setFormData] = useState({ email: '', password: '' });
+
+  const isLoading = isUserLoading || isInstructorLoading;
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      if (selectedRole === 'instructor') {
+        const res = await instructorLogin(formData).unwrap();
+        const token = res?.data?.accessToken || res?.accessToken;
+        if (token) {
+          localStorage.setItem('instructorToken', token);
+          localStorage.setItem('instructorEmail', formData.email);
+          localStorage.setItem('isInstructor', 'true');
+          localStorage.setItem('userRole', 'instructor');
+          toast.showSuccess('Müəllim kimi daxil oldunuz! 🎓');
+          navigate('/instructor-portal');
+          return;
+        }
+      }
+
       const response = await loginUser(formData).unwrap();
       const tokenData = response.data || response;
       const token = tokenData?.accessToken || tokenData;
-      const backendRole = tokenData?.role || '';
 
       Cookies.set('userToken', token, { expires: 1 });
 
-      const isUniUser = backendRole.toLowerCase().includes('uni') ||
-                        backendRole.toLowerCase().includes('admin') ||
-                        formData.email.toLowerCase().includes('code.edu.az') || 
-                        formData.email.toLowerCase().includes('admin') || 
-                        formData.email.toLowerCase().includes('uni') || 
-                        localStorage.getItem('userRole') === 'university';
-
-      if (isUniUser) {
+      if (selectedRole === 'university') {
         localStorage.setItem('userRole', 'university');
-      } else {
-        localStorage.setItem('userRole', 'student');
-      }
-
-      toast.showSuccess(t('auth.loginSuccess'));
-
-      if (isUniUser) {
+        toast.showSuccess(t('auth.loginSuccess'));
         navigate('/university-portal');
       } else {
+        localStorage.setItem('userRole', 'student');
+        toast.showSuccess(t('auth.loginSuccess'));
         navigate('/profile');
       }
     } catch (err) {
-      toast.showError(t('auth.loginError'));
+      toast.showError(err?.data?.message || t('auth.loginError'));
     }
   };
-
-
 
   return (
     <div className="signin-page">
@@ -121,6 +119,31 @@ function SignInPage() {
             <p>{t('auth.newToEdusaz')} <Link to="/register">{t('auth.createAccount')}</Link></p>
           </div>
 
+          {/* Role Selection Tabs */}
+          <div className="role-selector-tabs">
+            <button
+              type="button"
+              className={`role-tab ${selectedRole === 'student' ? 'active' : ''}`}
+              onClick={() => setSelectedRole('student')}
+            >
+              🎓 Tələbə
+            </button>
+            <button
+              type="button"
+              className={`role-tab ${selectedRole === 'university' ? 'active' : ''}`}
+              onClick={() => setSelectedRole('university')}
+            >
+              🏫 Universitet
+            </button>
+            <button
+              type="button"
+              className={`role-tab ${selectedRole === 'instructor' ? 'active' : ''}`}
+              onClick={() => setSelectedRole('instructor')}
+            >
+              👨‍🏫 Müəllim
+            </button>
+          </div>
+
           <form className="sr-form" onSubmit={handleSubmit}>
             <div className="form-group">
               <label>{t('auth.emailLabel')}</label>
@@ -141,7 +164,7 @@ function SignInPage() {
             </div>
 
             <button type="submit" className="btn-submit" disabled={isLoading}>
-              {isLoading ? '...' : t('auth.submitSignIn')} <span>&rarr;</span>
+              {isLoading ? '...' : `${t('auth.submitSignIn')} (${selectedRole === 'instructor' ? 'Müəllim' : selectedRole === 'university' ? 'Universitet' : 'Tələbə'})`} <span>&rarr;</span>
             </button>
           </form>
         </div>

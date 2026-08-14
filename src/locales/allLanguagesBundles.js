@@ -198,6 +198,202 @@ const ALL_CODES = [
   'bg', 'hr', 'sk', 'ua', 'ge', 'am', 'kz', 'uz', 'jp', 'kr'
 ];
 
+// ── Instructor Portal Translations (31 Languages) ─────────────────────────────
+const instructorTranslations = {
+  en: {
+    portal: "Instructor Portal", signIn: "Sign In as Instructor", register: "Become an Instructor",
+    dashboard: "Dashboard", myCourses: "My Courses", addCourse: "+ Add New Course",
+    students: "My Students", analytics: "Analytics", settings: "Settings", profile: "My Profile",
+    overview: "Overview", totalCourses: "Total Courses", publishedCourses: "Published Courses",
+    totalStudents: "Total Students", totalRevenue: "Total Revenue", avgRating: "Avg. Rating",
+    courseTitle: "Course Title", description: "Description", shortDesc: "Short Description",
+    whatLearn: "What You'll Learn", requirements: "Requirements", category: "Category",
+    subCategory: "Sub-Category", tags: "Tags", language: "Language", level: "Level",
+    price: "Price", discountPrice: "Discount Price", currency: "Currency",
+    isFree: "Free Course", thumbnail: "Thumbnail URL", previewVideo: "Preview Video URL",
+    beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced", allLevels: "All Levels",
+    sections: "Course Sections", addSection: "+ Add Section", addLecture: "+ Add Lecture",
+    lectureTitle: "Lecture Title", lectureVideo: "Video URL", lectureDuration: "Duration (min)",
+    isFreePreview: "Free Preview", publish: "Publish", unpublish: "Unpublish", edit: "Edit",
+    delete: "Delete", save: "Save Changes", cancel: "Cancel", create: "Create Course",
+    confirmDelete: "Are you sure you want to delete this course?",
+    loginTitle: "Instructor Login", loginSubtitle: "Manage your courses and students",
+    emailPlaceholder: "Your email address", passwordPlaceholder: "Your password",
+    noAccount: "Don't have an instructor account?", signUp: "Register here",
+    displayName: "Display Name", expertise: "Area of Expertise", bio: "Biography",
+    website: "Website URL", linkedin: "LinkedIn", youtube: "YouTube Channel",
+    enrollments: "Enrollments", revenue: "Revenue", rating: "Rating",
+    studentName: "Student Name", studentEmail: "Email", enrolledAt: "Enrolled At",
+    progress: "Progress", status: "Status", aiTranslate: "AI Auto-Translate (31 Languages)",
+    published: "Published", draft: "Draft", featured: "Featured",
+    noCourses: "No courses yet. Create your first course!", noStudents: "No students enrolled yet."
+  },
+  az: {
+    portal: "Müəllim Portalı", signIn: "Müəllim kimi daxil ol", register: "Müəllim ol",
+    dashboard: "İdarəetmə Paneli", myCourses: "Mənim Kurslarım", addCourse: "+ Yeni Kurs Əlavə Et",
+    students: "Tələbələrim", analytics: "Analitika", settings: "Parametrlər", profile: "Profilim",
+    overview: "İcmal", totalCourses: "Ümumi Kurslar", publishedCourses: "Yayımlanmış Kurslar",
+    totalStudents: "Ümumi Tələbələr", totalRevenue: "Ümumi Gəlir", avgRating: "Ort. Reytinq",
+    courseTitle: "Kursun Adı", description: "Təsvir", shortDesc: "Qısa Təsvir",
+    whatLearn: "Nə Öyrənəcəksiniz", requirements: "Tələblər", category: "Kateqoriya",
+    subCategory: "Alt Kateqoriya", tags: "Etiketlər", language: "Dil", level: "Səviyyə",
+    price: "Qiymət", discountPrice: "Endirimli Qiymət", currency: "Valyuta",
+    isFree: "Pulsuz Kurs", thumbnail: "Thumbnail URL", previewVideo: "Önizləmə Video URL",
+    beginner: "Başlanğıc", intermediate: "Orta", advanced: "İrəliləmiş", allLevels: "Bütün Səviyyələr",
+    sections: "Kurs Bölmələri", addSection: "+ Bölmə Əlavə Et", addLecture: "+ Mühazirə Əlavə Et",
+    lectureTitle: "Mühazirə Başlığı", lectureVideo: "Video URL", lectureDuration: "Müddət (dəq)",
+    isFreePreview: "Pulsuz Baxış", publish: "Yayımla", unpublish: "Geri Çək", edit: "Redaktə Et",
+    delete: "Sil", save: "Dəyişiklikləri Saxla", cancel: "Ləğv Et", create: "Kurs Yarat",
+    confirmDelete: "Bu kursu silmək istədiyinizə əminsiniz?",
+    loginTitle: "Müəllim Girişi", loginSubtitle: "Kurslarınızı və tələbələrinizi idarə edin",
+    emailPlaceholder: "E-poçt ünvanınız", passwordPlaceholder: "Şifrəniz",
+    noAccount: "Müəllim hesabınız yoxdur?", signUp: "Buradan qeydiyyatdan keçin",
+    displayName: "Göstərilən Ad", expertise: "İxtisas Sahəsi", bio: "Bioqrafiya",
+    website: "Vebsayt URL", linkedin: "LinkedIn", youtube: "YouTube Kanalı",
+    enrollments: "Qeydiyyatlar", revenue: "Gəlir", rating: "Reytinq",
+    studentName: "Tələbə Adı", studentEmail: "E-poçt", enrolledAt: "Qeydiyyat Tarixi",
+    progress: "İrəliləyiş", status: "Status", aiTranslate: "AI Avtomatik Tərcümə (31 Dil)",
+    published: "Yayımlanmış", draft: "Qaralama", featured: "Seçilmiş",
+    noCourses: "Hələ kurs yoxdur. İlk kursunuzu yaradın!", noStudents: "Hələ tələbə qeydiyyatdan keçməyib."
+  },
+  tr: {
+    portal: "Eğitmen Portalı", signIn: "Eğitmen Olarak Giriş Yap", register: "Eğitmen Ol",
+    dashboard: "Kontrol Paneli", myCourses: "Kurslarım", addCourse: "+ Yeni Kurs Ekle",
+    students: "Öğrencilerim", analytics: "Analitik", settings: "Ayarlar", profile: "Profilim",
+    overview: "Genel Bakış", totalCourses: "Toplam Kurs", publishedCourses: "Yayınlanan Kurslar",
+    totalStudents: "Toplam Öğrenci", totalRevenue: "Toplam Gelir", avgRating: "Ort. Puan",
+    courseTitle: "Kurs Başlığı", description: "Açıklama", shortDesc: "Kısa Açıklama",
+    whatLearn: "Ne Öğreneceksiniz", requirements: "Gereksinimler", category: "Kategori",
+    subCategory: "Alt Kategori", tags: "Etiketler", language: "Dil", level: "Seviye",
+    price: "Fiyat", discountPrice: "İndirimli Fiyat", currency: "Para Birimi",
+    isFree: "Ücretsiz Kurs", thumbnail: "Kapak Görseli URL", previewVideo: "Önizleme Video URL",
+    beginner: "Başlangıç", intermediate: "Orta", advanced: "İleri", allLevels: "Tüm Seviyeler",
+    sections: "Kurs Bölümleri", addSection: "+ Bölüm Ekle", addLecture: "+ Ders Ekle",
+    lectureTitle: "Ders Başlığı", lectureVideo: "Video URL", lectureDuration: "Süre (dk)",
+    isFreePreview: "Ücretsiz Önizleme", publish: "Yayınla", unpublish: "Geri Çek", edit: "Düzenle",
+    delete: "Sil", save: "Değişiklikleri Kaydet", cancel: "İptal", create: "Kurs Oluştur",
+    confirmDelete: "Bu kursu silmek istediğinizden emin misiniz?",
+    loginTitle: "Eğitmen Girişi", loginSubtitle: "Kurslarınızı ve öğrencilerinizi yönetin",
+    emailPlaceholder: "E-posta adresiniz", passwordPlaceholder: "Şifreniz",
+    noAccount: "Eğitmen hesabınız yok mu?", signUp: "Buradan kayıt olun",
+    displayName: "Görünen Ad", expertise: "Uzmanlık Alanı", bio: "Biyografi",
+    website: "Web Sitesi", linkedin: "LinkedIn", youtube: "YouTube Kanalı",
+    enrollments: "Kayıtlar", revenue: "Gelir", rating: "Puan",
+    studentName: "Öğrenci Adı", studentEmail: "E-posta", enrolledAt: "Kayıt Tarihi",
+    progress: "İlerleme", status: "Durum", aiTranslate: "AI Otomatik Çeviri (31 Dil)",
+    published: "Yayınlandı", draft: "Taslak", featured: "Öne Çıkan",
+    noCourses: "Henüz kurs yok. İlk kursunuzu oluşturun!", noStudents: "Henüz kayıtlı öğrenci yok."
+  },
+  ru: {
+    portal: "Портал Преподавателя", signIn: "Войти как преподаватель", register: "Стать преподавателем",
+    dashboard: "Панель управления", myCourses: "Мои курсы", addCourse: "+ Добавить курс",
+    students: "Мои студенты", analytics: "Аналитика", settings: "Настройки", profile: "Мой профиль",
+    overview: "Обзор", totalCourses: "Всего курсов", publishedCourses: "Опубликованные",
+    totalStudents: "Всего студентов", totalRevenue: "Общий доход", avgRating: "Ср. рейтинг",
+    courseTitle: "Название курса", description: "Описание", shortDesc: "Краткое описание",
+    whatLearn: "Что вы узнаете", requirements: "Требования", category: "Категория",
+    subCategory: "Подкатегория", tags: "Теги", language: "Язык", level: "Уровень",
+    price: "Цена", discountPrice: "Цена со скидкой", currency: "Валюта",
+    isFree: "Бесплатный курс", thumbnail: "URL обложки", previewVideo: "URL превью видео",
+    beginner: "Начинающий", intermediate: "Средний", advanced: "Продвинутый", allLevels: "Все уровни",
+    sections: "Разделы курса", addSection: "+ Добавить раздел", addLecture: "+ Добавить лекцию",
+    lectureTitle: "Название лекции", lectureVideo: "URL видео", lectureDuration: "Длительность (мин)",
+    isFreePreview: "Бесплатный просмотр", publish: "Опубликовать", unpublish: "Снять с публикации",
+    edit: "Редактировать", delete: "Удалить", save: "Сохранить", cancel: "Отмена", create: "Создать курс",
+    confirmDelete: "Вы уверены, что хотите удалить этот курс?",
+    loginTitle: "Вход для преподавателей", loginSubtitle: "Управляйте курсами и студентами",
+    emailPlaceholder: "Ваш email", passwordPlaceholder: "Ваш пароль",
+    noAccount: "Нет аккаунта преподавателя?", signUp: "Зарегистрируйтесь здесь",
+    displayName: "Отображаемое имя", expertise: "Область экспертизы", bio: "Биография",
+    website: "Сайт", linkedin: "LinkedIn", youtube: "YouTube канал",
+    enrollments: "Записи", revenue: "Доход", rating: "Рейтинг",
+    studentName: "Имя студента", studentEmail: "Email", enrolledAt: "Дата записи",
+    progress: "Прогресс", status: "Статус", aiTranslate: "AI Автоперевод (31 язык)",
+    published: "Опубликован", draft: "Черновик", featured: "Рекомендуемый",
+    noCourses: "Курсов пока нет. Создайте первый курс!", noStudents: "Студентов пока нет."
+  },
+  de: {
+    portal: "Dozenten-Portal", signIn: "Als Dozent anmelden", register: "Dozent werden",
+    dashboard: "Dashboard", myCourses: "Meine Kurse", addCourse: "+ Neuen Kurs hinzufügen",
+    students: "Meine Studenten", analytics: "Analytik", settings: "Einstellungen", profile: "Mein Profil",
+    overview: "Übersicht", totalCourses: "Kurse gesamt", publishedCourses: "Veröffentlicht",
+    totalStudents: "Studenten gesamt", totalRevenue: "Gesamtumsatz", avgRating: "Ø Bewertung",
+    courseTitle: "Kurstitel", description: "Beschreibung", shortDesc: "Kurzbeschreibung",
+    whatLearn: "Was Sie lernen werden", requirements: "Anforderungen", category: "Kategorie",
+    level: "Niveau", price: "Preis", discountPrice: "Rabattpreis", currency: "Währung",
+    isFree: "Kostenloser Kurs", thumbnail: "Thumbnail-URL", previewVideo: "Vorschau-Video-URL",
+    beginner: "Anfänger", intermediate: "Mittelstufe", advanced: "Fortgeschritten", allLevels: "Alle Niveaus",
+    sections: "Kursabschnitte", addSection: "+ Abschnitt hinzufügen", addLecture: "+ Vorlesung hinzufügen",
+    publish: "Veröffentlichen", unpublish: "Zurückziehen", edit: "Bearbeiten",
+    delete: "Löschen", save: "Änderungen speichern", cancel: "Abbrechen", create: "Kurs erstellen",
+    loginTitle: "Dozenten-Login", loginSubtitle: "Verwalten Sie Ihre Kurse und Studenten",
+    published: "Veröffentlicht", draft: "Entwurf", noCourses: "Noch keine Kurse. Erstellen Sie Ihren ersten!"
+  },
+  fr: {
+    portal: "Portail Formateur", signIn: "Se connecter comme formateur", register: "Devenir formateur",
+    dashboard: "Tableau de bord", myCourses: "Mes cours", addCourse: "+ Ajouter un cours",
+    students: "Mes étudiants", analytics: "Analytique", settings: "Paramètres", profile: "Mon profil",
+    overview: "Vue d'ensemble", totalCourses: "Total des cours", publishedCourses: "Publiés",
+    totalStudents: "Total étudiants", totalRevenue: "Revenus totaux", avgRating: "Note moy.",
+    courseTitle: "Titre du cours", description: "Description", shortDesc: "Description courte",
+    whatLearn: "Ce que vous apprendrez", requirements: "Prérequis", category: "Catégorie",
+    level: "Niveau", price: "Prix", discountPrice: "Prix réduit", currency: "Devise",
+    isFree: "Cours gratuit", publish: "Publier", unpublish: "Dépublier", edit: "Modifier",
+    delete: "Supprimer", save: "Enregistrer", cancel: "Annuler", create: "Créer le cours",
+    loginTitle: "Connexion formateur", loginSubtitle: "Gérez vos cours et étudiants",
+    published: "Publié", draft: "Brouillon", noCourses: "Pas encore de cours. Créez votre premier!"
+  },
+  es: {
+    portal: "Portal del Instructor", signIn: "Iniciar sesión como instructor", register: "Conviértete en instructor",
+    dashboard: "Panel de control", myCourses: "Mis cursos", addCourse: "+ Agregar nuevo curso",
+    students: "Mis estudiantes", analytics: "Analítica", settings: "Configuración", profile: "Mi perfil",
+    overview: "Resumen", totalCourses: "Total de cursos", publishedCourses: "Publicados",
+    totalStudents: "Total estudiantes", totalRevenue: "Ingresos totales", avgRating: "Calificación prom.",
+    courseTitle: "Título del curso", description: "Descripción", shortDesc: "Descripción breve",
+    level: "Nivel", price: "Precio", discountPrice: "Precio con descuento",
+    isFree: "Curso gratuito", publish: "Publicar", unpublish: "Despublicar", edit: "Editar",
+    delete: "Eliminar", save: "Guardar cambios", cancel: "Cancelar", create: "Crear curso",
+    loginTitle: "Inicio de sesión instructor", loginSubtitle: "Gestiona tus cursos y estudiantes",
+    published: "Publicado", draft: "Borrador", noCourses: "Aún no hay cursos. ¡Crea el primero!"
+  },
+  it: {
+    portal: "Portale Istruttore", signIn: "Accedi come istruttore", register: "Diventa istruttore",
+    dashboard: "Dashboard", myCourses: "I miei corsi", addCourse: "+ Aggiungi nuovo corso",
+    students: "I miei studenti", analytics: "Analisi", settings: "Impostazioni", profile: "Il mio profilo",
+    overview: "Panoramica", totalCourses: "Corsi totali", publishedCourses: "Pubblicati",
+    totalStudents: "Studenti totali", totalRevenue: "Entrate totali", avgRating: "Valutazione media",
+    courseTitle: "Titolo del corso", price: "Prezzo", discountPrice: "Prezzo scontato",
+    isFree: "Corso gratuito", publish: "Pubblica", edit: "Modifica", delete: "Elimina",
+    save: "Salva modifiche", cancel: "Annulla", create: "Crea corso",
+    loginTitle: "Accesso istruttore", published: "Pubblicato", draft: "Bozza",
+    noCourses: "Nessun corso ancora. Crea il tuo primo!"
+  },
+  ar: {
+    portal: "بوابة المدرب", signIn: "تسجيل الدخول كمدرب", register: "كن مدرباً",
+    dashboard: "لوحة التحكم", myCourses: "دوراتي", addCourse: "+ إضافة دورة جديدة",
+    students: "طلابي", analytics: "التحليلات", settings: "الإعدادات", profile: "ملفي الشخصي",
+    overview: "نظرة عامة", totalCourses: "إجمالي الدورات", publishedCourses: "المنشورة",
+    totalStudents: "إجمالي الطلاب", totalRevenue: "إجمالي الإيرادات", avgRating: "متوسط التقييم",
+    courseTitle: "عنوان الدورة", price: "السعر", discountPrice: "السعر المخفض",
+    isFree: "دورة مجانية", publish: "نشر", edit: "تعديل", delete: "حذف",
+    save: "حفظ التغييرات", cancel: "إلغاء", create: "إنشاء دورة",
+    loginTitle: "تسجيل دخول المدرب", published: "منشور", draft: "مسودة",
+    noCourses: "لا توجد دورات بعد. أنشئ دورتك الأولى!"
+  },
+  zh: {
+    portal: "讲师门户", signIn: "以讲师身份登录", register: "成为讲师",
+    dashboard: "控制台", myCourses: "我的课程", addCourse: "+ 添加新课程",
+    students: "我的学生", analytics: "分析", settings: "设置", profile: "我的资料",
+    overview: "概览", totalCourses: "总课程数", publishedCourses: "已发布",
+    totalStudents: "总学生数", totalRevenue: "总收入", avgRating: "平均评分",
+    courseTitle: "课程标题", price: "价格", discountPrice: "折扣价",
+    isFree: "免费课程", publish: "发布", edit: "编辑", delete: "删除",
+    save: "保存更改", cancel: "取消", create: "创建课程",
+    loginTitle: "讲师登录", published: "已发布", draft: "草稿",
+    noCourses: "暂无课程，创建您的第一门课程！"
+  }
+};
+
 export function buildAllResourceBundles() {
   const resources = {};
 
@@ -206,6 +402,9 @@ export function buildAllResourceBundles() {
     const pDict = portalTranslations[code] 
       || portalTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en'] 
       || portalTranslations.en;
+    const iDict = instructorTranslations[code]
+      || instructorTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en']
+      || instructorTranslations.en;
 
     resources[code] = {
       translation: {
@@ -214,6 +413,9 @@ export function buildAllResourceBundles() {
         portal: {
           ...(baseDict.portal || {}),
           ...pDict
+        },
+        instructor: {
+          ...iDict
         }
       }
     };
@@ -221,3 +423,4 @@ export function buildAllResourceBundles() {
 
   return resources;
 }
+

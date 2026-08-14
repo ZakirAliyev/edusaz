@@ -93,14 +93,16 @@ function Navbar() {
                     {/* Logo Section */}
                     <Link to="/" className="logo-section">
                         <img
-  src="../../../../public/edusaz-yan.png"
-  alt="Edusaz Logo"
-  style={{
-   height: "max-content",
-   width:"30%",
-    filter: "brightness(0) invert(1)"
-  }}
-/>
+                          src="/edusaz-yan.png"
+                          alt="Edusaz Logo"
+                          style={{  
+                            height: "40px",
+                            width: "auto",
+                            objectFit: "contain",
+                            filter: (isLightMode || isScrolled) ? "none" : "brightness(0) invert(1)",
+                            transition: "filter 0.3s ease"
+                          }}
+                        />
                     </Link>
 
                     {/* Desktop Menu Links */}
@@ -108,6 +110,11 @@ function Navbar() {
                         <li>
                             <NavLink to="/universities" className={({ isActive }) => `nav-link-item ${isActive ? 'active' : ''}`}>
                                 {t('nav.browseUniversities')}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/courses" className={({ isActive }) => `nav-link-item ${isActive ? 'active' : ''}`}>
+                                {t('nav.courses', { defaultValue: 'Courses' })}
                             </NavLink>
                         </li>
                         <li>
@@ -133,8 +140,15 @@ function Navbar() {
 
                         {isLoggedIn ? (
                             <div className="logged-in-profile">
-                                <Link to={userRole === 'University' || userRole === 'university' ? '/university-portal' : (userRole === 'Admin' || userRole === 'admin' ? '/superadmin' : '/profile')} className="btn-profile">
-                                    <UserIcon /> {userRole === 'University' || userRole === 'university' ? t('nav.portal') : t('nav.profile')}
+                                <Link to={
+                                    userRole === 'Instructor' || userRole === 'instructor' || localStorage.getItem('isInstructor') === 'true' ? '/instructor-portal' :
+                                    userRole === 'University' || userRole === 'university' ? '/university-portal' :
+                                    userRole === 'Admin' || userRole === 'admin' ? '/superadmin' : '/profile'
+                                } className="btn-profile">
+                                    <UserIcon /> {
+                                        localStorage.getItem('isInstructor') === 'true' ? 'Instructor Portal' :
+                                        userRole === 'University' || userRole === 'university' ? t('nav.portal') : t('nav.profile')
+                                    }
                                 </Link>
                                 <button className="btn-signout" onClick={handleSignOut}>
                                     {t('nav.exit')}

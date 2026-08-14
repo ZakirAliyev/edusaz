@@ -14,7 +14,11 @@ import DestinationDetailPage from "../pages/UserPages/DestinationDetailPage/inde
 import UniversityDetailPage from "../pages/UserPages/UniversityDetailPage/index.jsx";
 import UniversityPortalPage from "../pages/UserPages/UniversityPortalPage/index.jsx";
 import SuperAdminPage from "../pages/UserPages/SuperAdminPage/index.jsx";
+import InstructorPortalPage from "../pages/UserPages/InstructorPortalPage/index.jsx";
+import InstructorSignInPage from "../pages/UserPages/InstructorSignInPage/index.jsx";
 
+import CoursesPage from "../pages/UserPages/CoursesPage/index.jsx";
+import CourseDetailPage from "../pages/UserPages/CourseDetailPage/index.jsx";
 import UserProfilePage from "../pages/UserPages/UserProfilePage/index.jsx";
 
 export const ROUTES = [
@@ -37,6 +41,14 @@ export const ROUTES = [
             {
                 path: 'universities/:id',
                 element: <UniversityDetailPage/>
+            },
+            {
+                path: 'courses',
+                element: <CoursesPage/>
+            },
+            {
+                path: 'courses/:id',
+                element: <CourseDetailPage/>
             },
             {
                 path: 'scholarships',
@@ -83,5 +95,13 @@ export const ROUTES = [
     {
         path: '/superadmin',
         element: <SuperAdminPage/>
+    },
+    {
+        path: '/instructor-portal',
+        element: <InstructorPortalPage/>
+    },
+    {
+        path: '/instructor/signin',
+        element: <InstructorSignInPage/>
     }
 ];

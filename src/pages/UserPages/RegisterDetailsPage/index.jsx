@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useRegisterUserMutation } from '../../../services/apis/userApi';
+import { useRegisterUserMutation, useInstructorRegisterMutation } from '../../../services/apis/userApi';
 import { useToast } from '../../../context/ToastContext';
 import './index.scss';
 
@@ -17,7 +17,10 @@ function RegisterDetailsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const role = location.state?.role || localStorage.getItem('userRole') || 'student';
-  const [registerUser, { isLoading }] = useRegisterUserMutation();
+  const [registerUser, { isLoading: isUserLoading }] = useRegisterUserMutation();
+  const [instructorRegister, { isLoading: isInstructorLoading }] = useInstructorRegisterMutation();
+
+  const isLoading = isUserLoading || isInstructorLoading;
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -31,11 +34,24 @@ function RegisterDetailsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      if (role === 'instructor') {
+        await instructorRegister({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          displayName: `${formData.firstName} ${formData.lastName}`
+        }).unwrap();
+        toast.showSuccess("Müəllim hesabı yaradıldı! 🎓 Zəhmət olmasa daxil olun.");
+        navigate('/signin');
+        return;
+      }
+
       await registerUser(formData).unwrap();
       toast.showSuccess(t('auth.registerSuccess') + " 📧 E-poçtunuza təsdiq məktubu göndərildi.");
       navigate('/signin');
     } catch (err) {
-      toast.showError(t('auth.registerError'));
+      toast.showError(err?.data?.message || t('auth.registerError'));
     }
   };
 

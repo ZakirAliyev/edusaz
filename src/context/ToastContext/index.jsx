@@ -23,8 +23,12 @@ export function ToastProvider({ children }) {
   const showError = useCallback((msg) => addToast(msg, 'error'), [addToast]);
   const showInfo = useCallback((msg) => addToast(msg, 'info'), [addToast]);
 
+  const success = showSuccess;
+  const error = showError;
+  const info = showInfo;
+
   return (
-    <ToastContext.Provider value={{ showSuccess, showError, showInfo }}>
+    <ToastContext.Provider value={{ showSuccess, showError, showInfo, success, error, info }}>
       {children}
       <div className="toast-container">
         {toasts.map(t => (
@@ -49,7 +53,10 @@ export function useToast() {
     return {
       showSuccess: (msg) => alert(msg),
       showError: (msg) => alert(msg),
-      showInfo: (msg) => alert(msg)
+      showInfo: (msg) => alert(msg),
+      success: (msg) => alert(msg),
+      error: (msg) => alert(msg),
+      info: (msg) => alert(msg)
     };
   }
   return context;

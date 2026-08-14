@@ -85,7 +85,7 @@
     }
 
     .sr-header {
-      margin-bottom: 32px;
+      margin-bottom: 24px;
 
       h1 {
         font-size: 32px;
@@ -98,15 +98,39 @@
       p {
         font-size: 15px;
         color: #64748b;
+      }
+    }
 
-        a {
-          color: #7A5CFF;
-          font-weight: 500;
-          text-decoration: none;
+    .role-selector-tabs {
+      display: flex;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 24px;
 
-          &:hover {
-            text-decoration: underline;
-          }
+      .role-tab {
+        flex: 1;
+        padding: 9px 12px;
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 9px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+
+        &.active {
+          background: #7A5CFF;
+          color: #ffffff;
+          box-shadow: 0 2px 8px rgba(122, 92, 255, 0.3);
+        }
+
+        &:not(.active):hover {
+          color: #0c0b1e;
+          background: rgba(255, 255, 255, 0.6);
         }
       }
     }

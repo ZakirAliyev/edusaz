@@ -234,6 +234,107 @@ export const userApi = createApi({
             }),
             transformResponse: (response) => response.data,
         }),
+
+        // ── Instructor Auth ──────────────────────────────────────────────────
+        instructorLogin: builder.mutation({
+            query: (credentials) => ({
+                url: '/Instructors/login',
+                method: 'POST',
+                body: credentials,
+            }),
+        }),
+        instructorRegister: builder.mutation({
+            query: (data) => ({
+                url: '/Instructors/register',
+                method: 'POST',
+                body: data,
+            }),
+        }),
+
+        // ── Instructor Profile ───────────────────────────────────────────────
+        getInstructorProfile: builder.query({
+            query: (email) => `/Instructors/profile?email=${encodeURIComponent(email || '')}`,
+            transformResponse: (response) => response.data,
+            providesTags: ['InstructorProfile'],
+        }),
+        updateInstructorProfile: builder.mutation({
+            query: ({ email, ...body }) => ({
+                url: `/Instructors/profile?email=${encodeURIComponent(email || '')}`,
+                method: 'PUT',
+                body,
+            }),
+            invalidatesTags: ['InstructorProfile'],
+        }),
+
+        // ── Instructor Courses ───────────────────────────────────────────────
+        getMyCourses: builder.query({
+            query: (email) => `/Instructors/my-courses?email=${encodeURIComponent(email || '')}`,
+            transformResponse: (response) => response.data,
+            providesTags: ['MyCourses'],
+        }),
+        getInstructorCourseById: builder.query({
+            query: (id) => `/Instructors/courses/${id}`,
+            transformResponse: (response) => response.data,
+        }),
+        createCourse: builder.mutation({
+            query: ({ email, ...body }) => ({
+                url: `/Instructors/courses?email=${encodeURIComponent(email || '')}`,
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['MyCourses'],
+        }),
+        updateCourse: builder.mutation({
+            query: ({ id, email, ...body }) => ({
+                url: `/Instructors/courses/${id}?email=${encodeURIComponent(email || '')}`,
+                method: 'PUT',
+                body,
+            }),
+            invalidatesTags: ['MyCourses'],
+        }),
+        deleteCourse: builder.mutation({
+            query: ({ id, email }) => ({
+                url: `/Instructors/courses/${id}?email=${encodeURIComponent(email || '')}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['MyCourses'],
+        }),
+        publishCourse: builder.mutation({
+            query: ({ id, email, publish }) => ({
+                url: `/Instructors/courses/${id}/publish?email=${encodeURIComponent(email || '')}&publish=${publish}`,
+                method: 'PUT',
+            }),
+            invalidatesTags: ['MyCourses'],
+        }),
+
+        // ── Analytics & Students ─────────────────────────────────────────────
+        getInstructorAnalytics: builder.query({
+            query: (email) => `/Instructors/analytics?email=${encodeURIComponent(email || '')}`,
+            transformResponse: (response) => response.data,
+        }),
+        getCourseStudents: builder.query({
+            query: ({ courseId, email }) =>
+                `/Instructors/courses/${courseId}/students?email=${encodeURIComponent(email || '')}`,
+            transformResponse: (response) => response.data,
+        }),
+
+        // ── Public Courses ───────────────────────────────────────────────────
+        getPublishedCourses: builder.query({
+            query: ({ lang, category, search } = {}) => {
+                let url = `/Courses`;
+                const params = [];
+                if (lang) params.push(`lang=${lang}`);
+                if (category) params.push(`category=${encodeURIComponent(category)}`);
+                if (search) params.push(`search=${encodeURIComponent(search)}`);
+                if (params.length) url += '?' + params.join('&');
+                return url;
+            },
+            transformResponse: (response) => response.data,
+        }),
+        getPublishedCourseById: builder.query({
+            query: ({ id, lang = 'en' }) => `/Courses/${id}?lang=${lang}`,
+            transformResponse: (response) => response.data,
+        }),
     }),
 })
 
@@ -272,4 +373,19 @@ export const {
     useGetAnalyticsQuery,
     useGetStudentLeadsQuery,
     useUpdateStudentLeadStatusMutation,
+    // Instructor
+    useInstructorLoginMutation,
+    useInstructorRegisterMutation,
+    useGetInstructorProfileQuery,
+    useUpdateInstructorProfileMutation,
+    useGetMyCoursesQuery,
+    useGetInstructorCourseByIdQuery,
+    useCreateCourseMutation,
+    useUpdateCourseMutation,
+    useDeleteCourseMutation,
+    usePublishCourseMutation,
+    useGetInstructorAnalyticsQuery,
+    useGetCourseStudentsQuery,
+    useGetPublishedCoursesQuery,
+    useGetPublishedCourseByIdQuery,
 } = userApi;
