@@ -132,6 +132,12 @@ function Navbar() {
                                 {t('nav.forUniversities')}
                             </NavLink>
                         </li>
+                        <li>
+                            <NavLink to="/talents" className={({ isActive }) => `nav-link-item talent-nav-link ${isActive ? 'active' : ''}`}>
+                                <span className="talent-nav-badge">✨</span>
+                                {t('nav.talents', { defaultValue: 'Gizli Bacarıqlar' })}
+                            </NavLink>
+                        </li>
                     </ul>
 
                     {/* Action Buttons & Language Selector */}
@@ -195,6 +201,11 @@ function Navbar() {
                         <li>
                             <NavLink to="/for-universities" className={({ isActive }) => `mobile-nav-link-item ${isActive ? 'active' : ''}`} onClick={toggleMenu}>
                                 {t('nav.forUniversities')}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/talents" className={({ isActive }) => `mobile-nav-link-item ${isActive ? 'active' : ''}`} onClick={toggleMenu}>
+                                ✨ {t('nav.talents', { defaultValue: 'Gizli Bacarıqlar' })}
                             </NavLink>
                         </li>
                     </ul>

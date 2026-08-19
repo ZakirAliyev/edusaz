@@ -56,6 +56,7 @@ function Footer() {
                 <li><Link to="/universities">{t('nav.browseUniversities')}</Link></li>
                 <li><Link to="/scholarships">{t('nav.scholarships')}</Link></li>
                 <li><Link to="/destinations">{t('nav.destinations')}</Link></li>
+                <li><Link to="/talents">✨ {t('nav.talents', { defaultValue: 'Gizli Bacarıqlar' })}</Link></li>
               </ul>
             </div>
             

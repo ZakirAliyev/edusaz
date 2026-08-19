@@ -69,6 +69,9 @@ function SuperAdminPage() {
   const [scholarships, setScholarships] = useState([]);
   const [countries, setCountries] = useState([]);
   const [languages, setLanguages] = useState([]);
+  const [talents, setTalents] = useState([]);
+  const [selectedTalent, setSelectedTalent] = useState(null);
+  const [talentNotes, setTalentNotes] = useState('');
   const [analytics, setAnalytics] = useState(null);
 
   // Modal States
@@ -185,7 +188,20 @@ function SuperAdminPage() {
         }
       }
 
-      // 6. Fetch SuperAdmin Overview Analytics
+      // 6. Fetch Talents from Backend
+      try {
+        const talRes = await fetch(`${API_BASE_URL}/HiddenTalents`);
+        if (talRes.ok) {
+          const json = await talRes.json();
+          if (json.data) {
+            setTalents(json.data);
+          }
+        }
+      } catch (err) {
+        console.warn("Talents fetch error:", err);
+      }
+
+      // 7. Fetch SuperAdmin Overview Analytics
       const analyticsRes = await fetch(`${API_BASE_URL}/Analytics/superadmin`);
       if (analyticsRes.ok) {
         const json = await analyticsRes.json();
@@ -787,6 +803,15 @@ function SuperAdminPage() {
             </button>
 
             <button 
+              className={`admin-nav-item ${activeTab === 'Talents' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('Talents'); setSearchTerm(''); setStatusFilter('All'); }}
+            >
+              <span className="nav-icon">✨</span>
+              <span>Gizli Bacarıqlar</span>
+              <span className="badge" style={{ background: '#7c3aed' }}>{talents.length}</span>
+            </button>
+
+            <button 
               className={`admin-nav-item ${activeTab === 'Analytics' ? 'active' : ''}`}
               onClick={() => { setActiveTab('Analytics'); setSearchTerm(''); setStatusFilter('All'); }}
             >
@@ -1238,6 +1263,149 @@ function SuperAdminPage() {
             </div>
           )}
 
+          {/* TAB 7: TALENTS & IDEAS */}
+          {activeTab === 'Talents' && (
+            <div className="super-table-container">
+              <div className="table-header-box">
+                <div>
+                  <h3>✨ Gizli Bacarıqlar & Layihə Müraciətləri</h3>
+                  <p className="table-desc">İstifadəçilərin paylaşdığı istedad, bacarıq, audio izah və biznes ideyaları.</p>
+                </div>
+                <div className="table-actions">
+                  <div className="search-input-wrap">
+                    <input 
+                      type="text" 
+                      placeholder="Ad, bacarıq, telefon..." 
+                      value={searchTerm} 
+                      onChange={e => setSearchTerm(e.target.value)} 
+                    />
+                  </div>
+                  <select 
+                    value={statusFilter} 
+                    onChange={e => setStatusFilter(e.target.value)} 
+                    className="status-filter-select"
+                  >
+                    <option value="All">Bütün Statuslar</option>
+                    <option value="New">Yeni</option>
+                    <option value="Reviewing">Baxılır</option>
+                    <option value="Contacted">Əlaqə saxlanıldı</option>
+                    <option value="Partnered">Tərəfdaşlıq quruldu</option>
+                    <option value="Archived">Arxiv</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="data-table-wrapper">
+                <table className="super-data-table">
+                  <thead>
+                    <tr>
+                      <th>Ad, Soyad</th>
+                      <th>Əlaqə</th>
+                      <th>Bacarıq</th>
+                      <th>Səviyyə</th>
+                      <th>İnvestisiya</th>
+                      <th>Media / Fayl</th>
+                      <th>Tarix</th>
+                      <th>Status</th>
+                      <th>Əməliyyatlar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {talents
+                      .filter(t => {
+                        const matchesSearch = !searchTerm || 
+                          (t.fullName && t.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (t.skillName && t.skillName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (t.phone && t.phone.includes(searchTerm)) ||
+                          (t.email && t.email.toLowerCase().includes(searchTerm.toLowerCase()));
+                        const matchesStatus = statusFilter === 'All' || t.status === statusFilter;
+                        return matchesSearch && matchesStatus;
+                      })
+                      .map(tItem => (
+                        <tr key={tItem.id}>
+                          <td><strong>{tItem.fullName || `${tItem.firstName} ${tItem.lastName}`}</strong></td>
+                          <td>
+                            <div style={{ fontSize: '0.85rem' }}>
+                              {tItem.phone && <div>📞 {tItem.phone}</div>}
+                              {tItem.email && <div>✉️ {tItem.email}</div>}
+                            </div>
+                          </td>
+                          <td><span className="badge" style={{ background: '#3b82f6' }}>{tItem.skillName}</span></td>
+                          <td>{tItem.skillLevel || 'Orta'}</td>
+                          <td>{tItem.estimatedInvestment || 'Göstərilməyib'}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              {tItem.hasVoiceNote && <span title="Səs yazısı var" style={{ fontSize: '1.1rem' }}>🎙️</span>}
+                              {tItem.videoUrl && <span title="Video linki var" style={{ fontSize: '1.1rem' }}>🎥</span>}
+                              {tItem.filesCount > 0 && <span className="badge" style={{ background: '#10b981' }}>{tItem.filesCount} fayl</span>}
+                            </div>
+                          </td>
+                          <td style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                            {tItem.createdDate ? new Date(tItem.createdDate).toLocaleDateString('az-AZ') : '-'}
+                          </td>
+                          <td>
+                            <span className={`status-pill ${tItem.status ? tItem.status.toLowerCase() : 'new'}`}>
+                              {tItem.status === 'New' ? 'Yeni' :
+                               tItem.status === 'Reviewing' ? 'Baxılır' :
+                               tItem.status === 'Contacted' ? 'Əlaqə saxlanıldı' :
+                               tItem.status === 'Partnered' ? 'Tərəfdaşlıq' : tItem.status || 'Yeni'}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="row-actions">
+                              <button 
+                                className="btn-edit" 
+                                title="Ətraflı Bax"
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch(`${API_BASE_URL}/HiddenTalents/${tItem.id}`);
+                                    if (res.ok) {
+                                      const json = await res.json();
+                                      setSelectedTalent(json.data);
+                                      setTalentNotes(json.data.adminNotes || '');
+                                      return;
+                                    }
+                                  } catch {}
+                                  setSelectedTalent(tItem);
+                                  setTalentNotes(tItem.adminNotes || '');
+                                }}
+                              >
+                                👁️ Bax
+                              </button>
+                              <button 
+                                className="btn-delete" 
+                                title="Sil"
+                                onClick={async () => {
+                                  if (window.confirm("Bu müraciəti silmək istəyirsiniz?")) {
+                                    try {
+                                      await fetch(`${API_BASE_URL}/HiddenTalents/${tItem.id}`, { method: 'DELETE' });
+                                      setTalents(prev => prev.filter(x => x.id !== tItem.id));
+                                      toast.showSuccess("Müraciət silindi!");
+                                    } catch {
+                                      toast.showError("Xəta baş verdi.");
+                                    }
+                                  }
+                                }}
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    {talents.length === 0 && (
+                      <tr>
+                        <td colSpan="9" style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
+                          Hələ heç bir gizli bacarıq müraciəti yoxdur.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* TAB 6: ANALYTICS */}
           {activeTab === 'Analytics' && (
             <div className="super-table-container">
@@ -1262,6 +1430,10 @@ function SuperAdminPage() {
                   <div className="metric-item">
                     <span>Ölkələrin Sayı:</span>
                     <strong>{analytics?.totalCountries || countries.length}</strong>
+                  </div>
+                  <div className="metric-item">
+                    <span>Gizli Bacarıq Müraciətləri:</span>
+                    <strong style={{ color: '#a78bfa' }}>{talents.length}</strong>
                   </div>
                 </div>
 
@@ -1683,6 +1855,184 @@ function SuperAdminPage() {
             <div className="modal-actions">
               <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>Ləğv Et</button>
               <button type="button" className="btn-confirm-delete" onClick={confirmDelete}>Bazadan Silinsin</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 6. Talent Detail Modal */}
+      {selectedTalent && (
+        <div className="modal-overlay" onClick={() => setSelectedTalent(null)}>
+          <div className="modal-card" style={{ maxWidth: '800px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>✨ {selectedTalent.firstName} {selectedTalent.lastName} — Bacarıq və İdeya Təfərrüatları</h3>
+              <button className="btn-close-modal" onClick={() => setSelectedTalent(null)}>&times;</button>
+            </div>
+
+            <div className="modal-form" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
+              {/* Status Bar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px' }}>
+                <div>
+                  <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Status: </span>
+                  <strong>{selectedTalent.status}</strong>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {['New', 'Reviewing', 'Contacted', 'Partnered', 'Archived'].map(st => (
+                    <button
+                      key={st}
+                      type="button"
+                      className={`btn-filter ${selectedTalent.status === st ? 'active' : ''}`}
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                      onClick={async () => {
+                        try {
+                          await fetch(`${API_BASE_URL}/HiddenTalents/${selectedTalent.id}/status`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: st, adminNotes: talentNotes })
+                          });
+                          setSelectedTalent(prev => ({ ...prev, status: st }));
+                          setTalents(prev => prev.map(x => x.id === selectedTalent.id ? { ...x, status: st } : x));
+                          toast.showSuccess(`Status '${st}' olaraq yeniləndi!`);
+                        } catch {}
+                      }}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 1. Personal */}
+              <div className="form-group">
+                <h4 style={{ color: '#a78bfa', marginBottom: '8px' }}>👤 Şəxsi & Əlaqə Məlumatları</h4>
+                <div className="form-row">
+                  <div><strong>Telefon:</strong> {selectedTalent.phone || '-'}</div>
+                  <div><strong>E-mail:</strong> {selectedTalent.email || '-'}</div>
+                </div>
+                <div className="form-row" style={{ marginTop: '6px' }}>
+                  <div><strong>Yaş:</strong> {selectedTalent.age || '-'}</div>
+                  <div><strong>Şəhər / Ölkə:</strong> {selectedTalent.cityCountry || '-'}</div>
+                </div>
+                {selectedTalent.socialLinks && (
+                  <div style={{ marginTop: '6px' }}><strong>Sosial / Linklər:</strong> {selectedTalent.socialLinks}</div>
+                )}
+              </div>
+
+              {/* 2. Skill */}
+              <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
+                <h4 style={{ color: '#38bdf8', marginBottom: '8px' }}>✨ Bacarıq & İstedad</h4>
+                <div><strong>Bacarıq:</strong> {selectedTalent.skillName}</div>
+                <div style={{ marginTop: '4px' }}><strong>Səviyyə:</strong> {selectedTalent.skillLevel} | <strong>Təcrübə:</strong> {selectedTalent.experienceDuration || '-'}</div>
+                {selectedTalent.whereUsed && <div style={{ marginTop: '4px' }}><strong>Harada istifadə edib:</strong> {selectedTalent.whereUsed}</div>}
+                {selectedTalent.whatCreated && <div style={{ marginTop: '4px' }}><strong>Nələr yaradıb:</strong> {selectedTalent.whatCreated}</div>}
+              </div>
+
+              {/* 3. Idea */}
+              <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
+                <h4 style={{ color: '#facc15', marginBottom: '8px' }}>💡 İdeya & Layihə</h4>
+                <p style={{ background: '#0f172a', padding: '12px', borderRadius: '8px', lineHeight: '1.6' }}>
+                  {selectedTalent.ideaDescription || 'İdeya təsviri yazılmayıb.'}
+                </p>
+                {selectedTalent.problemSolved && <div><strong>Həll etdiyi problem:</strong> {selectedTalent.problemSolved}</div>}
+                {selectedTalent.targetAudience && <div><strong>Hədəf auditoriya:</strong> {selectedTalent.targetAudience}</div>}
+                {selectedTalent.dynamicCategoryQuestion && (
+                  <div style={{ marginTop: '8px', background: 'rgba(124, 58, 237, 0.1)', padding: '10px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '0.8rem', color: '#c4b5fd' }}>{selectedTalent.dynamicCategoryQuestion}</div>
+                    <strong>{selectedTalent.dynamicCategoryAnswer || 'Cavab verilməyib'}</strong>
+                  </div>
+                )}
+              </div>
+
+              {/* 4. Media & Voice */}
+              {(selectedTalent.voiceNoteUrl || selectedTalent.videoUrl || selectedTalent.uploadedFilesJson) && (
+                <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
+                  <h4 style={{ color: '#f472b6', marginBottom: '8px' }}>📁 Media & Sübutlar</h4>
+                  {selectedTalent.voiceNoteUrl && (
+                    <div style={{ marginBottom: '10px' }}>
+                      <label>🎙️ Səsli İzah:</label>
+                      <audio controls src={selectedTalent.voiceNoteUrl} style={{ width: '100%', marginTop: '4px' }} />
+                    </div>
+                  )}
+                  {selectedTalent.videoUrl && (
+                    <div style={{ marginBottom: '8px' }}>
+                      <strong>Video Link:</strong> <a href={selectedTalent.videoUrl} target="_blank" rel="noreferrer" style={{ color: '#38bdf8' }}>{selectedTalent.videoUrl}</a>
+                    </div>
+                  )}
+                  {selectedTalent.uploadedFilesJson && (
+                    <div>
+                      <strong>Yüklənmiş Fayllar:</strong>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
+                        {(() => {
+                          try {
+                            const parsed = JSON.parse(selectedTalent.uploadedFilesJson);
+                            return parsed.map((f, i) => (
+                              <a key={i} href={f.url} target="_blank" rel="noreferrer" className="badge" style={{ background: '#334155', color: '#ffffff', textDecoration: 'none', padding: '6px 12px' }}>
+                                📄 {f.name} ({(f.size / (1024*1024)).toFixed(2)} MB)
+                              </a>
+                            ));
+                          } catch {
+                            return <span>Fayllar formatı oxunmadı</span>;
+                          }
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 5. Investment & Support */}
+              <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
+                <h4 style={{ color: '#34d399', marginBottom: '8px' }}>🎯 İnvestisiya & Ehtiyaclar</h4>
+                <div><strong>Təxmini İnvestisiya:</strong> {selectedTalent.estimatedInvestment} {selectedTalent.customInvestmentAmount ? `(${selectedTalent.customInvestmentAmount})` : ''}</div>
+                {selectedTalent.neededSupportTypes && (
+                  <div style={{ marginTop: '6px' }}>
+                    <strong>Lazım olan dəstək:</strong> {selectedTalent.neededSupportTypes}
+                  </div>
+                )}
+                {selectedTalent.otherNeeds && <div style={{ marginTop: '4px' }}><strong>Digər ehtiyaclar:</strong> {selectedTalent.otherNeeds}</div>}
+              </div>
+
+              {/* 6. Team & Future */}
+              <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
+                <h4 style={{ color: '#fb923c', marginBottom: '8px' }}>🚀 Komanda & Gələcək Vizyon</h4>
+                <div><strong>Komanda Statusu:</strong> {selectedTalent.teamStatus} {selectedTalent.teamSize ? `(${selectedTalent.teamSize} nəfər)` : ''}</div>
+                {selectedTalent.oneYearVision && <div style={{ marginTop: '4px' }}><strong>1 il sonra vizyonu:</strong> {selectedTalent.oneYearVision}</div>}
+                {selectedTalent.ultimateAmbition && <div style={{ marginTop: '4px' }}><strong>Ən böyük məqsədi:</strong> {selectedTalent.ultimateAmbition}</div>}
+              </div>
+
+              {/* Admin Notes */}
+              <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
+                <label>📝 Admin Qeydləri (Yalnız daxili istifadə üçün):</label>
+                <textarea
+                  rows="3"
+                  value={talentNotes}
+                  onChange={e => setTalentNotes(e.target.value)}
+                  placeholder="Bu müraciət haqqında daxili qeydləriniz..."
+                  style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '8px', color: '#fff' }}
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={() => setSelectedTalent(null)}>Bağla</button>
+                <button 
+                  type="button" 
+                  className="btn-save" 
+                  onClick={async () => {
+                    try {
+                      await fetch(`${API_BASE_URL}/HiddenTalents/${selectedTalent.id}/status`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: selectedTalent.status, adminNotes: talentNotes })
+                      });
+                      toast.showSuccess("Admin qeydləri yadda saxlanıldı!");
+                      setSelectedTalent(null);
+                    } catch {
+                      toast.showError("Xəta baş verdi.");
+                    }
+                  }}
+                >
+                  Qeydləri Yadda Saxla
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -335,6 +335,53 @@ export const userApi = createApi({
             query: ({ id, lang = 'en' }) => `/Courses/${id}?lang=${lang}`,
             transformResponse: (response) => response.data,
         }),
+        // Hidden Talents & Ideas
+        submitHiddenTalent: builder.mutation({
+            query: (body) => ({
+                url: '/HiddenTalents/submit',
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['HiddenTalents'],
+        }),
+        uploadTalentFile: builder.mutation({
+            query: (formData) => ({
+                url: '/HiddenTalents/upload',
+                method: 'POST',
+                body: formData,
+            }),
+        }),
+        getHiddenTalents: builder.query({
+            query: ({ status, search } = {}) => {
+                const params = new URLSearchParams();
+                if (status) params.append('status', status);
+                if (search) params.append('search', search);
+                const qs = params.toString();
+                return `/HiddenTalents${qs ? `?${qs}` : ''}`;
+            },
+            transformResponse: (response) => response.data,
+            providesTags: ['HiddenTalents'],
+        }),
+        getHiddenTalentById: builder.query({
+            query: (id) => `/HiddenTalents/${id}`,
+            transformResponse: (response) => response.data,
+            providesTags: ['HiddenTalents'],
+        }),
+        updateHiddenTalentStatus: builder.mutation({
+            query: ({ id, ...body }) => ({
+                url: `/HiddenTalents/${id}/status`,
+                method: 'PATCH',
+                body,
+            }),
+            invalidatesTags: ['HiddenTalents'],
+        }),
+        deleteHiddenTalent: builder.mutation({
+            query: (id) => ({
+                url: `/HiddenTalents/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['HiddenTalents'],
+        }),
     }),
 })
 
@@ -388,4 +435,11 @@ export const {
     useGetCourseStudentsQuery,
     useGetPublishedCoursesQuery,
     useGetPublishedCourseByIdQuery,
+    // Hidden Talents
+    useSubmitHiddenTalentMutation,
+    useUploadTalentFileMutation,
+    useGetHiddenTalentsQuery,
+    useGetHiddenTalentByIdQuery,
+    useUpdateHiddenTalentStatusMutation,
+    useDeleteHiddenTalentMutation,
 } = userApi;

@@ -9,6 +9,7 @@ import es from './es/common.json';
 import it from './it/common.json';
 import ar from './ar/common.json';
 import zh from './zh/common.json';
+import { talentsTranslations } from './talentsTranslations';
 
 const portalBaseAz = az.portal || {};
 
@@ -394,6 +395,47 @@ const instructorTranslations = {
   }
 };
 
+const navTalentsMap = {
+  az: "Gizli Bacarıqlar",
+  en: "Hidden Talents",
+  tr: "Gizli Yetenekler",
+  ru: "Таланты",
+  de: "Talente",
+  fr: "Talents",
+  es: "Talentos",
+  it: "Talenti",
+  ar: "المواهب",
+  zh: "隐藏才能",
+  pt: "Talentos",
+  nl: "Talenten",
+  pl: "Talenty",
+  se: "Talanger",
+  sv: "Talanger",
+  fi: "Kyvyt",
+  no: "Talenter",
+  da: "Talenter",
+  dk: "Talenter",
+  cs: "Talenty",
+  cz: "Talenty",
+  hu: "Tehetségek",
+  ro: "Talente",
+  el: "Ταλέντα",
+  gr: "Ταλέντα",
+  hi: "प्रतिभाएं",
+  id: "Bakat",
+  th: "พรสวรรค์",
+  vi: "Tài năng",
+  fa: "استعدادها",
+  uk: "Таланти",
+  ua: "Таланти",
+  bg: "Таланти",
+  sk: "Talenty",
+  ja: "才能・アイデア",
+  jp: "才能・アイデア",
+  ko: "숨은 재능",
+  kr: "숨은 재능"
+};
+
 export function buildAllResourceBundles() {
   const resources = {};
 
@@ -405,17 +447,53 @@ export function buildAllResourceBundles() {
     const iDict = instructorTranslations[code]
       || instructorTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en']
       || instructorTranslations.en;
+    const tDict = talentsTranslations[code]
+      || talentsTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en']
+      || talentsTranslations.en;
 
     resources[code] = {
       translation: {
         ...en,
         ...baseDict,
+        nav: {
+          ...(en.nav || {}),
+          ...(baseDict.nav || {}),
+          talents: navTalentsMap[code] || "Talents"
+        },
         portal: {
           ...(baseDict.portal || {}),
           ...pDict
         },
         instructor: {
           ...iDict
+        },
+        talents: {
+          ...(talentsTranslations.en || {}),
+          ...tDict,
+          skillLevels: {
+            ...(talentsTranslations.en?.skillLevels || {}),
+            ...(tDict.skillLevels || {})
+          },
+          supportList: {
+            ...(talentsTranslations.en?.supportList || {}),
+            ...(tDict.supportList || {})
+          },
+          teamStatuses: {
+            ...(talentsTranslations.en?.teamStatuses || {}),
+            ...(tDict.teamStatuses || {})
+          },
+          inspirational: {
+            ...(talentsTranslations.en?.inspirational || {}),
+            ...(tDict.inspirational || {})
+          },
+          dynamicAi: {
+            ...(talentsTranslations.en?.dynamicAi || {}),
+            ...(tDict.dynamicAi || {})
+          },
+          general: {
+            ...(talentsTranslations.en?.general || {}),
+            ...(tDict.general || {})
+          }
         }
       }
     };

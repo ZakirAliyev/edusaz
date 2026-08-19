@@ -531,6 +531,143 @@ namespace Edusaz.Infrastructure.Migrations
                     b.ToTable("CourseTranslations");
                 });
 
+            modelBuilder.Entity("Edusaz.Domain.Entities.HiddenTalent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AdminNotes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Age")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CityCountry")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CurrentProgress")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CustomInvestmentAmount")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DeletedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DynamicCategoryAnswer")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DynamicCategoryQuestion")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EstimatedInvestment")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ExperienceDuration")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("IdeaDescription")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LastUpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("MainGoal")
+                        .HasColumnType("text");
+
+                    b.Property<string>("NeededSupportTypes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OneYearVision")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OtherNeeds")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProblemSolved")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SkillLevel")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SkillName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SocialLinks")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TargetAudience")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TeamNotes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TeamRoles")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("TeamSize")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TeamStatus")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UltimateAmbition")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UploadedFilesJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("VideoUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("VoiceNoteUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("WantBusiness")
+                        .HasColumnType("text");
+
+                    b.Property<string>("WantIncome")
+                        .HasColumnType("text");
+
+                    b.Property<string>("WhatCreated")
+                        .HasColumnType("text");
+
+                    b.Property<string>("WhereUsed")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HiddenTalents");
+                });
+
             modelBuilder.Entity("Edusaz.Domain.Entities.Instructor", b =>
                 {
                     b.Property<Guid>("Id")

@@ -63,26 +63,50 @@
 
   .nav-links {
     display: flex;
-    gap: 28px;
+    gap: 14px;
     align-items: center;
     margin: 0;
     padding: 0;
+    list-style: none;
 
     .nav-link-item {
       font-size: 14px;
       font-weight: 500;
       color: var(--nav-link-color);
       transition: all 0.2s ease;
-      padding: 8px 16px;
+      padding: 7px 12px;
       border-radius: 100px;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
       
       &:hover {
         color: var(--nav-link-hover);
       }
 
       &.active {
-        background: rgba(122, 92, 255, 0.08);
+        background: rgba(122, 92, 255, 0.1);
         color: #7A5CFF;
+      }
+
+      &.talent-nav-link {
+        color: #c4b5fd;
+        
+        .talent-nav-badge {
+          font-size: 13px;
+          line-height: 1;
+        }
+
+        &:hover {
+          color: #ffffff;
+        }
+
+        &.active {
+          background: rgba(124, 58, 237, 0.18);
+          color: #a78bfa;
+        }
       }
     }
   }

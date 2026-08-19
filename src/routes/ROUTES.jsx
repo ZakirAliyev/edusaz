@@ -20,6 +20,7 @@ import InstructorSignInPage from "../pages/UserPages/InstructorSignInPage/index.
 import CoursesPage from "../pages/UserPages/CoursesPage/index.jsx";
 import CourseDetailPage from "../pages/UserPages/CourseDetailPage/index.jsx";
 import UserProfilePage from "../pages/UserPages/UserProfilePage/index.jsx";
+import HiddenTalentsPage from "../pages/UserPages/HiddenTalentsPage/index.jsx";
 
 export const ROUTES = [
     {
@@ -85,6 +86,14 @@ export const ROUTES = [
             {
                 path: 'ai-discovery/results',
                 element: <AiDiscoveryResultsPage/>
+            },
+            {
+                path: 'talents',
+                element: <HiddenTalentsPage/>
+            },
+            {
+                path: 'gizli-bacariqlar',
+                element: <HiddenTalentsPage/>
             }
         ]
     },

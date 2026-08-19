@@ -456,6 +456,7 @@ public class InstructorService : IInstructorService
         var query = _context.Courses
             .Include(c => c.Instructor).ThenInclude(i => i.User)
             .Include(c => c.Enrollments)
+            .Include(c => c.Translations)
             .Where(c => c.IsPublished && c.IsApproved && !c.IsDeleted);
 
         if (!string.IsNullOrEmpty(category))
@@ -473,7 +474,11 @@ public class InstructorService : IInstructorService
             {
                 var trans = c.Translations.FirstOrDefault(t => t.LanguageCode == lang);
                 var dto = MapToCourseListDto(c);
-                if (trans != null) dto.Title = trans.Title;
+                if (trans != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(trans.Title)) dto.Title = trans.Title;
+                    if (!string.IsNullOrWhiteSpace(trans.ShortDescription)) dto.ShortDescription = trans.ShortDescription;
+                }
                 return dto;
             }).ToList();
         }

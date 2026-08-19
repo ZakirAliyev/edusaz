@@ -36,6 +36,9 @@ public class EdusazDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<CourseLecture> CourseLectures { get; set; }
     public DbSet<CourseEnrollment> CourseEnrollments { get; set; }
 
+    // Hidden Talents & Ideas
+    public DbSet<HiddenTalent> HiddenTalents { get; set; }
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker.Entries<BaseEntity>();

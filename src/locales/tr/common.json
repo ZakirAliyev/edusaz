@@ -8,9 +8,10 @@
     "forUniversities": "Üniversiteler İçin",
     "signIn": "Giriş Yap",
     "aiDiscovery": "AI Keşif",
-    "profile": "Profile",
-    "portal": "University Portal",
-    "exit": "Exit"
+    "profile": "Profil",
+    "portal": "Üniversite Paneli",
+    "talents": "Gizli Yetenekler",
+    "exit": "Çıkış"
   },
   "hero": {
     "badge": "Yapay Zeka Destekli Küresel Üniversite Keşfi",
