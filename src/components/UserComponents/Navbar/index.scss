@@ -92,7 +92,7 @@
       }
 
       &.talent-nav-link {
-        color: #c4b5fd;
+        color: var(--nav-link-color);
         
         .talent-nav-badge {
           font-size: 13px;
@@ -100,12 +100,13 @@
         }
 
         &:hover {
-          color: #ffffff;
+          color: #a78bfa;
+          background: rgba(124, 58, 237, 0.08);
         }
 
         &.active {
-          background: rgba(124, 58, 237, 0.18);
-          color: #a78bfa;
+          background: rgba(124, 58, 237, 0.14);
+          color: #7A5CFF;
         }
       }
     }

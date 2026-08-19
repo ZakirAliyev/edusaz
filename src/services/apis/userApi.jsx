@@ -1,10 +1,17 @@
 import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react'
 import Cookies from "js-cookie";
 
+const getBaseUrl = () => {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5134/api';
+    }
+    return import.meta.env.VITE_API_BASE_URL || 'https://api.edusaz.com/api';
+};
+
 export const userApi = createApi({
     reducerPath: 'userApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://api.edusaz.com/api',
+        baseUrl: getBaseUrl(),
         prepareHeaders: (headers) => {
             const token = Cookies.get('userToken');
             if (token) {

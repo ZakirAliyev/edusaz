@@ -1,4 +1,4 @@
-name: Deploy React to VPS (Password)
+name: Deploy Frontend & Backend to VPS
 
 on:
   push:
@@ -13,6 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # --- 1. FRONTEND BUILD & DEPLOY ---
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -21,10 +22,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build project
+      - name: Build React frontend
         run: npm run build
 
-      - name: Copy files to VPS via SCP
+      - name: Copy Frontend files to VPS via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -34,11 +35,32 @@ jobs:
           target: "/var/www/edusaz"
           strip_components: 1
 
-      - name: Restart Nginx
+      # --- 2. BACKEND BUILD & DEPLOY ---
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish .NET Backend
+        run: dotnet publish Edusaz.Backend/Edusaz.API/Edusaz.API.csproj -c Release -o ./publish_backend
+
+      - name: Copy Backend files to VPS via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          source: "publish_backend/**"
+          target: "/var/www/edusaz-backend"
+          strip_components: 1
+
+      # --- 3. RESTART SERVICES ON VPS ---
+      - name: Restart Backend & Reload Nginx
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: root
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
+            systemctl restart edusaz-backend || systemctl restart edusaz || systemctl restart edusaz-api || true
             systemctl reload nginx
