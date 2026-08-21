@@ -52,4 +52,44 @@ public class UploadController : ControllerBase
             return BadRequest(ApiResponse<string>.ErrorResponse($"Yüklənmə xətası: {ex.Message}", 500));
         }
     }
+
+    [HttpPost("multiple")]
+    public async Task<IActionResult> UploadMultiple([FromForm] IFormFileCollection files, [FromQuery] string folder = "universities")
+    {
+        if (files == null || files.Count == 0)
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse("Heç bir fayl seçilməyib.", 400));
+        }
+
+        try
+        {
+            var uploadedFiles = new List<object>();
+            var scheme = Request.Scheme;
+            var host = Request.Host.Value;
+
+            foreach (var file in files)
+            {
+                if (file.Length > 0)
+                {
+                    using var stream = file.OpenReadStream();
+                    var relativePath = await _fileService.UploadFileAsync(stream, file.FileName, folder);
+                    var fullUrl = $"{scheme}://{host}{relativePath}";
+                    
+                    uploadedFiles.Add(new
+                    {
+                        fileUrl = fullUrl,
+                        relativeUrl = relativePath,
+                        fileName = file.FileName,
+                        fileSize = file.Length
+                    });
+                }
+            }
+
+            return Ok(ApiResponse<object>.SuccessResponse(uploadedFiles, $"{uploadedFiles.Count} fayl uğurla wwwroot qovluğuna yükləndi."));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse($"Toplu yüklənmə xətası: {ex.Message}", 500));
+        }
+    }
 }

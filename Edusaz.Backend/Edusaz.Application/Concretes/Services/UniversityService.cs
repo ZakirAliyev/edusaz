@@ -70,7 +70,9 @@ public class UniversityService : IUniversityService
                 TeachingLanguage = u.TeachingLanguage,
                 Deadline = u.Deadline,
                 Ranking = u.Ranking,
-                HasScholarship = u.HasScholarship
+                HasScholarship = u.HasScholarship,
+                Images = u.Images ?? new(),
+                VideoUrls = u.VideoUrls ?? new()
             };
         }).ToList();
     }
@@ -110,7 +112,9 @@ public class UniversityService : IUniversityService
             TeachingLanguage = u.TeachingLanguage,
             Deadline = u.Deadline,
             Ranking = u.Ranking,
-            HasScholarship = u.HasScholarship
+            HasScholarship = u.HasScholarship,
+            Images = u.Images ?? new(),
+            VideoUrls = u.VideoUrls ?? new()
         };
     }
 
@@ -129,6 +133,8 @@ public class UniversityService : IUniversityService
             Deadline = dto.Deadline,
             Ranking = dto.Ranking,
             HasScholarship = dto.HasScholarship,
+            Images = dto.Images ?? new(),
+            VideoUrls = dto.VideoUrls ?? new(),
             Translations = new List<UniversityTranslation>()
         };
 
@@ -187,6 +193,8 @@ public class UniversityService : IUniversityService
         u.Deadline = dto.Deadline;
         u.Ranking = dto.Ranking;
         u.HasScholarship = dto.HasScholarship;
+        if (dto.Images != null) u.Images = dto.Images;
+        if (dto.VideoUrls != null) u.VideoUrls = dto.VideoUrls;
 
         var baseTranslation = u.Translations.FirstOrDefault();
         if (baseTranslation != null)

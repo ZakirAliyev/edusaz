@@ -119,6 +119,8 @@ function SuperAdminPage() {
     hasScholarship: true,
     description: '',
     status: 'Active',
+    images: [],
+    videoUrls: [],
     translations: generateDefault31Translations()
   });
 
@@ -147,6 +149,8 @@ function SuperAdminPage() {
     title: '',
     description: '',
     provider: 'Dövlət Proqramı',
+    university: '',
+    universityId: '',
     country: 'Azərbaycan',
     countryId: '',
     coverage: 'Tam Təqaüd (100% Təhsil + Aylıq Yaşayış Xərcləri + Yol)',
@@ -176,9 +180,12 @@ function SuperAdminPage() {
   const [activeLangSubTab, setActiveLangSubTab] = useState('az');
   const [isTranslatingUni, setIsTranslatingUni] = useState(false);
   const [isUploadingImg, setIsUploadingImg] = useState(false);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [videoUrlInput, setVideoUrlInput] = useState('');
   const [isSavingUni, setIsSavingUni] = useState(false);
   const [uniProgress, setUniProgress] = useState({ visible: false, percent: 0, text: '' });
   const uniFileInputRef = useRef(null);
+  const uniGalleryInputRef = useRef(null);
 
   // --- API FETCH DATA FROM BACKEND DATABASE ---
   const loadDataFromBackend = useCallback(async () => {
@@ -208,7 +215,9 @@ function SuperAdminPage() {
             status: u.status || 'Active',
             registeredAt: u.establishedYear ? `${u.establishedYear}` : '2026-07-20',
             website: u.websiteUrl || '',
-            description: u.description || ''
+            description: u.description || '',
+            images: Array.isArray(u.images) ? u.images : (u.images ? [u.images] : []),
+            videoUrls: Array.isArray(u.videoUrls) ? u.videoUrls : (u.videoUrls ? [u.videoUrls] : [])
           }));
           setUniversities(mappedUnis);
         }
@@ -399,6 +408,7 @@ function SuperAdminPage() {
   const openUniModal = (mode, uni = null) => {
     setModalMode(mode);
     setActiveLangSubTab('az');
+    setVideoUrlInput('');
     if (mode === 'edit' && uni) {
       setEditingItem(uni);
       setUniForm({
@@ -417,6 +427,8 @@ function SuperAdminPage() {
         hasScholarship: uni.hasScholarship !== false,
         description: uni.description || '',
         status: uni.status || 'Active',
+        images: Array.isArray(uni.images) ? uni.images : (uni.images ? [uni.images] : []),
+        videoUrls: Array.isArray(uni.videoUrls) ? uni.videoUrls : (uni.videoUrls ? [uni.videoUrls] : []),
         translations: uni.translations || generateDefault31Translations(uni.name, uni.city, uni.description)
       });
     } else {
@@ -437,6 +449,8 @@ function SuperAdminPage() {
         hasScholarship: true,
         description: '',
         status: 'Active',
+        images: [],
+        videoUrls: [],
         translations: generateDefault31Translations('', 'Bakı', '')
       });
     }
@@ -444,7 +458,7 @@ function SuperAdminPage() {
     setModalType('uni');
   };
 
-  // Upload University Image File to Backend wwwroot
+  // Upload University Cover/Logo Image File to Backend wwwroot
   const handleUniFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -474,7 +488,7 @@ function SuperAdminPage() {
           ...prev,
           logoUrl: uploadedUrl
         }));
-        toast.showSuccess("Şəkil wwwroot qovluğuna uğurla yükləndi!");
+        toast.showSuccess("Loqo / Əsas şəkil wwwroot qovluğuna uğurla yükləndi!");
       } else {
         const errJson = await res.json().catch(() => ({}));
         toast.showError(errJson.message || "Şəkil yüklənərkən xəta baş verdi.");
@@ -486,6 +500,105 @@ function SuperAdminPage() {
       setIsUploadingImg(false);
       if (e.target) e.target.value = '';
     }
+  };
+
+  // Upload Multiple Campus / Gallery Images
+  const handleUniGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const validFiles = files.filter(f => f.type.startsWith('image/'));
+    if (validFiles.length === 0) {
+      toast.showError("Zəhmət olmasa yalnız şəkil faylları seçin (PNG, JPG, WEBP və s.).");
+      return;
+    }
+
+    setIsUploadingGallery(true);
+    toast.showInfo(`${validFiles.length} ədəd kampus şəkli serverə yüklənir... ⏳`);
+
+    try {
+      const baseUrl = getApiBaseUrl();
+      const formData = new FormData();
+      validFiles.forEach(f => formData.append('files', f));
+
+      const res = await fetch(`${baseUrl}/Upload/multiple?folder=universities`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const uploadedList = json.data || [];
+        const newUrls = uploadedList.map(item => item.fileUrl || item.relativeUrl);
+
+        setUniForm(prev => ({
+          ...prev,
+          images: [...(prev.images || []), ...newUrls]
+        }));
+        toast.showSuccess(`✨ ${newUrls.length} ədəd şəkil uğurla əlavə olundu!`);
+      } else {
+        // Fallback: upload one by one if multiple endpoint is unavailable
+        const fallbackUrls = [];
+        for (const f of validFiles) {
+          const singleFormData = new FormData();
+          singleFormData.append('file', f);
+          const singleRes = await fetch(`${baseUrl}/Upload?folder=universities`, {
+            method: 'POST',
+            body: singleFormData
+          });
+          if (singleRes.ok) {
+            const singleJson = await singleRes.json();
+            fallbackUrls.push(singleJson.data?.fileUrl || singleJson.data?.relativeUrl || singleJson.fileUrl);
+          }
+        }
+        if (fallbackUrls.length > 0) {
+          setUniForm(prev => ({
+            ...prev,
+            images: [...(prev.images || []), ...fallbackUrls]
+          }));
+          toast.showSuccess(`✨ ${fallbackUrls.length} ədəd şəkil uğurla əlavə olundu!`);
+        }
+      }
+    } catch (err) {
+      console.error("Gallery upload error:", err);
+      toast.showError("Şəkillər yüklənərkən xəta baş verdi.");
+    } finally {
+      setIsUploadingGallery(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  // Remove a gallery image
+  const handleRemoveUniImage = (indexToRemove) => {
+    setUniForm(prev => ({
+      ...prev,
+      images: (prev.images || []).filter((_, i) => i !== indexToRemove)
+    }));
+    toast.showInfo("Şəkil siyahıdan silindi.");
+  };
+
+  // Add Video URL
+  const handleAddVideoUrl = () => {
+    if (!videoUrlInput.trim()) {
+      toast.showError("Zəhmət olmasa video linki daxil edin (YouTube, Vimeo və s.)!");
+      return;
+    }
+    const cleanUrl = videoUrlInput.trim();
+    setUniForm(prev => ({
+      ...prev,
+      videoUrls: [...(prev.videoUrls || []), cleanUrl]
+    }));
+    setVideoUrlInput('');
+    toast.showSuccess("🎥 Video linki uğurla əlavə olundu!");
+  };
+
+  // Remove Video URL
+  const handleRemoveVideoUrl = (indexToRemove) => {
+    setUniForm(prev => ({
+      ...prev,
+      videoUrls: (prev.videoUrls || []).filter((_, i) => i !== indexToRemove)
+    }));
+    toast.showInfo("Video linki silindi.");
   };
 
   // AI Auto-Translate University to 31 Languages
@@ -600,6 +713,8 @@ function SuperAdminPage() {
       ranking: uniForm.ranking,
       hasScholarship: uniForm.hasScholarship,
       description: uniForm.description,
+      images: uniForm.images || [],
+      videoUrls: uniForm.videoUrls || [],
       baseLanguageCode: 'az'
     };
 
@@ -2054,10 +2169,10 @@ function SuperAdminPage() {
 
             <form onSubmit={handleSaveUni} className="modal-form">
               
-              {/* Şəkil əlavə et - Direct Computer Upload Only */}
+              {/* 1. Loqo / Əsas Şəkil */}
               <div className="form-group">
                 <label style={{ fontSize: '13px', fontWeight: 700, color: '#c084fc' }}>
-                  📷 {t('superAdmin.uploadImage', 'Şəkil əlavə et')} *
+                  📷 {t('superAdmin.uploadImage', 'Universitet Loqosu / Əsas Şəkil')} *
                 </label>
                 <div className="uni-single-upload-box">
                   {uniForm.logoUrl ? (
@@ -2065,12 +2180,12 @@ function SuperAdminPage() {
                       <div className="preview-img-container">
                         <img 
                           src={uniForm.logoUrl} 
-                          alt="University" 
+                          alt="University Logo" 
                           onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80"; }}
                         />
                       </div>
                       <div className="preview-info-actions">
-                        <div className="file-status-badge">✓ Şəkil uğurla seçilib</div>
+                        <div className="file-status-badge">✓ Loqo / Əsas şəkil seçilib</div>
                         <input 
                           type="file" 
                           ref={uniFileInputRef} 
@@ -2084,7 +2199,7 @@ function SuperAdminPage() {
                           disabled={isUploadingImg}
                           onClick={() => uniFileInputRef.current?.click()}
                         >
-                          {isUploadingImg ? '⏳ Şəkil Yüklənir...' : '🔄 Şəkli Dəyişdir (Kompüterdən)'}
+                          {isUploadingImg ? '⏳ Loqo Yüklənir...' : '🔄 Loqonu Dəyişdir (Kompüterdən)'}
                         </button>
                       </div>
                     </div>
@@ -2101,7 +2216,7 @@ function SuperAdminPage() {
                         {isUploadingImg ? '⏳' : '📁'}
                       </div>
                       <div className="upload-prompt-texts">
-                        <strong>{isUploadingImg ? 'Şəkil serverə yüklənir...' : 'Kompüterdən şəkil seçmək üçün klikləyin'}</strong>
+                        <strong>{isUploadingImg ? 'Loqo serverə yüklənir...' : 'Kompüterdən Loqo / Əsas Şəkil seçmək üçün klikləyin'}</strong>
                         <span>PNG, JPG, WEBP formatları (Maksimum 10MB)</span>
                       </div>
                       <button 
@@ -2113,11 +2228,116 @@ function SuperAdminPage() {
                           uniFileInputRef.current?.click();
                         }}
                       >
-                        {isUploadingImg ? 'Yüklənir...' : '📁 Şəkil Seç'}
+                        {isUploadingImg ? 'Yüklənir...' : '📁 Loqo Seç'}
                       </button>
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* 2. Kampus və Qalereya Şəkilləri (Multiple Images Upload) */}
+              <div className="form-group uni-gallery-section">
+                <div className="uni-section-header-row">
+                  <label style={{ fontSize: '13px', fontWeight: 700, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                    🖼️ Kampus və Universitet Şəkilləri (Qalereya)
+                    <span className="gallery-count-badge">{(uniForm.images || []).length} şəkil</span>
+                  </label>
+                  
+                  <input 
+                    type="file" 
+                    ref={uniGalleryInputRef} 
+                    accept="image/*" 
+                    multiple 
+                    style={{ display: 'none' }} 
+                    onChange={handleUniGalleryUpload} 
+                  />
+                  <button 
+                    type="button" 
+                    className="btn-add-gallery-images"
+                    disabled={isUploadingGallery}
+                    onClick={() => uniGalleryInputRef.current?.click()}
+                  >
+                    {isUploadingGallery ? '⏳ Şəkillər Yüklənir...' : '➕ Kompüterdən Şəkillər Seç (Çoxlu)'}
+                  </button>
+                </div>
+
+                {uniForm.images && uniForm.images.length > 0 ? (
+                  <div className="uni-gallery-grid animate-fade-in">
+                    {uniForm.images.map((imgUrl, idx) => (
+                      <div key={idx} className="uni-gallery-item">
+                        <img 
+                          src={imgUrl} 
+                          alt={`Gallery ${idx + 1}`} 
+                          onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80"; }}
+                        />
+                        <button 
+                          type="button" 
+                          className="btn-remove-gallery-img" 
+                          title="Şəkli sil"
+                          onClick={() => handleRemoveUniImage(idx)}
+                        >
+                          &times;
+                        </button>
+                        <span className="gallery-img-number">#{idx + 1}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="uni-empty-gallery-box" onClick={() => uniGalleryInputRef.current?.click()}>
+                    <span>📸 Hələ heç bir əlavə kampus şəkli yüklənməyib. Kompüterdən birdən çox şəkil seçib yükləyə bilərsiniz.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Video Linkləri (YouTube / Vimeo / Promo Videolar) */}
+              <div className="form-group uni-videos-section">
+                <label style={{ fontSize: '13px', fontWeight: 700, color: '#f43f5e', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  🎥 Universitet Video Linkləri (YouTube, Vimeo, Promo)
+                  <span className="video-count-badge">{(uniForm.videoUrls || []).length} video</span>
+                </label>
+
+                <div className="add-video-url-row">
+                  <input 
+                    type="url" 
+                    value={videoUrlInput}
+                    onChange={e => setVideoUrlInput(e.target.value)}
+                    placeholder="Məsələn: https://www.youtube.com/watch?v=... və ya video linki"
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddVideoUrl(); } }}
+                  />
+                  <button type="button" className="btn-add-video" onClick={handleAddVideoUrl}>
+                    ➕ Video Əlavə Et
+                  </button>
+                </div>
+
+                {uniForm.videoUrls && uniForm.videoUrls.length > 0 ? (
+                  <div className="uni-videos-list animate-fade-in">
+                    {uniForm.videoUrls.map((vidUrl, idx) => (
+                      <div key={idx} className="uni-video-item">
+                        <div className="video-info-left">
+                          <span className="video-icon">🎬</span>
+                          <span className="video-url-text" title={vidUrl}>{vidUrl}</span>
+                        </div>
+                        <div className="video-actions-right">
+                          <a href={vidUrl} target="_blank" rel="noopener noreferrer" className="btn-watch-video">
+                            ↗️ Videoya Bax
+                          </a>
+                          <button 
+                            type="button" 
+                            className="btn-remove-video" 
+                            title="Video linkini sil"
+                            onClick={() => handleRemoveVideoUrl(idx)}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="uni-empty-videos-note">
+                    <span>🎬 Universitetin tanıtım, kampus turu və ya YouTube video linklərini yuxarıdakı xanadan əlavə edin.</span>
+                  </div>
+                )}
               </div>
 
               {/* Core Details Row 1 */}

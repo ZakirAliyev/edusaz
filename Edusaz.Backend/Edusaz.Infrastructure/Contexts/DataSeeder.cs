@@ -17,6 +17,18 @@ public static class DataSeeder
 
         await context.Database.MigrateAsync();
 
+        try
+        {
+            await context.Database.ExecuteSqlRawAsync(@"
+                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""Images"" text[] DEFAULT '{}';
+                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""VideoUrls"" text[] DEFAULT '{}';
+            ");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DB Schema sync: {ex.Message}");
+        }
+
         // 1. Seed Roles & SuperAdmin User
         await SeedSuperAdminAsync(serviceProvider, context);
 

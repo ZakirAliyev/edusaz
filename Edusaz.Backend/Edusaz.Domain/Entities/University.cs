@@ -21,6 +21,9 @@ public class University : BaseEntity
     public string Ranking { get; set; } = string.Empty;
     public bool HasScholarship { get; set; }
     
+    public List<string> Images { get; set; } = new();
+    public List<string> VideoUrls { get; set; } = new();
+
     public ICollection<UniversityTranslation> Translations { get; set; } = new List<UniversityTranslation>();
     public ICollection<Program> Programs { get; set; } = new List<Program>();
 }

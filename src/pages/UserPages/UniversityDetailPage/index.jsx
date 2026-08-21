@@ -115,6 +115,48 @@ function UniversityDetailPage() {
           </div>
         );
 
+      case 'Campus':
+        return (
+          <div className="tab-campus-content">
+            <h2>Campus & Facilities of {uni.name}</h2>
+            
+            {/* Gallery Images */}
+            {uni.images && uni.images.length > 0 ? (
+              <div className="campus-gallery-section" style={{ marginTop: '20px' }}>
+                <h3 style={{ fontSize: '18px', color: '#38bdf8', marginBottom: '14px' }}>📸 Campus Photo Gallery</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+                  {uni.images.map((imgUrl, i) => (
+                    <div key={i} style={{ height: '160px', borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <img src={imgUrl} alt={`Campus ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Video Links */}
+            {uni.videoUrls && uni.videoUrls.length > 0 ? (
+              <div className="campus-videos-section" style={{ marginTop: '30px' }}>
+                <h3 style={{ fontSize: '18px', color: '#f43f5e', marginBottom: '14px' }}>🎥 Promo & Tour Videos</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {uni.videoUrls.map((vidUrl, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}>
+                      <span style={{ color: '#e2e8f0', fontSize: '14px' }}>🎬 {vidUrl}</span>
+                      <a href={vidUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#38bdf8', fontWeight: 700, textDecoration: 'none', background: 'rgba(56,189,248,0.15)', padding: '6px 14px', borderRadius: '8px' }}>
+                        ↗️ Watch Video
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {(!uni.images || uni.images.length === 0) && (!uni.videoUrls || uni.videoUrls.length === 0) ? (
+              <p style={{ color: '#94a3b8', marginTop: '14px' }}>Modern campus located in {uni.city || uni.country} with world-class facilities and student amenities.</p>
+            ) : null}
+          </div>
+        );
+
       default:
         return (
           <div className="tab-dummy-content">

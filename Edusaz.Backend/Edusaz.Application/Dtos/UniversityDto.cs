@@ -23,6 +23,8 @@ public class UniversityDto
     public string Deadline { get; set; } = string.Empty;
     public string Ranking { get; set; } = string.Empty;
     public bool HasScholarship { get; set; }
+    public List<string> Images { get; set; } = new();
+    public List<string> VideoUrls { get; set; } = new();
 }
 
 public class CreateUniversityDto
@@ -44,4 +46,7 @@ public class CreateUniversityDto
     public string Deadline { get; set; } = string.Empty;
     public string Ranking { get; set; } = string.Empty;
     public bool HasScholarship { get; set; }
+
+    public List<string> Images { get; set; } = new();
+    public List<string> VideoUrls { get; set; } = new();
 }
