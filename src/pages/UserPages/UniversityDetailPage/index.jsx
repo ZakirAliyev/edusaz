@@ -1,248 +1,373 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../../context/LanguageContext';
-import { useGetUniversitiesQuery } from '../../../services/apis/userApi';
+import {
+  useGetUniversityByIdQuery,
+  useGetProgramsQuery,
+  useGetScholarshipsQuery,
+} from '../../../services/apis/userApi';
+import { useToast } from '../../../context/ToastContext';
+import Cookies from 'js-cookie';
+import ScrollToTop from '../../../components/Common/ScrollToTop';
 import './index.scss';
+
+// Extract YouTube embed ID from any YouTube URL
+function getYouTubeId(url) {
+  if (!url) return null;
+  const regExp = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
+  const match = url.match(regExp);
+  return match ? match[1] : null;
+}
+
+function YouTubeEmbed({ url }) {
+  const videoId = getYouTubeId(url);
+  if (videoId) {
+    return (
+      <div className="udp-video-embed">
+        <iframe
+          src={`https://www.youtube.com/embed/${videoId}`}
+          title="University Video"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
+  // Non-youtube link
+  return (
+    <div className="udp-video-link">
+      <a href={url} target="_blank" rel="noopener noreferrer">🎬 Videoya bax →</a>
+    </div>
+  );
+}
 
 function UniversityDetailPage() {
   const { t } = useTranslation();
   const { language } = useLanguage();
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState('Overview');
-  
-  const { data: universities = [], isLoading } = useGetUniversitiesQuery(language);
-  
-  // Find matching university by ID or fallback to first backend item
-  const uni = universities.find(u => String(u.id).toLowerCase() === String(id).toLowerCase()) || universities[0] || {
-    name: 'ADA University',
-    country: 'Azerbaijan',
-    city: 'Baku',
-    establishedYear: 2006,
-    ranking: '#1 in AZ',
-    logoUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80',
-    tuition: '$6,500/yr',
-    acceptanceRate: '42%',
-    teachingLanguage: 'English',
-    deadline: 'Apr 30, 2025',
-    description: 'Leading university offering accredited international programs.'
-  };
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const tabs = ['Overview', 'Programs', 'Scholarships', 'Admissions', 'Campus', 'Reviews'];
+  const { data: uni, isLoading, isError } = useGetUniversityByIdQuery({ id, lang: language });
+
+  const { data: programs = [] } = useGetProgramsQuery(
+    { lang: language, universityId: id },
+    { skip: !id || activeTab !== 'programs' }
+  );
+
+  const { data: scholarships = [] } = useGetScholarshipsQuery(
+    { lang: language, universityId: id },
+    { skip: !id || activeTab !== 'scholarships' }
+  );
+
+  const handleApply = () => {
+    const token = Cookies.get('userToken');
+    if (!token) {
+      toast.showError(t('auth.loginRequired') || 'Müraciət etmək üçün daxil olun');
+      navigate('/signin');
+      return;
+    }
+    toast.showSuccess(t('apply.success') || 'Müraciətiniz göndərildi!');
+  };
 
   if (isLoading) {
-    return <div style={{ padding: '80px', textAlign: 'center', color: '#94a3b8' }}>Loading university details from backend...</div>;
+    return (
+      <div className="udp-loading">
+        <div className="udp-spinner" />
+        <p>Yüklənir...</p>
+      </div>
+    );
   }
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'Overview':
-        return (
-          <div className="tab-overview">
-            <div className="overview-main">
-              <h2>About {uni.name}</h2>
-              <p>{uni.description || `Leading higher education institution located in ${uni.city || uni.country}.`}</p>
+  if (isError || !uni) {
+    return (
+      <div className="udp-error">
+        <h2>Universitet tapılmadı</h2>
+        <Link to="/universities">← Universitetlərə qayıt</Link>
+      </div>
+    );
+  }
 
-              <div className="chart-container">
-                <div className="chart-header">
-                  <h3>International Student Growth</h3>
-                </div>
-                <div className="chart-body">
-                  <div className="chart-line-bg">
-                    <svg viewBox="0 0 800 200" width="100%" height="200" preserveAspectRatio="none">
-                      <path d="M0,150 Q400,100 800,20" fill="none" stroke="#9f8aff" strokeWidth="3" />
-                      <path d="M0,150 Q400,100 800,20 L800,200 L0,200 Z" fill="rgba(159,138,255,0.1)" />
-                    </svg>
-                  </div>
-                  <div className="chart-labels-y">
-                    <span>1600</span><span>1200</span><span>800</span><span>400</span><span>0</span>
-                  </div>
-                  <div className="chart-labels-x">
-                    <span>2020</span><span>2021</span><span>2022</span><span>2023</span><span>2024</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+  const TABS = [
+    { key: 'overview', label: '📋 Ümumi' },
+    { key: 'programs', label: '🎓 Proqramlar' },
+    { key: 'scholarships', label: '🏆 Təqaüdlər' },
+    { key: 'media', label: '📸 Şəkil & Video' },
+  ];
 
-            <div className="overview-sidebar">
-              <div className="sidebar-card deadline-card">
-                <p>Application Deadline</p>
-                <h2>{uni.deadline || 'Apr 30, 2025'}</h2>
-                <button className="btn-apply-now">Apply Now &rarr;</button>
-                <span className="free-apply-text">Free to apply via EDUSAZ</span>
-              </div>
-
-              <div className="sidebar-card key-info-card">
-                <h3>Key Information</h3>
-                <ul>
-                  <li><span>Annual Tuition</span> <span>{uni.tuition || '$6,500/yr'}</span></li>
-                  <li><span>Acceptance Rate</span> <span>{uni.acceptanceRate || '42%'}</span></li>
-                  <li><span>Language</span> <span>{uni.teachingLanguage || 'English'}</span></li>
-                  <li><span>Established</span> <span>{uni.establishedYear}</span></li>
-                  <li><span>Ranking</span> <span>{uni.ranking || 'Top Regional'}</span></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        );
-      
-      case 'Programs':
-        return (
-          <div className="tab-dummy-content">
-            <h2>Programs offered at {uni.name}</h2>
-            <div className="programs-list">
-              <div className="program-item">
-                <div className="p-main">
-                  <h3>Bachelor in Computer Science</h3>
-                  <p>4 years &bull; Full-time &bull; On Campus</p>
-                </div>
-                <div className="p-side">
-                  <span className="p-tuition">{uni.tuition || '$6,500/yr'}</span>
-                  <button className="btn-apply-sm">Apply</button>
-                </div>
-              </div>
-              <div className="program-item">
-                <div className="p-main">
-                  <h3>Bachelor in Business Administration</h3>
-                  <p>4 years &bull; Full-time &bull; On Campus</p>
-                </div>
-                <div className="p-side">
-                  <span className="p-tuition">{uni.tuition || '$6,500/yr'}</span>
-                  <button className="btn-apply-sm">Apply</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'Campus':
-        return (
-          <div className="tab-campus-content">
-            <h2>Campus & Facilities of {uni.name}</h2>
-            
-            {/* Gallery Images */}
-            {uni.images && uni.images.length > 0 ? (
-              <div className="campus-gallery-section" style={{ marginTop: '20px' }}>
-                <h3 style={{ fontSize: '18px', color: '#38bdf8', marginBottom: '14px' }}>📸 Campus Photo Gallery</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
-                  {uni.images.map((imgUrl, i) => (
-                    <div key={i} style={{ height: '160px', borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-                      <img src={imgUrl} alt={`Campus ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            {/* Video Links */}
-            {uni.videoUrls && uni.videoUrls.length > 0 ? (
-              <div className="campus-videos-section" style={{ marginTop: '30px' }}>
-                <h3 style={{ fontSize: '18px', color: '#f43f5e', marginBottom: '14px' }}>🎥 Promo & Tour Videos</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {uni.videoUrls.map((vidUrl, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}>
-                      <span style={{ color: '#e2e8f0', fontSize: '14px' }}>🎬 {vidUrl}</span>
-                      <a href={vidUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#38bdf8', fontWeight: 700, textDecoration: 'none', background: 'rgba(56,189,248,0.15)', padding: '6px 14px', borderRadius: '8px' }}>
-                        ↗️ Watch Video
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            {(!uni.images || uni.images.length === 0) && (!uni.videoUrls || uni.videoUrls.length === 0) ? (
-              <p style={{ color: '#94a3b8', marginTop: '14px' }}>Modern campus located in {uni.city || uni.country} with world-class facilities and student amenities.</p>
-            ) : null}
-          </div>
-        );
-
-      default:
-        return (
-          <div className="tab-dummy-content">
-            <h2>{activeTab} for {uni.name}</h2>
-            <p>Information loaded live from EDUSAZ Backend API.</p>
-          </div>
-        );
-    }
-  };
+  const images = uni.images || uni.mediaUrls || [];
+  const videos = uni.videoUrls || uni.videos || [];
 
   return (
-    <div className="university-detail-page">
-      {/* Hero Section */}
-      <section 
-        className="uni-hero" 
-        style={{ backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 100%), url(${uni.logoUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80"})` }}
-      >
-        <div className="uni-hero-content">
-          <div className="badges">
-            <span className="badge-verified">🛡️ Verified Partner</span>
-            <span className="badge-match">✨ 96% Match</span>
+    <div className="udp-page">
+      <ScrollToTop />
+
+      {/* ── HERO ── */}
+      <section className="udp-hero">
+        <div
+          className="udp-hero-bg"
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(2,6,23,0.92) 0%, rgba(2,6,23,0.5) 100%), url(${
+              images[0] || uni.logoUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1920&q=80'
+            })`,
+          }}
+        />
+        <div className="udp-hero-content container">
+          {/* Logo + Name */}
+          <div className="udp-hero-top">
+            {uni.logoUrl && (
+              <div className="udp-logo-wrap">
+                <img src={uni.logoUrl} alt={uni.name} />
+              </div>
+            )}
+            <div className="udp-hero-info">
+              <h1>{uni.name}</h1>
+              <p className="udp-hero-sub">
+                {[uni.city, uni.country].filter(Boolean).join(', ')}
+                {uni.establishedYear && <> · {uni.establishedYear}</>}
+                {uni.ranking && <> · {uni.ranking}</>}
+              </p>
+            </div>
           </div>
-          <h1>{uni.name}</h1>
-          <p className="subtitle">
-            {uni.city ? `${uni.city}, ${uni.country}` : uni.country} &bull; Founded {uni.establishedYear} &bull; {uni.ranking || 'Accredited'}
-          </p>
-          
-          <div className="hero-actions">
-            <button className="btn-save">🔖 Save</button>
-            <button className="btn-apply-primary">Apply Now &rarr;</button>
+
+          {/* Stats */}
+          <div className="udp-hero-stats">
+            {uni.tuition && (
+              <div className="udp-stat-chip">
+                <span className="udp-stat-label">💲 Ödəniş</span>
+                <span className="udp-stat-val">{uni.tuition}</span>
+              </div>
+            )}
+            {uni.acceptanceRate && (
+              <div className="udp-stat-chip">
+                <span className="udp-stat-label">📈 Qəbul</span>
+                <span className="udp-stat-val">{uni.acceptanceRate}</span>
+              </div>
+            )}
+            {uni.teachingLanguage && (
+              <div className="udp-stat-chip">
+                <span className="udp-stat-label">🗣️ Dil</span>
+                <span className="udp-stat-val">{uni.teachingLanguage}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="udp-hero-actions">
+            <button className="udp-btn-apply" onClick={handleApply}>
+              Müraciət Et →
+            </button>
+            <Link to="/universities" className="udp-btn-back">← Geri</Link>
           </div>
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <section className="uni-stats-bar">
-        <div className="stats-inner">
-          <div className="stat-item">
-            <span className="s-icon">📈</span>
-            <div className="s-text">
-              <span className="s-label">Acceptance</span>
-              <span className="s-val">{uni.acceptanceRate || '42%'}</span>
-            </div>
-          </div>
-          <div className="stat-divider"></div>
-          <div className="stat-item">
-            <span className="s-icon">💲</span>
-            <div className="s-text">
-              <span className="s-label">Tuition/yr</span>
-              <span className="s-val">{uni.tuition || '$6,500/yr'}</span>
-            </div>
-          </div>
-          <div className="stat-divider"></div>
-          <div className="stat-item">
-            <span className="s-icon">🗣️</span>
-            <div className="s-text">
-              <span className="s-label">Language</span>
-              <span className="s-val">{uni.teachingLanguage || 'English'}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Tabs */}
-      <section className="uni-tabs-container">
-        <div className="uni-tabs">
-          {tabs.map(tab => (
-            <button 
-              key={tab}
-              className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab)}
+      {/* ── TABS ── */}
+      <div className="udp-tabs-bar">
+        <div className="container udp-tabs-inner">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              className={`udp-tab ${activeTab === tab.key ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.key)}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* Tab Content */}
-      <section className="uni-tab-content-section">
-        {renderTabContent()}
-      </section>
+      {/* ── TAB CONTENT ── */}
+      <div className="container udp-tab-body">
+
+        {/* OVERVIEW */}
+        {activeTab === 'overview' && (
+          <div className="udp-overview">
+            <div className="udp-overview-main">
+              <h2>{uni.name} haqqında</h2>
+              {uni.description ? (
+                <p>{uni.description}</p>
+              ) : (
+                <p className="udp-muted">Açıqlama məlumatı mövcud deyil.</p>
+              )}
+
+              {/* Key info */}
+              <div className="udp-info-grid">
+                {uni.country && (
+                  <div className="udp-info-item">
+                    <span className="udp-info-icon">🌍</span>
+                    <div>
+                      <span className="udp-info-label">Ölkə</span>
+                      <span className="udp-info-val">{uni.country}</span>
+                    </div>
+                  </div>
+                )}
+                {uni.city && (
+                  <div className="udp-info-item">
+                    <span className="udp-info-icon">🏙️</span>
+                    <div>
+                      <span className="udp-info-label">Şəhər</span>
+                      <span className="udp-info-val">{uni.city}</span>
+                    </div>
+                  </div>
+                )}
+                {uni.establishedYear && (
+                  <div className="udp-info-item">
+                    <span className="udp-info-icon">📅</span>
+                    <div>
+                      <span className="udp-info-label">Qurulma ili</span>
+                      <span className="udp-info-val">{uni.establishedYear}</span>
+                    </div>
+                  </div>
+                )}
+                {uni.ranking && (
+                  <div className="udp-info-item">
+                    <span className="udp-info-icon">🏅</span>
+                    <div>
+                      <span className="udp-info-label">Reytinq</span>
+                      <span className="udp-info-val">{uni.ranking}</span>
+                    </div>
+                  </div>
+                )}
+                {uni.tuition && (
+                  <div className="udp-info-item">
+                    <span className="udp-info-icon">💰</span>
+                    <div>
+                      <span className="udp-info-label">Ödəniş</span>
+                      <span className="udp-info-val">{uni.tuition}</span>
+                    </div>
+                  </div>
+                )}
+                {uni.teachingLanguage && (
+                  <div className="udp-info-item">
+                    <span className="udp-info-icon">🗣️</span>
+                    <div>
+                      <span className="udp-info-label">Tədris dili</span>
+                      <span className="udp-info-val">{uni.teachingLanguage}</span>
+                    </div>
+                  </div>
+                )}
+                {uni.acceptanceRate && (
+                  <div className="udp-info-item">
+                    <span className="udp-info-icon">📊</span>
+                    <div>
+                      <span className="udp-info-label">Qəbul faizi</span>
+                      <span className="udp-info-val">{uni.acceptanceRate}</span>
+                    </div>
+                  </div>
+                )}
+                {uni.deadline && (
+                  <div className="udp-info-item">
+                    <span className="udp-info-icon">📌</span>
+                    <div>
+                      <span className="udp-info-label">Son müraciət</span>
+                      <span className="udp-info-val">{uni.deadline}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PROGRAMS */}
+        {activeTab === 'programs' && (
+          <div className="udp-programs">
+            <h2>Proqramlar</h2>
+            {programs.length === 0 ? (
+              <div className="udp-empty">
+                <span>📚</span>
+                <p>Bu universitet üçün proqram məlumatı mövcud deyil.</p>
+              </div>
+            ) : (
+              <div className="udp-program-list">
+                {programs.map((prog) => (
+                  <div key={prog.id} className="udp-program-card">
+                    <div className="udp-prog-main">
+                      <h3>{prog.name || prog.title}</h3>
+                      <p className="udp-prog-meta">
+                        {[prog.degree, prog.duration, prog.mode].filter(Boolean).join(' · ')}
+                      </p>
+                      {prog.description && <p className="udp-prog-desc">{prog.description}</p>}
+                    </div>
+                    <div className="udp-prog-side">
+                      {prog.tuitionFee && <span className="udp-prog-fee">{prog.tuitionFee}</span>}
+                      <button className="udp-prog-apply" onClick={handleApply}>Müraciət</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SCHOLARSHIPS */}
+        {activeTab === 'scholarships' && (
+          <div className="udp-scholarships">
+            <h2>Təqaüdlər</h2>
+            {scholarships.length === 0 ? (
+              <div className="udp-empty">
+                <span>🏆</span>
+                <p>Bu universitet üçün təqaüd məlumatı mövcud deyil.</p>
+              </div>
+            ) : (
+              <div className="udp-scholar-grid">
+                {scholarships.map((s) => (
+                  <div key={s.id} className="udp-scholar-card">
+                    <h3>{s.name || s.title}</h3>
+                    {s.amount && <p className="udp-scholar-amount">💰 {s.amount}</p>}
+                    {s.description && <p className="udp-scholar-desc">{s.description}</p>}
+                    <button className="udp-scholar-apply" onClick={handleApply}>Müraciət Et</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* MEDIA */}
+        {activeTab === 'media' && (
+          <div className="udp-media">
+            {/* Images */}
+            {images.length > 0 && (
+              <div className="udp-media-section">
+                <h2>📸 Şəkillər</h2>
+                <div className="udp-image-grid">
+                  {images.map((imgUrl, i) => (
+                    <div key={i} className="udp-image-item">
+                      <img src={imgUrl} alt={`${uni.name} ${i + 1}`} loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Videos */}
+            {videos.length > 0 && (
+              <div className="udp-media-section">
+                <h2>🎥 Videolar</h2>
+                <div className="udp-video-grid">
+                  {videos.map((vidUrl, i) => (
+                    <YouTubeEmbed key={i} url={vidUrl} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {images.length === 0 && videos.length === 0 && (
+              <div className="udp-empty">
+                <span>🖼️</span>
+                <p>Bu universitet üçün media məlumatı mövcud deyil.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 export default UniversityDetailPage;
-
-

@@ -15,6 +15,7 @@ import UniversityDetailPage from "../pages/UserPages/UniversityDetailPage/index.
 import UniversityPortalPage from "../pages/UserPages/UniversityPortalPage/index.jsx";
 import SuperAdminPage from "../pages/UserPages/SuperAdminPage/index.jsx";
 import InstructorPortalPage from "../pages/UserPages/InstructorPortalPage/index.jsx";
+import SuperAdminSignInPage from "../pages/UserPages/SuperAdminSignInPage/index.jsx";
 
 import CoursesPage from "../pages/UserPages/CoursesPage/index.jsx";
 import CourseDetailPage from "../pages/UserPages/CourseDetailPage/index.jsx";
@@ -105,6 +106,10 @@ export const ROUTES = [
     {
         path: '/superadmin',
         element: <PrivateRoute allowedRoles={['superadmin', 'SuperAdmin']}><SuperAdminPage/></PrivateRoute>
+    },
+    {
+        path: '/superadmin/login',
+        element: <SuperAdminSignInPage/>
     },
     {
         path: '/instructor-portal',

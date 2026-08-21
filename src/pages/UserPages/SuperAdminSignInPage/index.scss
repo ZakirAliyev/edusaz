@@ -1,0 +1,315 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+.sa-signin-page {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  background: #020617;
+}
+
+/* ───── LEFT PANEL ───── */
+.sa-left {
+  flex: 1;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 50px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    left: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(239,68,68,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -80px;
+    right: -80px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+}
+
+.sa-left__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 420px;
+}
+
+.sa-shield {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+  box-shadow: 0 8px 32px rgba(239,68,68,0.4);
+  color: white;
+}
+
+.sa-left__title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 12px;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #fff 0%, #c7d2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sa-left__desc {
+  font-size: 15px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.7;
+  margin: 0 0 32px;
+}
+
+/* Credentials Box */
+.sa-credentials-box {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+
+  .sa-creds-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fca5a5;
+    margin: 0 0 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .sa-cred-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+
+    &:last-child { margin-bottom: 0; }
+
+    .sa-cred-key {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      min-width: 50px;
+    }
+
+    .sa-cred-val {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: #fbbf24;
+      background: rgba(251,191,36,0.08);
+      padding: 3px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(251,191,36,0.2);
+    }
+  }
+}
+
+/* Stats */
+.sa-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sa-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 500;
+
+  .sa-stat-icon {
+    font-size: 18px;
+  }
+}
+
+/* ───── RIGHT PANEL ───── */
+.sa-right {
+  flex: 0 0 520px;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+}
+
+.sa-form-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.sa-form-header {
+  text-align: center;
+  margin-bottom: 36px;
+
+  .sa-form-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 0 12px rgba(239,68,68,0.4));
+  }
+
+  h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+  }
+}
+
+.sa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sa-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.sa-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .sa-input-icon {
+    position: absolute;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 14px 16px 14px 48px;
+    font-size: 15px;
+    color: #f1f5f9;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+
+    &::placeholder { color: #334155; }
+
+    &:focus {
+      outline: none;
+      border-color: rgba(239,68,68,0.5);
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+    }
+  }
+
+  .sa-toggle-pass {
+    position: absolute;
+    right: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+
+    &:hover { opacity: 1; }
+  }
+}
+
+.sa-submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  box-shadow: 0 4px 20px rgba(239,68,68,0.4);
+  margin-top: 8px;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(239,68,68,0.5);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+.sa-form-footer {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.sa-back-link {
+  font-size: 14px;
+  color: #475569;
+  text-decoration: none;
+  transition: color 0.2s;
+
+  &:hover { color: #94a3b8; }
+}
+
+/* ───── RESPONSIVE ───── */
+@media (max-width: 900px) {
+  .sa-signin-page {
+    flex-direction: column;
+  }
+
+  .sa-left {
+    padding: 40px 24px;
+  }
+
+  .sa-right {
+    flex: none;
+    padding: 40px 24px;
+  }
+}
