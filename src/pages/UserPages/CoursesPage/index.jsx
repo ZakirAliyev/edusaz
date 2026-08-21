@@ -2,12 +2,22 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useGetPublishedCoursesQuery } from '../../../services/apis/userApi';
+import { AutoTranslate } from '../../../hooks/useAutoTranslate';
 import ScrollToTop from '../../../components/Common/ScrollToTop.jsx';
 import './index.scss';
 
 const CATEGORIES = [
-  'All', 'Programming', 'Web Development', 'Mobile Development', 'Data Science',
-  'AI & Machine Learning', 'Design', 'Business', 'Marketing', 'Finance', 'Language Learning'
+  { key: 'All', labelAz: 'Bütün Kurslar', labelEn: 'All Courses' },
+  { key: 'Programming', labelAz: 'Proqramlaşdırma', labelEn: 'Programming' },
+  { key: 'Web Development', labelAz: 'Veb Proqramlaşdırma', labelEn: 'Web Development' },
+  { key: 'Mobile Development', labelAz: 'Mobil Proqramlaşdırma', labelEn: 'Mobile Development' },
+  { key: 'Data Science', labelAz: 'Data Elmi', labelEn: 'Data Science' },
+  { key: 'AI & Machine Learning', labelAz: 'Süni İntellekt', labelEn: 'AI & Machine Learning' },
+  { key: 'Design', labelAz: 'Dizayn', labelEn: 'Design' },
+  { key: 'Business', labelAz: 'Biznes', labelEn: 'Business' },
+  { key: 'Marketing', labelAz: 'Marketinq', labelEn: 'Marketing' },
+  { key: 'Finance', labelAz: 'Maliyyə', labelEn: 'Finance' },
+  { key: 'Language Learning', labelAz: 'Xarici Dillər', labelEn: 'Language Learning' }
 ];
 
 function CoursesPage() {
@@ -21,6 +31,8 @@ function CoursesPage() {
     search: searchQuery
   });
 
+  const activeCatObj = CATEGORIES.find((c) => c.key === selectedCategory) || CATEGORIES[0];
+
   return (
     <div className="public-courses-page">
       <ScrollToTop />
@@ -30,7 +42,8 @@ function CoursesPage() {
         <div className="container">
           <div className="pcp-hero__badge">🎓 {t('courses.platform') || 'Online Kurslar Platforması'}</div>
           <h1 className="pcp-hero__title">
-            {t('courses.heroTitle') || 'Dünya üzrə Mütəxəssislərdən'} <span className="pcp-hero__gradient">{t('courses.heroAccent') || 'Öyrən'}</span>
+            {t('courses.heroTitle') || 'Dünya üzrə Mütəxəssislərdən'}{' '}
+            <span className="pcp-hero__gradient">{t('courses.heroAccent') || 'Öyrən'}</span>
           </h1>
           <p className="pcp-hero__desc">
             {t('courses.heroDesc') || 'Yüzlərlə ekspert tərəfindən hazırlanmış kursları kəşf et, praktiki bacarıqlar əldə et.'}
@@ -56,19 +69,23 @@ function CoursesPage() {
           <div className="pcp-categories">
             {CATEGORIES.map((cat) => (
               <button
-                key={cat}
-                className={`pcp-cat-pill ${selectedCategory === cat ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat)}
+                key={cat.key}
+                className={`pcp-cat-pill ${selectedCategory === cat.key ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat.key)}
               >
-                {cat}
+                <AutoTranslate text={cat.labelAz} />
               </button>
             ))}
           </div>
 
           {/* Courses Count */}
           <div className="pcp-meta">
-            <h2>{selectedCategory === 'All' ? (t('courses.allCourses') || 'Bütün Kurslar') : selectedCategory}</h2>
-            <span>{courses.length} {t('courses.available') || 'kurs mövcuddur'}</span>
+            <h2>
+              <AutoTranslate text={activeCatObj.labelAz} />
+            </h2>
+            <span>
+              {courses.length} {t('courses.available') || 'kurs mövcuddur'}
+            </span>
           </div>
 
           {/* Course Cards Grid */}
@@ -81,7 +98,7 @@ function CoursesPage() {
             <div className="pcp-empty">
               <div className="pcp-empty__icon">📚</div>
               <h3>{t('courses.notFound') || 'Kurs tapılmadı'}</h3>
-              <p>{t('courses.notFoundDesc') || 'Axtarış meyarlarına uyğun kurs tapılmadı. Filtrleri dəyişdirin.'}</p>
+              <p>{t('courses.notFoundDesc') || 'Axtarış meyarlarına uyğun kurs tapılmadı. Filtrləri dəyişdirin.'}</p>
             </div>
           ) : (
             <div className="pcp-grid">
@@ -93,14 +110,30 @@ function CoursesPage() {
                     ) : (
                       <div className="pcp-card__placeholder">📚</div>
                     )}
-                    <span className="pcp-card__level">{course.level}</span>
-                    {course.isFree && <span className="pcp-card__free-tag">Free</span>}
+                    {course.level && (
+                      <span className="pcp-card__level">
+                        <AutoTranslate text={course.level} />
+                      </span>
+                    )}
+                    {course.isFree && (
+                      <span className="pcp-card__free-tag">{t('courses.free') || 'Ödənişsiz'}</span>
+                    )}
                   </div>
 
                   <div className="pcp-card__body">
-                    <span className="pcp-card__cat">{course.category}</span>
-                    <h3 className="pcp-card__title">{course.title}</h3>
-                    <p className="pcp-card__desc">{course.shortDescription || course.description}</p>
+                    {course.category && (
+                      <span className="pcp-card__cat">
+                        <AutoTranslate text={course.category} />
+                      </span>
+                    )}
+                    <h3 className="pcp-card__title">
+                      <AutoTranslate text={course.title} />
+                    </h3>
+                    {(course.shortDescription || course.description) && (
+                      <p className="pcp-card__desc">
+                        <AutoTranslate text={course.shortDescription || course.description} />
+                      </p>
+                    )}
 
                     <div className="pcp-card__instructor">
                       <div className="pcp-card__avatar">
@@ -123,7 +156,7 @@ function CoursesPage() {
                       </div>
                       <div className="pcp-card__price">
                         {course.isFree ? (
-                          <span className="free">Free</span>
+                          <span className="free">{t('courses.free') || 'Ödənişsiz'}</span>
                         ) : (
                           <>
                             {course.discountPrice > 0 && course.discountPrice < course.price && (
