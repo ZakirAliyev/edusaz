@@ -88,6 +88,7 @@ builder.Services.AddScoped<IInstructorService, InstructorService>();
 builder.Services.AddScoped<IHiddenTalentService, HiddenTalentService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<ITranslationAIService, GoogleTranslationService>();
+builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
 builder.Services.AddHttpClient("GoogleTranslate");
 
 

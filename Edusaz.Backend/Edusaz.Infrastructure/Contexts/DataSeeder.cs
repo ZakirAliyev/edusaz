@@ -30,6 +30,7 @@ public static class DataSeeder
                 ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""AuthorAvatar"" text;
                 ALTER TABLE ""Reviews"" ALTER COLUMN ""CourseId"" DROP NOT NULL;
                 ALTER TABLE ""Reviews"" ALTER COLUMN ""UserId"" DROP NOT NULL;
+                ALTER TABLE ""StudentApplications"" ADD COLUMN IF NOT EXISTS ""CourseId"" uuid;
                 CREATE TABLE IF NOT EXISTS ""UniversityMedias"" (
                     ""Id"" uuid PRIMARY KEY,
                     ""UniversityId"" uuid NOT NULL,

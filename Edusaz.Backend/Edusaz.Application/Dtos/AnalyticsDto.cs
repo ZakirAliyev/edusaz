@@ -42,6 +42,7 @@ public class StudentLeadDto
 {
     public Guid Id { get; set; }
     public Guid UniversityId { get; set; }
+    public Guid? CourseId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Origin { get; set; } = string.Empty;
     public string Flag { get; set; } = string.Empty;
@@ -66,6 +67,7 @@ public class CreateStudentLeadDto
 {
     public Guid UniversityId { get; set; }
     public Guid? ProgramId { get; set; }
+    public Guid? CourseId { get; set; }
     public string StudentName { get; set; } = string.Empty;
     public string OriginCountry { get; set; } = string.Empty;
     public string CountryFlag { get; set; } = "🌐";

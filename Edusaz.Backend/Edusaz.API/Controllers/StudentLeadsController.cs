@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Edusaz.Application.Abstracts.Services;
 using Edusaz.Application.Dtos;
 using Edusaz.Application.Wrappers;
 using Edusaz.Domain.Entities;
@@ -17,14 +18,16 @@ namespace Edusaz.API.Controllers;
 public class StudentLeadsController : ControllerBase
 {
     private readonly EdusazDbContext _context;
+    private readonly IEmailNotificationService _emailNotificationService;
 
-    public StudentLeadsController(EdusazDbContext context)
+    public StudentLeadsController(EdusazDbContext context, IEmailNotificationService emailNotificationService)
     {
         _context = context;
+        _emailNotificationService = emailNotificationService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] Guid? universityId = null)
+    public async Task<IActionResult> GetAll([FromQuery] Guid? universityId = null, [FromQuery] Guid? courseId = null)
     {
         var query = _context.StudentApplications.AsQueryable();
 
@@ -33,12 +36,18 @@ public class StudentLeadsController : ControllerBase
             query = query.Where(a => a.UniversityId == universityId.Value);
         }
 
+        if (courseId.HasValue && courseId.Value != Guid.Empty)
+        {
+            query = query.Where(a => a.CourseId == courseId.Value);
+        }
+
         var apps = await query
             .OrderByDescending(a => a.AppliedAt)
             .Select(a => new StudentLeadDto
             {
                 Id = a.Id,
                 UniversityId = a.UniversityId,
+                CourseId = a.CourseId,
                 Name = a.StudentName,
                 Origin = a.OriginCountry,
                 Flag = a.CountryFlag,
@@ -81,6 +90,7 @@ public class StudentLeadsController : ControllerBase
             Id = Guid.NewGuid(),
             UniversityId = dto.UniversityId,
             ProgramId = dto.ProgramId,
+            CourseId = dto.CourseId,
             StudentName = dto.StudentName ?? string.Empty,
             OriginCountry = dto.OriginCountry ?? string.Empty,
             CountryFlag = dto.CountryFlag ?? "🌐",
@@ -97,10 +107,67 @@ public class StudentLeadsController : ControllerBase
         _context.StudentApplications.Add(app);
         await _context.SaveChangesAsync();
 
+        // Asynchronous Email Dispatch (Student, SuperAdmin, and Instructor/University)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                if (dto.CourseId.HasValue && dto.CourseId.Value != Guid.Empty)
+                {
+                    var course = await _context.Courses
+                        .Include(c => c.Instructor).ThenInclude(i => i.User)
+                        .FirstOrDefaultAsync(c => c.Id == dto.CourseId.Value);
+
+                    bool isSuperAdmin = course == null || 
+                                        course.Instructor == null || 
+                                        string.IsNullOrWhiteSpace(course.Instructor.DisplayName) || 
+                                        course.Instructor.DisplayName.ToLower().Contains("superadmin") || 
+                                        course.Instructor.DisplayName.ToLower().Contains("edusaz");
+
+                    string? instructorEmail = course?.Instructor?.User?.Email;
+                    string? instructorName = course?.Instructor?.DisplayName ?? $"{course?.Instructor?.User?.FirstName} {course?.Instructor?.User?.LastName}".Trim();
+
+                    await _emailNotificationService.SendCourseApplicationEmailsAsync(
+                        studentName: dto.StudentName ?? "Tələbə",
+                        studentEmail: dto.Email ?? "",
+                        studentPhone: dto.Phone ?? "",
+                        originCountry: dto.OriginCountry ?? "Azərbaycan",
+                        courseTitle: course?.Title ?? dto.ProgramName ?? "Kurs",
+                        instructorName: instructorName,
+                        instructorEmail: instructorEmail,
+                        isSuperAdminCreated: isSuperAdmin
+                    );
+                }
+                else if (dto.UniversityId != Guid.Empty)
+                {
+                    var uni = await _context.Universities
+                        .Include(u => u.Translations)
+                        .FirstOrDefaultAsync(u => u.Id == dto.UniversityId);
+
+                    string uniName = uni?.Translations?.FirstOrDefault()?.Name ?? "Universitet";
+
+                    await _emailNotificationService.SendUniversityApplicationEmailsAsync(
+                        studentName: dto.StudentName ?? "Tələbə",
+                        studentEmail: dto.Email ?? "",
+                        studentPhone: dto.Phone ?? "",
+                        originCountry: dto.OriginCountry ?? "Azərbaycan",
+                        universityName: uniName,
+                        programName: dto.ProgramName,
+                        universityAdminEmail: null
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EMAIL DISPATCH ERROR]: {ex.Message}");
+            }
+        });
+
         var result = new StudentLeadDto
         {
             Id = app.Id,
             UniversityId = app.UniversityId,
+            CourseId = app.CourseId,
             Name = app.StudentName,
             Origin = app.OriginCountry,
             Flag = app.CountryFlag,

@@ -11,6 +11,9 @@ public class StudentApplication : BaseEntity
     public Guid? ProgramId { get; set; }
     public Program? ProgramRef { get; set; }
 
+    public Guid? CourseId { get; set; }
+    public Course? Course { get; set; }
+
     public string StudentName { get; set; } = string.Empty;
     public string OriginCountry { get; set; } = string.Empty;
     public string CountryFlag { get; set; } = "🌐";
