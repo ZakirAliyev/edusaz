@@ -35,6 +35,55 @@ public class AuthController : ControllerBase
         _context = context;
     }
 
+    [HttpGet("/api/system/sync-db")]
+    public async Task<IActionResult> SyncDatabase()
+    {
+        try
+        {
+            await _context.Database.ExecuteSqlRawAsync(@"
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""UniversityId"" uuid;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""ProfileImageUrl"" text;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""Country"" text;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""DegreeLevel"" text;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""DesiredField"" text;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""EnglishScore"" text;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""Gpa"" double precision;
+                ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""UniversityId"" uuid;
+                ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""AuthorName"" text;
+                ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""AuthorAvatar"" text;
+                ALTER TABLE ""Reviews"" ALTER COLUMN ""CourseId"" DROP NOT NULL;
+                ALTER TABLE ""Reviews"" ALTER COLUMN ""UserId"" DROP NOT NULL;
+                ALTER TABLE ""StudentApplications"" ADD COLUMN IF NOT EXISTS ""CourseId"" uuid;
+                CREATE TABLE IF NOT EXISTS ""UniversityMedias"" (
+                    ""Id"" uuid PRIMARY KEY,
+                    ""UniversityId"" uuid NOT NULL,
+                    ""MediaType"" text NOT NULL,
+                    ""Url"" text NOT NULL,
+                    ""OrderIndex"" integer NOT NULL DEFAULT 0,
+                    ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                    ""LastUpdatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                    ""DeletedDate"" timestamp with time zone,
+                    ""IsDeleted"" boolean NOT NULL DEFAULT false
+                );
+            ");
+
+            string[] roles = new[] { "SuperAdmin", "Admin", "UniversityAdmin", "Teacher", "CourseCenter", "Student" };
+            foreach (var r in roles)
+            {
+                if (!await _roleManager.RoleExistsAsync(r))
+                {
+                    await _roleManager.CreateAsync(new Role { Name = r });
+                }
+            }
+
+            return Ok(new { success = true, message = "Database schema & roles synchronized successfully!" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { success = false, error = ex.Message });
+        }
+    }
+
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
