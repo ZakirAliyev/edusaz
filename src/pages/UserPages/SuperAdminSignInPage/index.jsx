@@ -10,20 +10,12 @@ function SuperAdminSignInPage() {
   const navigate = useNavigate();
   const [loginUser, { isLoading }] = useLoginUserMutation();
   const [formData, setFormData] = useState({ 
-    email: 'superadmin@edu.saz', 
-    password: 'EduSaz2026!' 
+    email: '', 
+    password: '' 
   });
   const [showPass, setShowPass] = useState(false);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const fillDefaultCredentials = () => {
-    setFormData({
-      email: 'superadmin@edu.saz',
-      password: 'EduSaz2026!'
-    });
-    toast.showInfo('Məlumatlar daxil edildi ✨');
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,25 +57,6 @@ function SuperAdminSignInPage() {
             EduSaz platformasını tam idarə et. Universitetlər, kurslar, təqaüdlər, istifadəçilər və bütün məlumatlar üzərində tam nəzarət.
           </p>
 
-          <div className="sa-credentials-box">
-            <div className="sa-creds-label">🔐 Rəsmi Giriş Məlumatları</div>
-            <div className="sa-cred-row">
-              <span className="sa-cred-name">E-poçt:</span>
-              <code className="sa-cred-val">superadmin@edu.saz</code>
-            </div>
-            <div className="sa-cred-row">
-              <span className="sa-cred-name">Şifrə:</span>
-              <code className="sa-cred-val">EduSaz2026!</code>
-            </div>
-            <button 
-              type="button" 
-              className="sa-fill-btn" 
-              onClick={fillDefaultCredentials}
-            >
-              ⚡ Məlumatları Doldur
-            </button>
-          </div>
-
           <div className="sa-stats">
             <div className="sa-stat">
               <span className="sa-stat-icon">🏛️</span>
@@ -111,7 +84,7 @@ function SuperAdminSignInPage() {
           <div className="sa-form-header">
             <div className="sa-form-icon">🛡️</div>
             <h2>SuperAdmin Girişi</h2>
-            <p>Admin panelinə daxil olmaq üçün məlumatları təsdiqləyin</p>
+            <p>Admin panelinə daxil olmaq üçün məlumatlarınızı daxil edin</p>
           </div>
 
           <form onSubmit={handleSubmit} className="sa-form">
@@ -128,7 +101,7 @@ function SuperAdminSignInPage() {
                   type="email"
                   name="email"
                   value={formData.email}
-                  placeholder="superadmin@edu.saz"
+                  placeholder="E-poçt ünvanınızı daxil edin"
                   onChange={handleChange}
                   required
                 />
@@ -147,7 +120,7 @@ function SuperAdminSignInPage() {
                   type={showPass ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
-                  placeholder="EduSaz2026!"
+                  placeholder="••••••••"
                   onChange={handleChange}
                   required
                 />

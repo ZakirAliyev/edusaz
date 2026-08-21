@@ -149,7 +149,7 @@ function SuperAdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('isSuperAdmin') === 'true';
   });
-  const [credentials, setCredentials] = useState({ email: 'superadmin@edu.saz', password: 'EduSaz2026!' });
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
 
   const [activeTab, setActiveTab] = useState('Users');
   const [searchTerm, setSearchTerm] = useState('');
@@ -1990,15 +1990,6 @@ function SuperAdminPage() {
               <p>Edusaz Global İdarəetmə Panelinə Giriş</p>
             </div>
 
-            <div className="login-info-box">
-              <div className="info-icon">🔐</div>
-              <div className="info-text">
-                <strong>Avtorizasiya Məlumatları:</strong>
-                <p>E-poçt: <code>superadmin@edu.saz</code></p>
-                <p>Şifrə: <code>EduSaz2026!</code></p>
-              </div>
-            </div>
-
             <form onSubmit={handleLoginSubmit} className="admin-form">
               <div className="form-group">
                 <label>SuperAdmin E-poçt</label>
@@ -2006,7 +1997,7 @@ function SuperAdminPage() {
                   type="email" 
                   value={credentials.email} 
                   onChange={e => setCredentials({ ...credentials, email: e.target.value })} 
-                  placeholder="superadmin@edu.saz" 
+                  placeholder="E-poçt ünvanınızı daxil edin" 
                   required 
                 />
               </div>
@@ -2017,7 +2008,7 @@ function SuperAdminPage() {
                   type="password" 
                   value={credentials.password} 
                   onChange={e => setCredentials({ ...credentials, password: e.target.value })} 
-                  placeholder="••••••••" 
+                  placeholder="Şifrənizi daxil edin" 
                   required 
                 />
               </div>
