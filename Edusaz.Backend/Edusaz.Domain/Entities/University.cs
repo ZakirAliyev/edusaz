@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using Edusaz.Domain.Entities.Common;
 
 namespace Edusaz.Domain.Entities;
@@ -21,7 +22,10 @@ public class University : BaseEntity
     public string Ranking { get; set; } = string.Empty;
     public bool HasScholarship { get; set; }
     
+    [NotMapped]
     public List<string> Images { get; set; } = new();
+
+    [NotMapped]
     public List<string> VideoUrls { get; set; } = new();
 
     public ICollection<UniversityTranslation> Translations { get; set; } = new List<UniversityTranslation>();

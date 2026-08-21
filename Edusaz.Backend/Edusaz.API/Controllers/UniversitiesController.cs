@@ -40,16 +40,48 @@ public class UniversitiesController : ControllerBase
         try
         {
             await db.Database.ExecuteSqlRawAsync(@"
-                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""Images"" text[] DEFAULT ARRAY[]::text[];
-                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""VideoUrls"" text[] DEFAULT ARRAY[]::text[];
-                ALTER TABLE ""Programs"" ALTER COLUMN ""UniversityId"" DROP NOT NULL;
-                ALTER TABLE ""Scholarships"" ALTER COLUMN ""UniversityId"" DROP NOT NULL;
+                CREATE TABLE IF NOT EXISTS ""UniversityImages"" (
+                    ""Id"" uuid PRIMARY KEY,
+                    ""UniversityId"" uuid NOT NULL,
+                    ""Url"" text NOT NULL,
+                    ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now()
+                );
+                CREATE TABLE IF NOT EXISTS ""UniversityVideos"" (
+                    ""Id"" uuid PRIMARY KEY,
+                    ""UniversityId"" uuid NOT NULL,
+                    ""Url"" text NOT NULL,
+                    ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now()
+                );
             ");
-            return Ok(new { success = true, message = "DB schema verified and updated successfully!" });
+            return Ok(new { success = true, message = "DB helper tables verified and updated successfully!" });
         }
         catch (Exception ex)
         {
             return StatusCode(500, new { success = false, error = ex.Message });
+        }
+    }
+
+    [HttpGet("check-db-user")]
+    public async Task<IActionResult> CheckDbUser([FromServices] Edusaz.Infrastructure.Contexts.EdusazDbContext db)
+    {
+        try
+        {
+            using var cmd = db.Database.GetDbConnection().CreateCommand();
+            cmd.CommandText = "SELECT current_user, session_user, (SELECT tableowner FROM pg_tables WHERE tablename = 'Universities' LIMIT 1) as owner;";
+            await db.Database.OpenConnectionAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                var currentUser = reader[0]?.ToString();
+                var sessionUser = reader[1]?.ToString();
+                var owner = reader[2]?.ToString();
+                return Ok(new { currentUser, sessionUser, owner });
+            }
+            return Ok(new { message = "No data" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
         }
     }
 
