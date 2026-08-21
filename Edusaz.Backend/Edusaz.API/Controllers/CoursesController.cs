@@ -152,17 +152,23 @@ public class CoursesController : ControllerBase
             }
         }
 
-        var translationDict = course.Translations.ToDictionary(
-            t => t.LanguageCode,
-            t => new CourseTranslationInputDto
-            {
-                Title = t.Title,
-                Description = t.Description,
-                ShortDescription = t.ShortDescription,
-                WhatYouLearn = t.WhatYouLearn,
-                Requirements = t.Requirements
-            }
-        );
+        var translationDict = course.Translations
+            .Where(t => !string.IsNullOrEmpty(t.LanguageCode))
+            .GroupBy(t => t.LanguageCode.ToLower().Trim())
+            .ToDictionary(
+                g => g.Key,
+                g => {
+                    var t = g.First();
+                    return new CourseTranslationInputDto
+                    {
+                        Title = t.Title,
+                        Description = t.Description,
+                        ShortDescription = t.ShortDescription,
+                        WhatYouLearn = t.WhatYouLearn,
+                        Requirements = t.Requirements
+                    };
+                }
+            );
 
         int totalLectures = course.Sections?.Sum(s => s.Lectures?.Count ?? 0) ?? course.TotalLectures;
 
@@ -413,98 +419,144 @@ public class CoursesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseDto dto)
     {
-        var course = await _context.Courses
-            .Include(c => c.Instructor)
-            .Include(c => c.Translations)
-            .Include(c => c.Sections).ThenInclude(s => s.Lectures)
-            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
-
-        if (course == null)
-            return NotFound(ApiResponse<string>.ErrorResponse("Kurs tapılmadı.", 404));
-
-        course.Title = dto.Title?.Trim() ?? course.Title;
-        course.Description = dto.Description ?? course.Description;
-        course.ShortDescription = dto.ShortDescription ?? course.ShortDescription;
-        course.WhatYouLearn = dto.WhatYouLearn ?? course.WhatYouLearn;
-        course.Requirements = dto.Requirements ?? course.Requirements;
-        if (!string.IsNullOrWhiteSpace(dto.Category)) course.Category = dto.Category.Trim();
-        if (!string.IsNullOrWhiteSpace(dto.SubCategory)) course.SubCategory = dto.SubCategory;
-        if (!string.IsNullOrWhiteSpace(dto.Level)) course.Level = dto.Level;
-        if (!string.IsNullOrWhiteSpace(dto.Language)) course.Language = dto.Language;
-        course.Price = dto.Price;
-        course.DiscountPrice = dto.DiscountPrice;
-        course.Currency = dto.Currency ?? course.Currency;
-        course.IsFree = dto.IsFree || dto.Price == 0;
-        if (!string.IsNullOrWhiteSpace(dto.ThumbnailUrl)) course.ThumbnailUrl = dto.ThumbnailUrl;
-        if (!string.IsNullOrWhiteSpace(dto.PreviewVideoUrl)) course.PreviewVideoUrl = dto.PreviewVideoUrl;
-        course.IsPublished = dto.IsPublished;
-
-        if (course.Instructor != null && !string.IsNullOrWhiteSpace(dto.InstructorName))
+        try
         {
-            course.Instructor.DisplayName = dto.InstructorName;
-        }
+            var course = await _context.Courses
+                .Include(c => c.Instructor)
+                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
 
-        // Update Video Lectures
-        if (dto.VideoLectures != null)
-        {
-            _context.CourseLectures.RemoveRange(course.Sections.SelectMany(s => s.Lectures));
-            _context.CourseSections.RemoveRange(course.Sections);
+            if (course == null)
+                return NotFound(ApiResponse<string>.ErrorResponse("Kurs tapılmadı.", 404));
 
-            var section = new CourseSection
+            course.Title = dto.Title?.Trim() ?? course.Title;
+            course.Description = dto.Description ?? course.Description;
+            course.ShortDescription = dto.ShortDescription ?? course.ShortDescription;
+            course.WhatYouLearn = dto.WhatYouLearn ?? course.WhatYouLearn;
+            course.Requirements = dto.Requirements ?? course.Requirements;
+            if (!string.IsNullOrWhiteSpace(dto.Category)) course.Category = dto.Category.Trim();
+            if (!string.IsNullOrWhiteSpace(dto.SubCategory)) course.SubCategory = dto.SubCategory;
+            if (!string.IsNullOrWhiteSpace(dto.Level)) course.Level = dto.Level;
+            if (!string.IsNullOrWhiteSpace(dto.Language)) course.Language = dto.Language;
+            course.Price = dto.Price;
+            course.DiscountPrice = dto.DiscountPrice;
+            course.Currency = dto.Currency ?? course.Currency;
+            course.IsFree = dto.IsFree || dto.Price == 0;
+            if (!string.IsNullOrWhiteSpace(dto.ThumbnailUrl)) course.ThumbnailUrl = dto.ThumbnailUrl;
+            if (!string.IsNullOrWhiteSpace(dto.PreviewVideoUrl)) course.PreviewVideoUrl = dto.PreviewVideoUrl;
+            course.IsPublished = dto.IsPublished;
+
+            if (!string.IsNullOrWhiteSpace(dto.InstructorName))
             {
-                CourseId = course.Id,
-                Title = "1. Kurs Dərsləri və Video Dərslikləri",
-                Description = "Bütün video dərslər və materiallar",
-                Order = 1
-            };
-
-            int order = 1;
-            foreach (var vl in dto.VideoLectures)
-            {
-                section.Lectures.Add(new CourseLecture
+                if (course.Instructor != null)
                 {
-                    Title = !string.IsNullOrWhiteSpace(vl.Title) ? vl.Title : $"Dərs {order}",
-                    Description = vl.Description ?? string.Empty,
-                    VideoUrl = vl.VideoUrl ?? string.Empty,
-                    ResourceUrl = vl.ResourceUrl ?? string.Empty,
-                    DurationMinutes = vl.DurationMinutes > 0 ? vl.DurationMinutes : 15,
-                    Order = order++,
-                    IsFree = vl.IsFree,
-                    LectureType = "Video"
-                });
+                    course.Instructor.DisplayName = dto.InstructorName;
+                }
+                else
+                {
+                    var defaultInst = await _context.Instructors.FirstOrDefaultAsync(i => !i.IsDeleted);
+                    if (defaultInst != null)
+                    {
+                        course.InstructorId = defaultInst.Id;
+                        defaultInst.DisplayName = dto.InstructorName;
+                    }
+                }
             }
-            course.Sections.Add(section);
-            course.TotalLectures = section.Lectures.Count;
-            course.TotalDurationMinutes = section.Lectures.Sum(l => l.DurationMinutes);
-        }
 
-        // Update 31 Languages Translations
-        _context.CourseTranslations.RemoveRange(course.Translations);
-
-        var languages = await _languageReadRepository.GetAllAsync(x => x.IsActive && !x.IsDeleted);
-        var baseLangCode = dto.BaseLanguageCode ?? "az";
-
-        course.Translations.Add(new CourseTranslation
-        {
-            LanguageCode = baseLangCode,
-            Title = course.Title,
-            Description = course.Description,
-            ShortDescription = course.ShortDescription,
-            WhatYouLearn = course.WhatYouLearn,
-            Requirements = course.Requirements
-        });
-
-        foreach (var l in languages.Where(x => x.Code != baseLangCode))
-        {
-            try
+            // 1. Remove old Sections & Lectures cleanly
+            var existingLectures = await _context.CourseLectures.Where(l => l.Section.CourseId == course.Id).ToListAsync();
+            if (existingLectures.Any())
             {
-                string transTitle = await _translationAiService.TranslateAsync(course.Title, l.Name);
-                string transDesc = !string.IsNullOrWhiteSpace(course.Description)
-                    ? await _translationAiService.TranslateAsync(course.Description, l.Name)
-                    : string.Empty;
+                _context.CourseLectures.RemoveRange(existingLectures);
+            }
+            var existingSections = await _context.CourseSections.Where(s => s.CourseId == course.Id).ToListAsync();
+            if (existingSections.Any())
+            {
+                _context.CourseSections.RemoveRange(existingSections);
+            }
+            await _context.SaveChangesAsync();
 
-                course.Translations.Add(new CourseTranslation
+            // 2. Add New Video Lectures
+            if (dto.VideoLectures != null && dto.VideoLectures.Any())
+            {
+                var section = new CourseSection
                 {
+                    Id = Guid.NewGuid(),
+                    CourseId = course.Id,
+                    Title = "1. Kurs Dərsləri və Video Dərslikləri",
+                    Description = "Bütün video dərslər və materiallar",
+                    Order = 1,
+                    Lectures = new List<CourseLecture>()
+                };
+
+                int order = 1;
+                foreach (var vl in dto.VideoLectures)
+                {
+                    section.Lectures.Add(new CourseLecture
+                    {
+                        Id = Guid.NewGuid(),
+                        SectionId = section.Id,
+                        Title = !string.IsNullOrWhiteSpace(vl.Title) ? vl.Title : $"Dərs {order}",
+                        Description = vl.Description ?? string.Empty,
+                        VideoUrl = vl.VideoUrl ?? string.Empty,
+                        ResourceUrl = vl.ResourceUrl ?? string.Empty,
+                        DurationMinutes = vl.DurationMinutes > 0 ? vl.DurationMinutes : 15,
+                        Order = order++,
+                        IsFree = vl.IsFree,
+                        LectureType = "Video"
+                    });
+                }
+                _context.CourseSections.Add(section);
+                course.TotalLectures = section.Lectures.Count;
+                course.TotalDurationMinutes = section.Lectures.Sum(l => l.DurationMinutes);
+            }
+
+            // 3. Remove old translations cleanly
+            var existingTranslations = await _context.CourseTranslations.Where(t => t.CourseId == course.Id).ToListAsync();
+            if (existingTranslations.Any())
+            {
+                _context.CourseTranslations.RemoveRange(existingTranslations);
+                await _context.SaveChangesAsync();
+            }
+
+            // 4. Re-add 31 Languages Translations
+            var languages = await _languageReadRepository.GetAllAsync(x => x.IsActive && !x.IsDeleted);
+            var baseLangCode = dto.BaseLanguageCode ?? "az";
+
+            var newTransList = new List<CourseTranslation>();
+            newTransList.Add(new CourseTranslation
+            {
+                Id = Guid.NewGuid(),
+                CourseId = course.Id,
+                LanguageCode = baseLangCode,
+                Title = course.Title,
+                Description = course.Description,
+                ShortDescription = course.ShortDescription,
+                WhatYouLearn = course.WhatYouLearn,
+                Requirements = course.Requirements
+            });
+
+            foreach (var l in languages.Where(x => x.Code != baseLangCode))
+            {
+                string transTitle = course.Title;
+                string transDesc = course.Description;
+                try
+                {
+                    transTitle = await _translationAiService.TranslateAsync(course.Title, l.Name);
+                    if (!string.IsNullOrWhiteSpace(course.Description))
+                    {
+                        transDesc = await _translationAiService.TranslateAsync(course.Description, l.Name);
+                    }
+                }
+                catch
+                {
+                    transTitle = course.Title;
+                    transDesc = course.Description;
+                }
+
+                newTransList.Add(new CourseTranslation
+                {
+                    Id = Guid.NewGuid(),
+                    CourseId = course.Id,
                     LanguageCode = l.Code,
                     Title = !string.IsNullOrWhiteSpace(transTitle) ? transTitle : course.Title,
                     Description = !string.IsNullOrWhiteSpace(transDesc) ? transDesc : course.Description,
@@ -513,22 +565,16 @@ public class CoursesController : ControllerBase
                     Requirements = course.Requirements
                 });
             }
-            catch
-            {
-                course.Translations.Add(new CourseTranslation
-                {
-                    LanguageCode = l.Code,
-                    Title = course.Title,
-                    Description = course.Description,
-                    ShortDescription = course.ShortDescription,
-                    WhatYouLearn = course.WhatYouLearn,
-                    Requirements = course.Requirements
-                });
-            }
-        }
 
-        await _context.SaveChangesAsync();
-        return await GetCourse(course.Id, baseLangCode);
+            _context.CourseTranslations.AddRange(newTransList);
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse<bool>.SuccessResponse(true, "Kurs uğurla yeniləndi."));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.ErrorResponse($"Kurs yenilənərkən xəta: {ex.Message}", 500));
+        }
     }
 
     /// <summary>

@@ -1603,7 +1603,7 @@ function SuperAdminPage() {
         shortDescription: '',
         whatYouLearn: '',
         requirements: '',
-        category: 'Proqramlaşdırma',
+        category: 'Abituriyent & Bakalavr Hazırlığı',
         instructorName: 'EduSaz Academy',
         price: '0',
         discountPrice: '0',
@@ -3947,14 +3947,31 @@ function SuperAdminPage() {
                     required
                     disabled={isSavingCourse}
                   >
-                    <option value="Proqramlaşdırma">💻 Proqramlaşdırma & IT</option>
-                    <option value="AI & Data Science">🤖 Süni İntellekt & Data</option>
-                    <option value="Dizayn & Yaradıcılıq">🎨 UI/UX & Qrafik Dizayn</option>
-                    <option value="Cloud & DevOps">☁️ Cloud & DevOps</option>
-                    <option value="Biznes & Menecment">📈 Biznes & Menecment</option>
-                    <option value="Xarici Dillər">🌍 Xarici Dillər (IELTS, TOEFL)</option>
-                    <option value="Xaricdə Təhsil">🎓 Xaricdə Təhsil & İmtahanlar</option>
-                    <option value="Kiber Təhlükəsizlik">🔒 Kiber Təhlükəsizlik</option>
+                    <optgroup label="🎓 Qəbul & İmtahan Hazırlığı">
+                      <option value="Abituriyent & Bakalavr Hazırlığı">🎓 Abituriyent & Bakalavr Hazırlığı (DİM / Blok)</option>
+                      <option value="Riyaziyyat & Məntiq">📐 Riyaziyyat & Məntiq</option>
+                      <option value="Fizika, Kimya & Biologiya">🔬 Fizika, Kimya & Biologiya</option>
+                      <option value="Azərbaycan dili & Ədəbiyyat">🇦🇿 Azərbaycan dili & Ədəbiyyat</option>
+                      <option value="Tarix & Coğrafiya">📜 Tarix & Coğrafiya</option>
+                      <option value="Magistratura & Dövlət Qulluğu">🏛️ Magistratura & Dövlət Qulluğu</option>
+                      <option value="Xaricdə Təhsil & İmtahanlar">✈️ Xaricdə Təhsil (SAT, GRE, GMAT)</option>
+                    </optgroup>
+                    <optgroup label="🌍 Dillər">
+                      <option value="Xarici Dillər">🌍 İngilis dili, IELTS, TOEFL</option>
+                      <option value="Rus & Alman & Fransız dili">🗣️ Rus, Alman & Fransız dili</option>
+                      <option value="Türk dili & TÖMER">🇹🇷 Türk dili & TÖMER</option>
+                    </optgroup>
+                    <optgroup label="💻 Texnologiya & IT">
+                      <option value="Proqramlaşdırma">💻 Proqramlaşdırma & IT (Web, Mobile, Backend)</option>
+                      <option value="AI & Data Science">🤖 Süni İntellekt & Data Science</option>
+                      <option value="UI/UX & Qrafik Dizayn">🎨 UI/UX & Qrafik Dizayn</option>
+                      <option value="Cloud & DevOps">☁️ Cloud & DevOps</option>
+                      <option value="Kiber Təhlükəsizlik">🔒 Kiber Təhlükəsizlik</option>
+                    </optgroup>
+                    <optgroup label="📈 Biznes & Peşə">
+                      <option value="Biznes, Maliyyə & Menecment">📈 Biznes, Maliyyə & Menecment</option>
+                      <option value="Marketinq & SMM">📱 Rəqəmsal Marketinq & SMM</option>
+                    </optgroup>
                   </select>
                 </div>
               </div>
@@ -3962,18 +3979,18 @@ function SuperAdminPage() {
               {/* Row 2: Instructor, Level, Language, Price */}
               <div className="form-row">
                 <div className="form-group">
-                  <label>Təlimçi / Tədris Mərkəzi</label>
+                  <label>Təlimçi / Tədris Mərkəzi / Müəllim</label>
                   <input 
                     type="text" 
                     value={courseForm.instructorName} 
                     onChange={e => setCourseForm({ ...courseForm, instructorName: e.target.value })} 
-                    placeholder="Məs: Dr. Rəşad Əliyev və ya EduSaz Academy" 
+                    placeholder="Məs: Əli Məmmədov və ya EduSaz Tədris Mərkəzi" 
                     disabled={isSavingCourse}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Səviyyə</label>
+                  <label>Səviyyə / Sinif</label>
                   <select 
                     value={courseForm.level} 
                     onChange={e => setCourseForm({ ...courseForm, level: e.target.value })}
@@ -3981,9 +3998,11 @@ function SuperAdminPage() {
                     disabled={isSavingCourse}
                   >
                     <option value="Bütün Səviyyələr">Bütün Səviyyələr</option>
-                    <option value="Başlanğıc">Başlanğıc (Beginner)</option>
-                    <option value="Orta">Orta (Intermediate)</option>
-                    <option value="İrəli">İrəli (Advanced)</option>
+                    <option value="9-11-ci Sinif (Abituriyent)">9-11-ci Sinif (Abituriyent)</option>
+                    <option value="Bakalavr Tələbələri">Bakalavr Tələbələri</option>
+                    <option value="Başlanğıc (Beginner)">Başlanğıc (Beginner)</option>
+                    <option value="Orta (Intermediate)">Orta (Intermediate)</option>
+                    <option value="İrəli (Advanced)">İrəli (Advanced)</option>
                   </select>
                 </div>
 
@@ -4046,13 +4065,13 @@ function SuperAdminPage() {
               {/* Row 3: Card Şəkli (Cover Image) & Tanıtım Videosu */}
               <div className="form-row" style={{ alignItems: 'flex-start' }}>
                 {/* Cover Image Upload */}
-                <div className="form-group" style={{ flex: 1.5 }}>
+                <div className="form-group" style={{ flex: 1.3 }}>
                   <label>🖼️ Kursun Card Şəkli (Cover Image)</label>
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '4px' }}>
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginTop: '6px' }}>
                     <img 
                       src={courseForm.thumbnailUrl || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=300&q=80'} 
                       alt="Cover Preview" 
-                      style={{ width: '100px', height: '62px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)' }}
+                      style={{ width: '110px', height: '68px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
                     />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
                       <input 
@@ -4067,62 +4086,71 @@ function SuperAdminPage() {
                         className="btn-upload-secondary" 
                         onClick={() => courseFileInputRef.current?.click()}
                         disabled={isUploadingCourseImg || isSavingCourse}
-                        style={{ padding: '8px 14px', fontSize: '13px', background: 'rgba(59, 130, 246, 0.15)', border: '1px solid #3b82f6', color: '#60a5fa', borderRadius: '6px', cursor: 'pointer' }}
+                        style={{ 
+                          padding: '10px 16px', 
+                          fontSize: '13px', 
+                          fontWeight: 600,
+                          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.25))', 
+                          border: '1px solid #3b82f6', 
+                          color: '#93c5fd', 
+                          borderRadius: '8px', 
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px'
+                        }}
                       >
                         {isUploadingCourseImg ? '⏳ Şəkil Yüklənir...' : '📁 Kompyuterdən Şəkil Yüklə'}
                       </button>
-                      <input 
-                        type="url" 
-                        value={courseForm.thumbnailUrl} 
-                        onChange={e => setCourseForm({ ...courseForm, thumbnailUrl: e.target.value })}
-                        placeholder="və ya Şəkil URL-i daxil edin..."
-                        style={{ fontSize: '12px', padding: '6px 10px' }}
-                        disabled={isSavingCourse}
-                      />
                     </div>
-                  </div>
-
-                  {/* Preset Images Quick Selector */}
-                  <div style={{ marginTop: '8px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '11px', color: '#94a3b8', width: '100%' }}>Hazır şablonlar:</span>
-                    {COURSE_PRESET_IMAGES.map((p, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setCourseForm({ ...courseForm, thumbnailUrl: p.url })}
-                        style={{
-                          background: 'rgba(255,255,255,0.06)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          borderRadius: '4px',
-                          padding: '3px 8px',
-                          fontSize: '11px',
-                          color: '#e2e8f0',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {p.thumb} {p.label}
-                      </button>
-                    ))}
                   </div>
                 </div>
 
-                {/* Preview Video URL */}
-                <div className="form-group" style={{ flex: 1 }}>
+                {/* Preview Video URL with Open in New Tab button */}
+                <div className="form-group" style={{ flex: 1.2 }}>
                   <label>🎬 Kursun Tanıtım Video Linki (Preview Video)</label>
-                  <input 
-                    type="url" 
-                    value={courseForm.previewVideoUrl} 
-                    onChange={e => setCourseForm({ ...courseForm, previewVideoUrl: e.target.value })}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    disabled={isSavingCourse}
-                  />
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px' }}>
+                    <input 
+                      type="url" 
+                      value={courseForm.previewVideoUrl} 
+                      onChange={e => setCourseForm({ ...courseForm, previewVideoUrl: e.target.value })}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      disabled={isSavingCourse}
+                      style={{ flex: 1 }}
+                    />
+                    {courseForm.previewVideoUrl && (
+                      <a 
+                        href={courseForm.previewVideoUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{
+                          padding: '8px 12px',
+                          background: 'rgba(59, 130, 246, 0.15)',
+                          border: '1px solid #3b82f6',
+                          color: '#60a5fa',
+                          borderRadius: '6px',
+                          textDecoration: 'none',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                        title="Videoya yeni pəncərədə bax"
+                      >
+                        👁️ Bax
+                      </a>
+                    )}
+                  </div>
                   <small style={{ color: '#94a3b8', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                     YouTube, Vimeo və ya MP4 video linki
                   </small>
                 </div>
               </div>
 
-              {/* Row 4: Video Dərslikləri & Linkləri (Dynamic Lectures List) */}
+              {/* Row 4: Video Dərslikləri & Linkləri (Dynamic Lectures List with View Buttons) */}
               <div className="form-group" style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div>
@@ -4187,6 +4215,30 @@ function SuperAdminPage() {
                         style={{ flex: 2, fontSize: '13px', padding: '6px 10px' }}
                         disabled={isSavingCourse}
                       />
+                      {lec.videoUrl && (
+                        <a 
+                          href={lec.videoUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '6px 10px',
+                            background: 'rgba(59, 130, 246, 0.15)',
+                            border: '1px solid #3b82f6',
+                            color: '#60a5fa',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          title="Videoya yeni pəncərədə bax"
+                        >
+                          👁️ Bax
+                        </a>
+                      )}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <input 
                           type="number" 
