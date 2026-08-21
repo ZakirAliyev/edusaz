@@ -22,16 +22,30 @@ public class ScholarshipsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string lang = "en", [FromQuery] Guid? countryId = null, [FromQuery] Guid? universityId = null)
     {
-        var result = await _scholarshipService.GetAllScholarshipsAsync(lang, countryId, universityId);
-        return Ok(ApiResponse<List<ScholarshipDto>>.SuccessResponse(result));
+        try
+        {
+            var result = await _scholarshipService.GetAllScholarshipsAsync(lang, countryId, universityId);
+            return Ok(ApiResponse<List<ScholarshipDto>>.SuccessResponse(result));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<List<ScholarshipDto>>.ErrorResponse($"[Scholarships Error]: {ex.Message} -> {ex.InnerException?.Message}", 500));
+        }
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id, [FromQuery] string lang = "en")
     {
-        var result = await _scholarshipService.GetScholarshipByIdAsync(id, lang);
-        if (result == null) return NotFound(ApiResponse<ScholarshipDto>.ErrorResponse("Scholarship not found", 404));
-        return Ok(ApiResponse<ScholarshipDto>.SuccessResponse(result));
+        try
+        {
+            var result = await _scholarshipService.GetScholarshipByIdAsync(id, lang);
+            if (result == null) return NotFound(ApiResponse<ScholarshipDto>.ErrorResponse("Scholarship not found", 404));
+            return Ok(ApiResponse<ScholarshipDto>.SuccessResponse(result));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<ScholarshipDto>.ErrorResponse($"[Scholarship Detail Error]: {ex.Message}", 500));
+        }
     }
 
     [HttpPost]

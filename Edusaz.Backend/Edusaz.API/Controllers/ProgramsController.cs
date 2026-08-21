@@ -27,16 +27,30 @@ public class ProgramsController : ControllerBase
         [FromQuery] string? search = null,
         [FromQuery] Guid? universityId = null)
     {
-        var result = await _programService.GetAllProgramsAsync(lang, countryId, field, search, universityId);
-        return Ok(ApiResponse<List<ProgramDto>>.SuccessResponse(result));
+        try
+        {
+            var result = await _programService.GetAllProgramsAsync(lang, countryId, field, search, universityId);
+            return Ok(ApiResponse<List<ProgramDto>>.SuccessResponse(result));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<List<ProgramDto>>.ErrorResponse($"[Programs Error]: {ex.Message} -> {ex.InnerException?.Message}", 500));
+        }
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id, [FromQuery] string lang = "en")
     {
-        var result = await _programService.GetProgramByIdAsync(id, lang);
-        if (result == null) return NotFound(ApiResponse<ProgramDto>.ErrorResponse("Program not found", 404));
-        return Ok(ApiResponse<ProgramDto>.SuccessResponse(result));
+        try
+        {
+            var result = await _programService.GetProgramByIdAsync(id, lang);
+            if (result == null) return NotFound(ApiResponse<ProgramDto>.ErrorResponse("Program not found", 404));
+            return Ok(ApiResponse<ProgramDto>.SuccessResponse(result));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<ProgramDto>.ErrorResponse($"[Program Detail Error]: {ex.Message}", 500));
+        }
     }
 
     [HttpPost]
