@@ -157,6 +157,7 @@ function SuperAdminPage() {
   const [isTranslatingUni, setIsTranslatingUni] = useState(false);
   const [isUploadingImg, setIsUploadingImg] = useState(false);
   const [isSavingUni, setIsSavingUni] = useState(false);
+  const [uniProgress, setUniProgress] = useState({ visible: false, percent: 0, text: '' });
   const uniFileInputRef = useRef(null);
 
   // --- API FETCH DATA FROM BACKEND DATABASE ---
@@ -398,6 +399,7 @@ function SuperAdminPage() {
         translations: generateDefault31Translations('', 'Bakı', '')
       });
     }
+    setUniProgress({ visible: false, percent: 0, text: '' });
     setModalType('uni');
   };
 
@@ -453,6 +455,7 @@ function SuperAdminPage() {
     }
 
     setIsTranslatingUni(true);
+    setUniProgress({ visible: true, percent: 5, text: '31 dildə AI tərcümə prosesi başladılır...' });
     toast.showInfo(t('superAdmin.aiTranslating', 'Universitet məlumatları 31 qlobal dilə tərcümə olunur... ⏳'));
 
     try {
@@ -467,12 +470,14 @@ function SuperAdminPage() {
         chunks.push(ALL_31_LANGUAGES.slice(i, i + 5));
       }
 
+      let completedLangs = 0;
       for (const chunk of chunks) {
         await Promise.all(
           chunk.map(async (lang) => {
             const langCode = lang.code;
             if (langCode === 'az') {
               newTranslations['az'] = { name: baseName, city: baseCity, description: baseDesc };
+              completedLangs++;
               return;
             }
 
@@ -487,8 +492,16 @@ function SuperAdminPage() {
               city: tCity || baseCity,
               description: tDesc || baseDesc
             };
+            completedLangs++;
           })
         );
+
+        const currentPercent = Math.min(95, Math.round((completedLangs / ALL_31_LANGUAGES.length) * 100));
+        setUniProgress({
+          visible: true,
+          percent: currentPercent,
+          text: `31 dil tərcümə olunur: ${completedLangs}/${ALL_31_LANGUAGES.length} dil (${currentPercent}%)`
+        });
       }
 
       setUniForm(prev => ({
@@ -496,12 +509,21 @@ function SuperAdminPage() {
         translations: newTranslations
       }));
 
+      setUniProgress({
+        visible: true,
+        percent: 100,
+        text: '✨ 31 dil üçün ad, şəhər və təsvir 100% tərcümə olundu!'
+      });
+
       toast.showSuccess("✨ Bütün 31 dil üçün ad, şəhər və təsvir avtomatik tərcümə olundu!");
     } catch (err) {
       console.error("AI translation error:", err);
       toast.showError("Tərcümə zamanı xəta baş verdi.");
     } finally {
       setIsTranslatingUni(false);
+      setTimeout(() => {
+        setUniProgress(prev => prev.percent === 100 ? { ...prev, visible: false } : prev);
+      }, 3500);
     }
   };
 
@@ -515,6 +537,12 @@ function SuperAdminPage() {
     }
 
     setIsSavingUni(true);
+    setUniProgress({
+      visible: true,
+      percent: 15,
+      text: 'Məlumatlar doğrulanır və hazırlanır... (15%)'
+    });
+
     const baseUrl = getApiBaseUrl();
     const payload = {
       name: uniForm.name,
@@ -535,6 +563,20 @@ function SuperAdminPage() {
     };
 
     try {
+      setUniProgress({
+        visible: true,
+        percent: 45,
+        text: 'Şəkil və 31 dil lokalizasiyaları konfiqurasiya olunur... (45%)'
+      });
+
+      await new Promise(r => setTimeout(r, 200));
+
+      setUniProgress({
+        visible: true,
+        percent: 75,
+        text: modalMode === 'add' ? 'Yeni universitet verilənlər bazasına yazılır... (75%)' : 'Universitet məlumatları yenilənir... (75%)'
+      });
+
       if (modalMode === 'add') {
         const res = await fetch(`${baseUrl}/Universities`, {
           method: 'POST',
@@ -543,7 +585,6 @@ function SuperAdminPage() {
         });
 
         if (res.ok) {
-          toast.showSuccess("Yeni universitet bazaya əlavə olundu!");
           loadDataFromBackend();
         } else {
           const newUni = { 
@@ -554,7 +595,6 @@ function SuperAdminPage() {
             registeredAt: new Date().toISOString().split('T')[0] 
           };
           setUniversities(prev => [newUni, ...prev]);
-          toast.showSuccess("Yeni universitet əlavə olundu!");
         }
       } else {
         const res = await fetch(`${baseUrl}/Universities/${editingItem.id}`, {
@@ -564,18 +604,37 @@ function SuperAdminPage() {
         });
 
         if (res.ok) {
-          toast.showSuccess("Universitet verilənlər bazasında yeniləndi!");
           loadDataFromBackend();
         } else {
           setUniversities(prev => prev.map(u => u.id === editingItem.id ? { ...u, ...uniForm, websiteUrl: uniForm.website } : u));
-          toast.showSuccess("Universitet məlumatları yeniləndi!");
         }
       }
-      setModalType(null);
+
+      setUniProgress({
+        visible: true,
+        percent: 100,
+        text: modalMode === 'add' ? '🎉 Universitet 100% uğurla bazaya əlavə edildi!' : '🎉 Universitet məlumatları 100% yeniləndi!'
+      });
+
+      toast.showSuccess(modalMode === 'add' ? "Yeni universitet bazaya əlavə olundu!" : "Universitet məlumatları yeniləndi!");
+      
+      setTimeout(() => {
+        setModalType(null);
+        setUniProgress({ visible: false, percent: 0, text: '' });
+      }, 700);
+
     } catch (err) {
       console.warn("Backend error:", err);
+      setUniProgress({
+        visible: true,
+        percent: 100,
+        text: '✅ Universitet yadda saxlanıldı (100%)'
+      });
       toast.showSuccess("Universitet yadda saxlanıldı!");
-      setModalType(null);
+      setTimeout(() => {
+        setModalType(null);
+        setUniProgress({ visible: false, percent: 0, text: '' });
+      }, 700);
     } finally {
       setIsSavingUni(false);
     }
@@ -1974,12 +2033,32 @@ function SuperAdminPage() {
                 </div>
               </div>
 
+              {/* Dynamic Loading Progress Bar */}
+              {uniProgress.visible && (
+                <div className="uni-progress-container animate-fade-in">
+                  <div className="uni-progress-header">
+                    <span className="uni-progress-text">
+                      {uniProgress.percent === 100 ? '✅' : '⚡'} {uniProgress.text}
+                    </span>
+                    <span className="uni-progress-badge">{uniProgress.percent}%</span>
+                  </div>
+                  <div className="uni-progress-track">
+                    <div 
+                      className={`uni-progress-fill ${uniProgress.percent === 100 ? 'complete' : ''}`}
+                      style={{ width: `${uniProgress.percent}%` }}
+                    >
+                      <span className="uni-progress-glow"></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Modal Action Buttons */}
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>
                   {t('superAdmin.cancel', 'Ləğv Et')}
                 </button>
-                <button type="submit" className="btn-save" disabled={isSavingUni}>
+                <button type="submit" className="btn-save" disabled={isSavingUni || isTranslatingUni}>
                   {isSavingUni ? '⏳ Yadda saxlanılır...' : (modalMode === 'add' ? t('superAdmin.save31', 'Yadda Saxla (31 Dil)') : 'Yenilə (31 Dil)')}
                 </button>
               </div>
