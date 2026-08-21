@@ -22,15 +22,16 @@ function SuperAdminSignInPage() {
       const token = tokenData?.accessToken || tokenData;
       const role = tokenData?.role || '';
 
-      if (role !== 'SuperAdmin') {
+      if (role?.toLowerCase() !== 'superadmin') {
         toast.showError('Bu giriş paneli yalnız SuperAdmin üçündür!');
         return;
       }
 
       Cookies.set('userToken', token, { expires: 1 });
-      localStorage.setItem('userRole', role.toLowerCase());
+      localStorage.setItem('userRole', 'superadmin');
+      localStorage.setItem('userEmail', formData.email);
       toast.showSuccess('SuperAdmin Panelinə xoş gəldiniz! 🛡️');
-      navigate('/superadmin');
+      window.location.href = '/superadmin';
     } catch (err) {
       toast.showError(err?.data?.message || 'Giriş uğursuz oldu. Məlumatları yoxlayın.');
     }
@@ -96,7 +97,7 @@ function SuperAdminSignInPage() {
                   type="email"
                   name="email"
                   value={formData.email}
-                  placeholder="superadmin@edu.saz"
+                  placeholder="E-poçt ünvanınızı daxil edin"
                   onChange={handleChange}
                   required
                 />
