@@ -33,7 +33,7 @@ public class ScholarshipsController : ControllerBase
         }
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, [FromQuery] string lang = "en")
     {
         try
