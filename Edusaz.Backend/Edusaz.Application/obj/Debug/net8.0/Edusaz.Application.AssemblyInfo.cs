@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Edusaz.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+65ad93f2315200b193b4bbebf88e9ee08c8cf055")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b452039de76dfaeea694dc5adf499dde6d13aed8")]
 [assembly: System.Reflection.AssemblyProductAttribute("Edusaz.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Edusaz.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
