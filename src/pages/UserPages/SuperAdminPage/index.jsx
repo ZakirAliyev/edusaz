@@ -156,6 +156,7 @@ function SuperAdminPage() {
   const [activeLangSubTab, setActiveLangSubTab] = useState('az');
   const [isTranslatingUni, setIsTranslatingUni] = useState(false);
   const [isUploadingImg, setIsUploadingImg] = useState(false);
+  const [isSavingUni, setIsSavingUni] = useState(false);
   const uniFileInputRef = useRef(null);
 
   // --- API FETCH DATA FROM BACKEND DATABASE ---
@@ -363,7 +364,7 @@ function SuperAdminPage() {
         country: uni.country || 'Azərbaycan',
         countryId: uni.countryId || '',
         city: uni.city || 'Bakı',
-        logoUrl: uni.logoUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
+        logoUrl: uni.logoUrl || '',
         establishedYear: uni.establishedYear || 1919,
         ranking: uni.ranking || '#1 Azərbaycanda',
         tuition: uni.tuition || '4,500 AZN / il',
@@ -383,7 +384,7 @@ function SuperAdminPage() {
         country: 'Azərbaycan',
         countryId: '',
         city: 'Bakı',
-        logoUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
+        logoUrl: '',
         establishedYear: 1919,
         ranking: '#1 Azərbaycanda',
         tuition: '4,500 AZN / il',
@@ -506,18 +507,21 @@ function SuperAdminPage() {
 
   const handleSaveUni = async (e) => {
     e.preventDefault();
+    if (isSavingUni) return;
+
     if (!uniForm.name.trim()) {
       toast.showError(t('superAdmin.enterNameFirst', "Universitet adı daxil edilməlidir!"));
       return;
     }
 
+    setIsSavingUni(true);
     const baseUrl = getApiBaseUrl();
     const payload = {
       name: uniForm.name,
       country: uniForm.country,
       countryId: uniForm.countryId ? uniForm.countryId : null,
       city: uniForm.city,
-      logoUrl: uniForm.logoUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
+      logoUrl: uniForm.logoUrl || '',
       websiteUrl: uniForm.website,
       establishedYear: parseInt(uniForm.establishedYear, 10) || 2026,
       tuition: uniForm.tuition,
@@ -567,11 +571,14 @@ function SuperAdminPage() {
           toast.showSuccess("Universitet məlumatları yeniləndi!");
         }
       }
+      setModalType(null);
     } catch (err) {
       console.warn("Backend error:", err);
       toast.showSuccess("Universitet yadda saxlanıldı!");
+      setModalType(null);
+    } finally {
+      setIsSavingUni(false);
     }
-    setModalType(null);
   };
 
   const handleApproveUni = async (id) => {
@@ -1596,21 +1603,42 @@ function SuperAdminPage() {
 
             <form onSubmit={handleSaveUni} className="modal-form">
               
-              {/* Cover Photo / Campus Image Section */}
+              {/* Şəkil əlavə et - Direct Computer Upload Only */}
               <div className="form-group">
-                <label>{t('superAdmin.uploadImage', 'Şəkil / Loqo Yüklə və ya Link Daxil Et')}</label>
-                <div className="uni-image-uploader-box">
-                  <div className="uni-image-preview">
-                    <img 
-                      src={uniForm.logoUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80"} 
-                      alt="Preview" 
-                      onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80"; }}
-                    />
-                    <span className="preview-badge">📷 Kampus Şəkli</span>
-                  </div>
-                  <div className="uni-image-inputs">
-                    {/* Direct File Upload to wwwroot */}
-                    <div className="file-upload-row-action">
+                <label style={{ fontSize: '13px', fontWeight: 700, color: '#c084fc' }}>
+                  📷 {t('superAdmin.uploadImage', 'Şəkil əlavə et')} *
+                </label>
+                <div className="uni-single-upload-box">
+                  {uniForm.logoUrl ? (
+                    <div className="uni-uploaded-preview-row">
+                      <div className="preview-img-container">
+                        <img 
+                          src={uniForm.logoUrl} 
+                          alt="University" 
+                          onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80"; }}
+                        />
+                      </div>
+                      <div className="preview-info-actions">
+                        <div className="file-status-badge">✓ Şəkil uğurla seçilib</div>
+                        <input 
+                          type="file" 
+                          ref={uniFileInputRef} 
+                          accept="image/*" 
+                          style={{ display: 'none' }} 
+                          onChange={handleUniFileUpload} 
+                        />
+                        <button 
+                          type="button" 
+                          className="btn-change-image" 
+                          disabled={isUploadingImg}
+                          onClick={() => uniFileInputRef.current?.click()}
+                        >
+                          {isUploadingImg ? '⏳ Şəkil Yüklənir...' : '🔄 Şəkli Dəyişdir (Kompüterdən)'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="uni-upload-placeholder-zone" onClick={() => uniFileInputRef.current?.click()}>
                       <input 
                         type="file" 
                         ref={uniFileInputRef} 
@@ -1618,38 +1646,26 @@ function SuperAdminPage() {
                         style={{ display: 'none' }} 
                         onChange={handleUniFileUpload} 
                       />
+                      <div className="upload-icon-circle">
+                        {isUploadingImg ? '⏳' : '📁'}
+                      </div>
+                      <div className="upload-prompt-texts">
+                        <strong>{isUploadingImg ? 'Şəkil serverə yüklənir...' : 'Kompüterdən şəkil seçmək üçün klikləyin'}</strong>
+                        <span>PNG, JPG, WEBP formatları (Maksimum 10MB)</span>
+                      </div>
                       <button 
                         type="button" 
-                        className="btn-upload-file-trigger" 
+                        className="btn-trigger-upload-dashed" 
                         disabled={isUploadingImg}
-                        onClick={() => uniFileInputRef.current?.click()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          uniFileInputRef.current?.click();
+                        }}
                       >
-                        {isUploadingImg ? '⏳ Şəkil wwwroot-a yüklənir...' : '📁 Kompüterdən Şəkil Yüklə (wwwroot)'}
+                        {isUploadingImg ? 'Yüklənir...' : '📁 Şəkil Seç'}
                       </button>
-                      <span className="or-divider-text">və ya URL linki daxil edin:</span>
                     </div>
-
-                    <input 
-                      type="url" 
-                      value={uniForm.logoUrl} 
-                      onChange={e => setUniForm({ ...uniForm, logoUrl: e.target.value })} 
-                      placeholder="https://images.unsplash.com/... və ya /uploads/universities/..." 
-                    />
-                    <span className="preset-label">{t('superAdmin.choosePreset', 'və ya Hazır Qalereyadan Kampus Şəkli Seçin:')}</span>
-                    <div className="campus-presets-row">
-                      {CAMPUS_IMAGE_PRESETS.map((preset, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          className={`preset-btn ${uniForm.logoUrl === preset.url ? 'active' : ''}`}
-                          onClick={() => setUniForm({ ...uniForm, logoUrl: preset.url })}
-                          title={preset.label}
-                        >
-                          <span>{preset.thumb}</span> {preset.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -1963,8 +1979,8 @@ function SuperAdminPage() {
                 <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>
                   {t('superAdmin.cancel', 'Ləğv Et')}
                 </button>
-                <button type="submit" className="btn-save">
-                  {t('superAdmin.save31', 'Yadda Saxla (31 Dil)')}
+                <button type="submit" className="btn-save" disabled={isSavingUni}>
+                  {isSavingUni ? '⏳ Yadda saxlanılır...' : (modalMode === 'add' ? t('superAdmin.save31', 'Yadda Saxla (31 Dil)') : 'Yenilə (31 Dil)')}
                 </button>
               </div>
             </form>

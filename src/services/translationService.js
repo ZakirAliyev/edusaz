@@ -8,10 +8,11 @@ const LANG_CODE_MAP = {
   az: 'az',  en: 'en',  ru: 'ru',  tr: 'tr',  de: 'de',
   fr: 'fr',  es: 'es',  it: 'it',  ar: 'ar',  zh: 'zh-CN',
   pt: 'pt',  nl: 'nl',  se: 'sv',  no: 'no',  fi: 'fi',
-  dk: 'da',  gr: 'el',  hu: 'hu',  cz: 'cs',  ro: 'ro',
-  bg: 'bg',  hr: 'hr',  sk: 'sk',  ua: 'uk',  ka: 'ka',
-  hy: 'hy',  kz: 'kk',  uz: 'uz',  ja: 'ja',  ko: 'ko',
-  hi: 'hi'
+  da: 'da',  dk: 'da',  el: 'el',  gr: 'el',  hu: 'hu',
+  cs: 'cs',  cz: 'cs',  ro: 'ro',  bg: 'bg',  hr: 'hr',
+  sk: 'sk',  uk: 'uk',  ua: 'uk',  ka: 'ka',  hy: 'hy',
+  kz: 'kk',  uz: 'uz',  ja: 'ja',  ko: 'ko',  hi: 'hi',
+  id: 'id',  th: 'th',  vi: 'vi',  fa: 'fa',  pl: 'pl'
 };
 
 // ── Two-layer Translation Cache ───────────────────────────────────────────────
@@ -19,10 +20,9 @@ const LANG_CODE_MAP = {
 // Layer 2: localStorage (persists across sessions — same words never re-translated)
 const _memCache = new Map();
 const CACHE_PREFIX = 'gtr2_';
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 
 function hashKey(text, from, to) {
-  // Normalize: trim + lowercase + truncate to 120 chars for key stability
   const normalized = text.trim().toLowerCase().substring(0, 120);
   return `${CACHE_PREFIX}${CACHE_VERSION}_${from}_${to}_${normalized}`;
 }
@@ -33,7 +33,7 @@ function getCached(text, from, to) {
   try {
     const stored = localStorage.getItem(key);
     if (stored) {
-      _memCache.set(key, stored); // promote to memory cache
+      _memCache.set(key, stored);
       return stored;
     }
   } catch (_) {}
@@ -46,7 +46,6 @@ function setCached(text, from, to, translated) {
   try {
     localStorage.setItem(key, translated);
   } catch (e) {
-    // localStorage quota exceeded — clear oldest gtr2_ entries
     try {
       const toRemove = Object.keys(localStorage)
         .filter(k => k.startsWith(CACHE_PREFIX))
@@ -98,7 +97,7 @@ export async function detectUserGeoLanguage() {
     const countryToLangMap = {
       AZ: 'az', TR: 'tr', DE: 'de', FR: 'fr', ES: 'es',
       IT: 'it', RU: 'ru', BY: 'ru', KZ: 'kz', GE: 'ka',
-      AM: 'hy', UA: 'ua', PL: 'pl', HU: 'hu', CN: 'zh',
+      AM: 'hy', UA: 'uk', PL: 'pl', HU: 'hu', CN: 'zh',
       JP: 'ja', KR: 'ko', SA: 'ar', AE: 'ar', IN: 'hi',
       US: 'en', GB: 'en', CA: 'en', AU: 'en'
     };
@@ -115,53 +114,87 @@ export async function detectUserGeoLanguage() {
 }
 
 /**
- * Translate text using Google Cloud Translation API with localStorage caching
+ * Multi-layer Ultra-Reliable Translation Function
+ * Layer 1: Google Cloud Translate API v2 (if key configured)
+ * Layer 2: Google Translate Direct Web API (100% free, immediate, accurate)
+ * Layer 3: MyMemory API fallback
  */
-export async function translateText(text, fromLang = 'en', toLang = 'en') {
+export async function translateText(text, fromLang = 'az', toLang = 'en') {
   if (!text || !text.trim()) return text;
 
   const normalizedFrom = fromLang.split('-')[0].toLowerCase();
   const normalizedTo = toLang.split('-')[0].toLowerCase();
   if (normalizedFrom === normalizedTo) return text;
 
-  // Check two-layer cache first (memory → localStorage)
+  // Check cache first
   const cached = getCached(text, normalizedFrom, normalizedTo);
   if (cached) return cached;
 
-  // Map to Google's language codes
   const googleFrom = LANG_CODE_MAP[normalizedFrom] || normalizedFrom;
   const googleTo = LANG_CODE_MAP[normalizedTo] || normalizedTo;
 
-  try {
-    const res = await fetch(
-      `${GOOGLE_TRANSLATE_URL}?key=${GOOGLE_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          q: text,
-          source: googleFrom,
-          target: googleTo,
-          format: 'text'
-        })
+  // 1. Google Cloud v2 (if key provided)
+  if (GOOGLE_API_KEY) {
+    try {
+      const res = await fetch(
+        `${GOOGLE_TRANSLATE_URL}?key=${GOOGLE_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            q: text,
+            source: googleFrom,
+            target: googleTo,
+            format: 'text'
+          })
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const translated = data?.data?.translations?.[0]?.translatedText;
+        if (translated && translated.trim()) {
+          setCached(text, normalizedFrom, normalizedTo, translated);
+          return translated;
+        }
       }
-    );
-
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
-      console.error('Google Translate error:', errBody);
-      return text;
+    } catch (e) {
+      console.warn('Google Cloud v2 failed, using direct API', e);
     }
+  }
 
-    const data = await res.json();
-    const translated = data?.data?.translations?.[0]?.translatedText;
-
-    if (translated) {
-      setCached(text, normalizedFrom, normalizedTo, translated);
-      return translated;
+  // 2. Direct Google Translate API
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(googleFrom)}&tl=${encodeURIComponent(googleTo)}&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json) && Array.isArray(json[0])) {
+        const translated = json[0].map(item => item && item[0] ? item[0] : '').join('');
+        if (translated && translated.trim()) {
+          setCached(text, normalizedFrom, normalizedTo, translated);
+          return translated;
+        }
+      }
     }
   } catch (err) {
-    console.error('Translation fetch error:', err);
+    console.warn('Direct Google API translation error:', err);
+  }
+
+  // 3. MyMemory Fallback
+  try {
+    const pair = `${googleFrom}|${googleTo}`;
+    const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(pair)}`;
+    const res = await fetch(myMemoryUrl);
+    if (res.ok) {
+      const json = await res.json();
+      const translated = json?.responseData?.translatedText;
+      if (translated && !translated.includes('MYMEMORY WARNING')) {
+        setCached(text, normalizedFrom, normalizedTo, translated);
+        return translated;
+      }
+    }
+  } catch (err) {
+    console.error('All translation providers failed:', err);
   }
 
   return text;
