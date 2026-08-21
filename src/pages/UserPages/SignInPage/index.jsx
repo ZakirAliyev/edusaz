@@ -48,6 +48,13 @@ function SignInPage() {
 
       Cookies.set('userToken', token, { expires: 1 });
       localStorage.setItem('userRole', role.toLowerCase());
+      localStorage.setItem('userEmail', tokenData?.email || formData.email);
+      if (tokenData?.firstName) {
+        localStorage.setItem('userName', `${tokenData.firstName} ${tokenData.lastName || ''}`.trim());
+      }
+      if (tokenData?.universityId) {
+        localStorage.setItem('universityId', tokenData.universityId);
+      }
 
       toast.showSuccess(t('auth.loginSuccess'));
 
