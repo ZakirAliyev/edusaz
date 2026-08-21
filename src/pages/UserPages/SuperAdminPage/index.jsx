@@ -149,7 +149,7 @@ function SuperAdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('isSuperAdmin') === 'true';
   });
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [credentials, setCredentials] = useState({ email: 'superadmin@edu.saz', password: 'EduSaz2026!' });
 
   const [activeTab, setActiveTab] = useState('Users');
   const [searchTerm, setSearchTerm] = useState('');
@@ -1994,7 +1994,7 @@ function SuperAdminPage() {
               <div className="info-icon">🔐</div>
               <div className="info-text">
                 <strong>Avtorizasiya Məlumatları:</strong>
-                <p>E-poçt: <code>superadmin@edusaz.com</code></p>
+                <p>E-poçt: <code>superadmin@edu.saz</code></p>
                 <p>Şifrə: <code>EduSaz2026!</code></p>
               </div>
             </div>
@@ -2006,7 +2006,7 @@ function SuperAdminPage() {
                   type="email" 
                   value={credentials.email} 
                   onChange={e => setCredentials({ ...credentials, email: e.target.value })} 
-                  placeholder="superadmin@edusaz.com" 
+                  placeholder="superadmin@edu.saz" 
                   required 
                 />
               </div>
