@@ -107,7 +107,9 @@ jobs:
               done
             fi
 
-            # 2. Restart backend and reverse proxy
+            # 2. Set permissions and start backend & reverse proxy
+            chmod -R 755 /var/www/edusaz-backend || true
             systemctl daemon-reload
+            systemctl start edusaz-backend || systemctl start edusaz || systemctl start edusaz-api || systemctl start kestrel-edusaz || true
             systemctl restart edusaz-backend || systemctl restart edusaz || systemctl restart edusaz-api || systemctl restart kestrel-edusaz || systemctl restart dotnet-edusaz || true
             systemctl reload caddy || systemctl restart caddy || systemctl reload nginx || systemctl restart nginx || true
