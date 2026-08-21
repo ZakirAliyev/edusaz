@@ -348,19 +348,31 @@ public class AuthController : ControllerBase
         }
 
         // Clean up linked instructor records
-        var instructors = await _context.Instructors.Where(i => i.UserId == user.Id).ToListAsync();
-        if (instructors.Any()) _context.Instructors.RemoveRange(instructors);
+        try
+        {
+            var instructors = await _context.Instructors.Where(i => i.UserId == user.Id).ToListAsync();
+            if (instructors.Any()) _context.Instructors.RemoveRange(instructors);
+        }
+        catch {}
 
         // Nullify foreign keys in reviews if any
-        var reviews = await _context.Reviews.Where(r => r.UserId == user.Id).ToListAsync();
-        foreach (var r in reviews) r.UserId = null;
+        try
+        {
+            var reviews = await _context.Reviews.Where(r => r.UserId == user.Id).ToListAsync();
+            foreach (var r in reviews) r.UserId = null;
+        }
+        catch {}
 
         // Remove user roles
-        var roles = await _userManager.GetRolesAsync(user);
-        if (roles.Any())
+        try
         {
-            await _userManager.RemoveFromRolesAsync(user, roles);
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Any())
+            {
+                await _userManager.RemoveFromRolesAsync(user, roles);
+            }
         }
+        catch {}
 
         // Hard delete user from AspNetUsers so email is immediately freed up for re-registration
         var delRes = await _userManager.DeleteAsync(user);
@@ -386,14 +398,26 @@ public class AuthController : ControllerBase
             int count = usersToDelete.Count;
             foreach (var user in usersToDelete)
             {
-                var instructors = await _context.Instructors.Where(i => i.UserId == user.Id).ToListAsync();
-                if (instructors.Any()) _context.Instructors.RemoveRange(instructors);
+                try
+                {
+                    var instructors = await _context.Instructors.Where(i => i.UserId == user.Id).ToListAsync();
+                    if (instructors.Any()) _context.Instructors.RemoveRange(instructors);
+                }
+                catch {}
 
-                var reviews = await _context.Reviews.Where(r => r.UserId == user.Id).ToListAsync();
-                foreach (var r in reviews) r.UserId = null;
+                try
+                {
+                    var reviews = await _context.Reviews.Where(r => r.UserId == user.Id).ToListAsync();
+                    foreach (var r in reviews) r.UserId = null;
+                }
+                catch {}
 
-                var roles = await _userManager.GetRolesAsync(user);
-                if (roles.Any()) await _userManager.RemoveFromRolesAsync(user, roles);
+                try
+                {
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (roles.Any()) await _userManager.RemoveFromRolesAsync(user, roles);
+                }
+                catch {}
 
                 var delRes = await _userManager.DeleteAsync(user);
                 if (!delRes.Succeeded)
