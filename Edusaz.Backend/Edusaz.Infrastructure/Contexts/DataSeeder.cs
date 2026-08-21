@@ -33,16 +33,38 @@ public static class DataSeeder
         // 4. Seed Universities
         await SeedUniversitiesAsync(context, enId, azId, trId);
 
-        // 5. Seed Programs
-        await SeedProgramsAsync(context, enId, azId, trId);
+        // 5. Clean / Clear Programs & Scholarships (User will upload manually)
+        if (await context.ProgramTranslations.AnyAsync())
+        {
+            context.ProgramTranslations.RemoveRange(await context.ProgramTranslations.ToListAsync());
+            await context.SaveChangesAsync();
+        }
+        if (await context.Programs.AnyAsync())
+        {
+            context.Programs.RemoveRange(await context.Programs.ToListAsync());
+            await context.SaveChangesAsync();
+        }
 
-        // 6. Seed Scholarships
-        await SeedScholarshipsAsync(context, enId, azId, trId);
+        if (await context.ScholarshipSubscriptions.AnyAsync())
+        {
+            context.ScholarshipSubscriptions.RemoveRange(await context.ScholarshipSubscriptions.ToListAsync());
+            await context.SaveChangesAsync();
+        }
+        if (await context.ScholarshipTranslations.AnyAsync())
+        {
+            context.ScholarshipTranslations.RemoveRange(await context.ScholarshipTranslations.ToListAsync());
+            await context.SaveChangesAsync();
+        }
+        if (await context.Scholarships.AnyAsync())
+        {
+            context.Scholarships.RemoveRange(await context.Scholarships.ToListAsync());
+            await context.SaveChangesAsync();
+        }
 
-        // 7. Seed Instructors & Courses
+        // 6. Seed Instructors & Courses
         await SeedInstructorsAndCoursesAsync(serviceProvider, context, enId, azId, trId);
 
-        // 8. Seed Student Applications, Campaigns, Team Members
+        // 7. Seed Student Applications, Campaigns, Team Members
         await SeedPortalDataAsync(context, azId, enId);
     }
 
