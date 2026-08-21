@@ -32,6 +32,9 @@ public class CreateScholarshipDto
     public Guid? UniversityId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
+    public string? Provider { get; set; }
+    public string? Coverage { get; set; }
+    public string? Description { get; set; }
     public Guid? CountryId { get; set; }
     public string Status { get; set; } = "Open";
     public string Amount { get; set; } = string.Empty;
@@ -46,6 +49,8 @@ public class CreateScholarshipDto
     public string DescriptionEn { get; set; } = string.Empty;
     public string NameTr { get; set; } = string.Empty;
     public string DescriptionTr { get; set; } = string.Empty;
+
+    public Dictionary<string, ScholarshipTranslationDto>? Translations { get; set; }
 }
 
 public class CheckEligibilityRequestDto

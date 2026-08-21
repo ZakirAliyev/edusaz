@@ -59,57 +59,78 @@ public class ScholarshipService : IScholarshipService
 
     public async Task<ScholarshipDto> CreateScholarshipAsync(CreateScholarshipDto dto)
     {
-        var enLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "en");
-        var azLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "az");
-        var trLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "tr");
+        var allLanguages = await _context.Languages.ToListAsync();
 
         var scholarship = new Scholarship
         {
             Id = Guid.NewGuid(),
             UniversityId = dto.UniversityId,
-            Name = dto.Name,
-            Location = dto.Location,
+            Name = !string.IsNullOrEmpty(dto.NameAz) ? dto.NameAz : dto.Name,
+            Location = !string.IsNullOrEmpty(dto.Location) ? dto.Location : (!string.IsNullOrEmpty(dto.Provider) ? dto.Provider : "Dövlət Proqramı"),
             CountryId = dto.CountryId,
             Status = dto.Status ?? "Open",
-            Amount = dto.Amount,
-            Deadline = dto.Deadline,
-            Eligible = dto.Eligible,
-            Places = dto.Places,
+            Amount = !string.IsNullOrEmpty(dto.Coverage) ? dto.Coverage : (!string.IsNullOrEmpty(dto.Amount) ? dto.Amount : "100% Tam Təqaüd"),
+            Deadline = !string.IsNullOrEmpty(dto.Deadline) ? dto.Deadline : "2026-11-15",
+            Eligible = !string.IsNullOrEmpty(dto.Eligible) ? dto.Eligible : "Bütün müraciətçilər",
+            Places = dto.Places ?? "50 yer",
             ButtonType = dto.ButtonType ?? "check",
             Translations = new List<ScholarshipTranslation>()
         };
 
-        if (azLang != null && !string.IsNullOrEmpty(dto.NameAz))
+        var nameAz = !string.IsNullOrEmpty(dto.NameAz) ? dto.NameAz : dto.Name;
+        var descAz = !string.IsNullOrEmpty(dto.DescriptionAz) ? dto.DescriptionAz : (dto.Description ?? nameAz);
+
+        if (dto.Translations != null && dto.Translations.Count > 0)
+        {
+            foreach (var kvp in dto.Translations)
+            {
+                var langMatch = allLanguages.FirstOrDefault(l => string.Equals(l.Code, kvp.Key, StringComparison.OrdinalIgnoreCase));
+                if (langMatch != null && !string.IsNullOrEmpty(kvp.Value.Name))
+                {
+                    scholarship.Translations.Add(new ScholarshipTranslation
+                    {
+                        Id = Guid.NewGuid(),
+                        LanguageId = langMatch.Id,
+                        Name = kvp.Value.Name,
+                        Description = string.IsNullOrEmpty(kvp.Value.Description) ? kvp.Value.Name : kvp.Value.Description,
+                        Eligible = string.IsNullOrEmpty(kvp.Value.Eligible) ? scholarship.Eligible : kvp.Value.Eligible
+                    });
+                }
+            }
+        }
+
+        // Ensure AZ is present
+        var azLang = allLanguages.FirstOrDefault(x => x.Code == "az");
+        if (azLang != null && !scholarship.Translations.Any(t => t.LanguageId == azLang.Id))
         {
             scholarship.Translations.Add(new ScholarshipTranslation
             {
-                Id = Guid.NewGuid(), LanguageId = azLang.Id,
-                Name = dto.NameAz, Description = dto.DescriptionAz ?? dto.NameAz, Eligible = dto.Eligible
+                Id = Guid.NewGuid(),
+                LanguageId = azLang.Id,
+                Name = nameAz,
+                Description = descAz,
+                Eligible = scholarship.Eligible
             });
         }
 
-        if (enLang != null && !string.IsNullOrEmpty(dto.NameEn))
+        // Ensure EN is present
+        var enLang = allLanguages.FirstOrDefault(x => x.Code == "en");
+        if (enLang != null && !scholarship.Translations.Any(t => t.LanguageId == enLang.Id))
         {
             scholarship.Translations.Add(new ScholarshipTranslation
             {
-                Id = Guid.NewGuid(), LanguageId = enLang.Id,
-                Name = dto.NameEn, Description = dto.DescriptionEn ?? dto.NameEn, Eligible = dto.Eligible
-            });
-        }
-
-        if (trLang != null && !string.IsNullOrEmpty(dto.NameTr))
-        {
-            scholarship.Translations.Add(new ScholarshipTranslation
-            {
-                Id = Guid.NewGuid(), LanguageId = trLang.Id,
-                Name = dto.NameTr, Description = dto.DescriptionTr ?? dto.NameTr, Eligible = dto.Eligible
+                Id = Guid.NewGuid(),
+                LanguageId = enLang.Id,
+                Name = !string.IsNullOrEmpty(dto.NameEn) ? dto.NameEn : nameAz,
+                Description = !string.IsNullOrEmpty(dto.DescriptionEn) ? dto.DescriptionEn : descAz,
+                Eligible = scholarship.Eligible
             });
         }
 
         await _context.Scholarships.AddAsync(scholarship);
         await _context.SaveChangesAsync();
 
-        return (await GetScholarshipByIdAsync(scholarship.Id, "en"))!;
+        return (await GetScholarshipByIdAsync(scholarship.Id, "az"))!;
     }
 
     public async Task<bool> DeleteScholarshipAsync(Guid id)
@@ -133,25 +154,78 @@ public class ScholarshipService : IScholarshipService
 
         if (!string.IsNullOrEmpty(dto.Name)) scholarship.Name = dto.Name;
         if (!string.IsNullOrEmpty(dto.Location)) scholarship.Location = dto.Location;
-        if (!string.IsNullOrEmpty(dto.Amount)) scholarship.Amount = dto.Amount;
+        else if (!string.IsNullOrEmpty(dto.Provider)) scholarship.Location = dto.Provider;
+
+        if (dto.CountryId.HasValue && dto.CountryId != Guid.Empty) scholarship.CountryId = dto.CountryId;
+        if (dto.UniversityId.HasValue && dto.UniversityId != Guid.Empty) scholarship.UniversityId = dto.UniversityId;
+
+        if (!string.IsNullOrEmpty(dto.Coverage)) scholarship.Amount = dto.Coverage;
+        else if (!string.IsNullOrEmpty(dto.Amount)) scholarship.Amount = dto.Amount;
+
         if (!string.IsNullOrEmpty(dto.Deadline)) scholarship.Deadline = dto.Deadline;
         if (!string.IsNullOrEmpty(dto.Eligible)) scholarship.Eligible = dto.Eligible;
         if (!string.IsNullOrEmpty(dto.Places)) scholarship.Places = dto.Places;
         if (!string.IsNullOrEmpty(dto.Status)) scholarship.Status = dto.Status;
 
-        var azLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "az");
-        if (azLang != null && !string.IsNullOrEmpty(dto.NameAz))
+        var allLanguages = await _context.Languages.ToListAsync();
+
+        if (dto.Translations != null && dto.Translations.Count > 0)
         {
-            var azTr = scholarship.Translations.FirstOrDefault(t => t.LanguageId == azLang.Id);
-            if (azTr != null)
+            foreach (var kvp in dto.Translations)
             {
-                azTr.Name = dto.NameAz;
-                azTr.Description = dto.DescriptionAz ?? dto.NameAz;
+                var langMatch = allLanguages.FirstOrDefault(l => string.Equals(l.Code, kvp.Key, StringComparison.OrdinalIgnoreCase));
+                if (langMatch != null && !string.IsNullOrEmpty(kvp.Value.Name))
+                {
+                    var existingTr = scholarship.Translations.FirstOrDefault(t => t.LanguageId == langMatch.Id);
+                    if (existingTr != null)
+                    {
+                        existingTr.Name = kvp.Value.Name;
+                        existingTr.Description = string.IsNullOrEmpty(kvp.Value.Description) ? kvp.Value.Name : kvp.Value.Description;
+                        if (!string.IsNullOrEmpty(kvp.Value.Eligible)) existingTr.Eligible = kvp.Value.Eligible;
+                    }
+                    else
+                    {
+                        scholarship.Translations.Add(new ScholarshipTranslation
+                        {
+                            Id = Guid.NewGuid(),
+                            LanguageId = langMatch.Id,
+                            Name = kvp.Value.Name,
+                            Description = string.IsNullOrEmpty(kvp.Value.Description) ? kvp.Value.Name : kvp.Value.Description,
+                            Eligible = scholarship.Eligible
+                        });
+                    }
+                }
+            }
+        }
+        else if (!string.IsNullOrEmpty(dto.NameAz) || !string.IsNullOrEmpty(dto.Name))
+        {
+            var name = !string.IsNullOrEmpty(dto.NameAz) ? dto.NameAz : dto.Name;
+            var desc = !string.IsNullOrEmpty(dto.DescriptionAz) ? dto.DescriptionAz : (dto.Description ?? name);
+            var azLang = allLanguages.FirstOrDefault(x => x.Code == "az");
+            if (azLang != null)
+            {
+                var azTr = scholarship.Translations.FirstOrDefault(t => t.LanguageId == azLang.Id);
+                if (azTr != null)
+                {
+                    azTr.Name = name;
+                    azTr.Description = desc;
+                }
+                else
+                {
+                    scholarship.Translations.Add(new ScholarshipTranslation
+                    {
+                        Id = Guid.NewGuid(),
+                        LanguageId = azLang.Id,
+                        Name = name,
+                        Description = desc,
+                        Eligible = scholarship.Eligible
+                    });
+                }
             }
         }
 
         await _context.SaveChangesAsync();
-        return (await GetScholarshipByIdAsync(scholarship.Id, "en"))!;
+        return (await GetScholarshipByIdAsync(scholarship.Id, "az"))!;
     }
 
     public async Task<CheckEligibilityResponseDto> CheckEligibilityAsync(CheckEligibilityRequestDto dto)
