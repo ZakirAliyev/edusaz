@@ -47,29 +47,30 @@ public class UniversityService : IUniversityService
         return universities.Select(u => {
             var country = u.CountryRef 
                           ?? (u.CountryId.HasValue ? countries.FirstOrDefault(c => c.Id == u.CountryId.Value) : null)
-                          ?? countries.FirstOrDefault(c => string.Equals(c.Code, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase))
-                          ?? countries.FirstOrDefault(c => string.Equals(c.DefaultName, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase))
-                          ?? countries.FirstOrDefault(c => c.Code.ToLower().Contains("us") || c.DefaultName.ToLower().Contains("usa"));
+                          ?? countries.FirstOrDefault(c => !string.IsNullOrEmpty(c.Code) && string.Equals(c.Code, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase))
+                          ?? countries.FirstOrDefault(c => !string.IsNullOrEmpty(c.DefaultName) && string.Equals(c.DefaultName, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase))
+                          ?? countries.FirstOrDefault(c => (!string.IsNullOrEmpty(c.Code) && c.Code.ToLower().Contains("us")) || (!string.IsNullOrEmpty(c.DefaultName) && c.DefaultName.ToLower().Contains("usa")));
 
-            var translation = u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) 
-                              ?? u.Translations.FirstOrDefault();
+            var translation = u.Translations != null 
+                              ? (u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) ?? u.Translations.FirstOrDefault())
+                              : null;
             return new UniversityDto
             {
                 Id = u.Id,
-                Country = country?.DefaultName ?? u.Country,
-                CountryId = country?.Id ?? u.CountryId ?? (u.Country == "USA" ? Guid.Parse("54da6f05-8990-4ad8-b17c-b188bb7dc7b7") : null),
-                CountryCode = country?.Code ?? (u.Country == "USA" ? "usa" : string.Empty),
-                LogoUrl = u.LogoUrl,
-                WebsiteUrl = u.WebsiteUrl,
+                Country = country?.DefaultName ?? u.Country ?? "Azərbaycan",
+                CountryId = country?.Id ?? u.CountryId,
+                CountryCode = country?.Code ?? (string.Equals(u.Country, "USA", StringComparison.OrdinalIgnoreCase) ? "usa" : "az"),
+                LogoUrl = u.LogoUrl ?? "",
+                WebsiteUrl = u.WebsiteUrl ?? "",
                 EstablishedYear = u.EstablishedYear,
                 Name = translation?.Name ?? "University",
                 Description = translation?.Description ?? "",
                 City = translation?.City ?? "",
-                Tuition = u.Tuition,
-                AcceptanceRate = u.AcceptanceRate,
-                TeachingLanguage = u.TeachingLanguage,
-                Deadline = u.Deadline,
-                Ranking = u.Ranking,
+                Tuition = u.Tuition ?? "",
+                AcceptanceRate = u.AcceptanceRate ?? "",
+                TeachingLanguage = u.TeachingLanguage ?? "",
+                Deadline = u.Deadline ?? "",
+                Ranking = u.Ranking ?? "",
                 HasScholarship = u.HasScholarship,
                 Images = u.Images ?? new(),
                 VideoUrls = u.VideoUrls ?? new()
@@ -88,12 +89,13 @@ public class UniversityService : IUniversityService
 
         var countries = await _countryReadRepository.GetAllAsync(c => !c.IsDeleted);
         var country = u.CountryRef ?? countries.FirstOrDefault(c => 
-            string.Equals(c.Code, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(c.DefaultName, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase) ||
-            (c.Code.ToLower() == "usa" && u.Country?.Trim().ToUpper() == "USA"));
+            (!string.IsNullOrEmpty(c.Code) && string.Equals(c.Code, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrEmpty(c.DefaultName) && string.Equals(c.DefaultName, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrEmpty(c.Code) && c.Code.ToLower() == "usa" && string.Equals(u.Country?.Trim(), "USA", StringComparison.OrdinalIgnoreCase)));
 
-        var translation = u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) 
-                          ?? u.Translations.FirstOrDefault();
+        var translation = u.Translations != null
+                          ? (u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) ?? u.Translations.FirstOrDefault())
+                          : null;
 
         return new UniversityDto
         {
