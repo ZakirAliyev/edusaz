@@ -64,7 +64,7 @@ public class ScholarshipService : IScholarshipService
         var scholarship = new Scholarship
         {
             Id = Guid.NewGuid(),
-            UniversityId = dto.UniversityId,
+            UniversityId = (dto.UniversityId.HasValue && dto.UniversityId.Value != Guid.Empty) ? dto.UniversityId.Value : null,
             Name = !string.IsNullOrEmpty(dto.NameAz) ? dto.NameAz : dto.Name,
             Location = !string.IsNullOrEmpty(dto.Location) ? dto.Location : (!string.IsNullOrEmpty(dto.Provider) ? dto.Provider : "Dövlət Proqramı"),
             CountryId = dto.CountryId,
@@ -156,8 +156,8 @@ public class ScholarshipService : IScholarshipService
         if (!string.IsNullOrEmpty(dto.Location)) scholarship.Location = dto.Location;
         else if (!string.IsNullOrEmpty(dto.Provider)) scholarship.Location = dto.Provider;
 
-        if (dto.CountryId.HasValue && dto.CountryId != Guid.Empty) scholarship.CountryId = dto.CountryId;
-        if (dto.UniversityId.HasValue && dto.UniversityId != Guid.Empty) scholarship.UniversityId = dto.UniversityId;
+        scholarship.CountryId = (dto.CountryId.HasValue && dto.CountryId.Value != Guid.Empty) ? dto.CountryId.Value : null;
+        scholarship.UniversityId = (dto.UniversityId.HasValue && dto.UniversityId.Value != Guid.Empty) ? dto.UniversityId.Value : null;
 
         if (!string.IsNullOrEmpty(dto.Coverage)) scholarship.Amount = dto.Coverage;
         else if (!string.IsNullOrEmpty(dto.Amount)) scholarship.Amount = dto.Amount;

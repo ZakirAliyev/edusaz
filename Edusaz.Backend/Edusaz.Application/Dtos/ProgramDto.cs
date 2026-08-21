@@ -6,7 +6,7 @@ namespace Edusaz.Application.Dtos;
 public class ProgramDto
 {
     public Guid Id { get; set; }
-    public Guid UniversityId { get; set; }
+    public Guid? UniversityId { get; set; }
     public string UniversityName { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
     public Guid? CountryId { get; set; }
@@ -33,7 +33,7 @@ public class ProgramTranslationDto
 
 public class CreateProgramDto
 {
-    public Guid UniversityId { get; set; }
+    public Guid? UniversityId { get; set; }
     public string? Title { get; set; }
     public string? Description { get; set; }
     public string TitleAz { get; set; } = string.Empty;

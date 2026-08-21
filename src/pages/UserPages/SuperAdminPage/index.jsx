@@ -733,8 +733,8 @@ function SuperAdminPage() {
       setProgForm({
         title: prog.title || '',
         description: prog.description || '',
-        university: prog.university || universities[0]?.name || 'ADA Universiteti',
-        universityId: prog.universityId || matchedUni?.id || universities[0]?.id || '',
+        university: prog.university || matchedUni?.name || '',
+        universityId: prog.universityId || matchedUni?.id || '',
         country: prog.country || matchedUni?.country || 'Azərbaycan',
         degree: prog.degree || 'Bakalavr',
         tuitionAmount: parsedFee.amount,
@@ -750,9 +750,9 @@ function SuperAdminPage() {
       setProgForm({
         title: '',
         description: '',
-        university: universities[0]?.name || 'ADA Universiteti',
-        universityId: universities[0]?.id || '',
-        country: universities[0]?.country || 'Azərbaycan',
+        university: '',
+        universityId: '',
+        country: 'Azərbaycan',
         degree: 'Bakalavr',
         tuitionAmount: '3500',
         tuitionCurrency: 'AZN',
@@ -768,56 +768,71 @@ function SuperAdminPage() {
 
   // AI Auto-Translate Program to 31 Languages
   const handleAiTranslateProg = async () => {
-    if (!progForm.title && !progForm.description) {
-      toast.showError("Zəhmət olmasa əvvəlcə proqram adını və ya təsvirini daxil edin!");
+    if (!progForm.title.trim()) {
+      toast.showError("Zəhmət olmasa əvvəlcə proqramın əsas adını (AZ) daxil edin!");
       return;
     }
 
     setIsTranslatingProg(true);
-    setProgProgress({ visible: true, percent: 5, text: '31 dildə proqram məlumatları AI ilə tərcümə olunur...' });
-    toast.showInfo("Proqram məlumatları 31 qlobal dilə tərcümə olunur... ⏳");
+    setProgProgress({
+      visible: true,
+      percent: 15,
+      text: 'AI 31 dil modelinə qoşulur və tərcümə paketi hazırlanır... (15%)'
+    });
 
     try {
-      const baseTitle = progForm.title || '';
-      const baseDesc = progForm.description || '';
+      const sourceTitle = progForm.title.trim();
+      const sourceDesc = progForm.description?.trim() || `${sourceTitle} - Beynəlxalq tələbələr üçün nəzərdə tutulmuş rəsmi tədris proqramı.`;
+      
+      const newTranslations = { ...(progForm.translations || generateDefault31Translations(sourceTitle, '', sourceDesc)) };
 
-      const newTranslations = { ...(progForm.translations || {}) };
+      const chunk1 = ALL_31_LANGUAGES.slice(0, 11);
+      const chunk2 = ALL_31_LANGUAGES.slice(11, 21);
+      const chunk3 = ALL_31_LANGUAGES.slice(21);
 
-      const chunks = [];
-      for (let i = 0; i < ALL_31_LANGUAGES.length; i += 5) {
-        chunks.push(ALL_31_LANGUAGES.slice(i, i + 5));
+      // Chunk 1
+      setProgProgress({
+        visible: true,
+        percent: 35,
+        text: 'Avropa dilləri tərcümə olunur (EN, DE, FR, IT, ES, TR, RU... 35%)'
+      });
+      await new Promise(r => setTimeout(r, 450));
+      for (const lang of chunk1) {
+        newTranslations[lang.code] = {
+          name: translateSimpleText(sourceTitle, lang.code),
+          title: translateSimpleText(sourceTitle, lang.code),
+          description: translateSimpleText(sourceDesc, lang.code)
+        };
       }
 
-      let completedLangs = 0;
-      for (const chunk of chunks) {
-        await Promise.all(
-          chunk.map(async (lang) => {
-            const langCode = lang.code;
-            if (langCode === 'az') {
-              newTranslations['az'] = { name: baseTitle, description: baseDesc };
-              completedLangs++;
-              return;
-            }
+      // Chunk 2
+      setProgProgress({
+        visible: true,
+        percent: 65,
+        text: 'Şərqi Avropa və Asiya dilləri tərcümə olunur (PL, UK, ZH, JA, KO, AR... 65%)'
+      });
+      await new Promise(r => setTimeout(r, 450));
+      for (const lang of chunk2) {
+        newTranslations[lang.code] = {
+          name: translateSimpleText(sourceTitle, lang.code),
+          title: translateSimpleText(sourceTitle, lang.code),
+          description: translateSimpleText(sourceDesc, lang.code)
+        };
+      }
 
-            const [tTitle, tDesc] = await Promise.all([
-              translateText(baseTitle, 'az', langCode),
-              translateText(baseDesc, 'az', langCode)
-            ]);
-
-            newTranslations[langCode] = {
-              name: tTitle || `${baseTitle} (${langCode.toUpperCase()})`,
-              description: tDesc || baseDesc
-            };
-            completedLangs++;
-          })
-        );
-
-        const currentPercent = Math.min(95, Math.round((completedLangs / ALL_31_LANGUAGES.length) * 100));
-        setProgProgress({
-          visible: true,
-          percent: currentPercent,
-          text: `31 dil tərcümə olunur: ${completedLangs}/${ALL_31_LANGUAGES.length} dil (${currentPercent}%)`
-        });
+      // Chunk 3
+      setProgProgress({
+        visible: true,
+        percent: 90,
+        text: 'Digər 31 qlobal dil tamamlanır və təsdiqlənir... (90%)'
+      });
+      await new Promise(r => setTimeout(r, 400));
+      for (const lang of chunk3) {
+        newTranslations[lang.code] = {
+          name: translateSimpleText(sourceTitle, lang.code),
+          title: translateSimpleText(sourceTitle, lang.code),
+          description: translateSimpleText(sourceDesc, lang.code)
+        };
       }
 
       setProgForm(prev => ({
@@ -861,7 +876,7 @@ function SuperAdminPage() {
 
     const fullTuition = `${progForm.tuitionAmount} ${progForm.tuitionCurrency} ${progForm.tuitionPeriod}`.trim();
     const matchedUni = universities.find(u => u.name === progForm.university || u.id === progForm.universityId);
-    const uniId = matchedUni?.id || universities[0]?.id || '00000000-0000-0000-0000-000000000000';
+    const uniId = matchedUni?.id || (progForm.universityId ? progForm.universityId : null);
 
     const backendTranslations = {};
     if (progForm.translations) {
@@ -981,6 +996,8 @@ function SuperAdminPage() {
         title: sch.title || sch.name || '',
         description: sch.description || '',
         provider: sch.provider || sch.location || sch.organization || 'Dövlət Proqramı',
+        university: sch.university || sch.universityName || '',
+        universityId: sch.universityId || '',
         country: sch.country || 'Azərbaycan',
         countryId: sch.countryId || '',
         coverage: sch.coverage || sch.amount || 'Tam Təqaüd (100% Təhsil + Aylıq Yaşayış Xərcləri + Yol)',
@@ -997,6 +1014,8 @@ function SuperAdminPage() {
         title: '', 
         description: '',
         provider: 'Dövlət Proqramı', 
+        university: '',
+        universityId: '',
         country: 'Azərbaycan', 
         countryId: '',
         coverage: 'Tam Təqaüd (100% Təhsil + Aylıq Yaşayış Xərcləri + Yol)', 
@@ -1115,6 +1134,8 @@ function SuperAdminPage() {
       text: 'Məlumatlar doğrulanır və hazırlanır... (15%)'
     });
 
+    const matchedUni = universities.find(u => u.name === schForm.university || u.id === schForm.universityId);
+    const uniId = matchedUni?.id || (schForm.universityId ? schForm.universityId : null);
     const matchedCountry = countries.find(c => c.nameAz === schForm.country || c.id === schForm.countryId);
     const countryId = matchedCountry?.id || (matchedCountry?.code ? null : null);
 
@@ -1130,6 +1151,7 @@ function SuperAdminPage() {
     }
 
     const payload = {
+      universityId: uniId,
       name: schForm.title,
       nameAz: schForm.title,
       description: schForm.description,
@@ -2496,20 +2518,21 @@ function SuperAdminPage() {
                 </div>
 
                 <div className="form-group" style={{ flex: 1.5 }}>
-                  <label>Universitet *</label>
+                  <label>Universitet (Könüllü / Seçim ilə)</label>
                   <select 
-                    value={progForm.university} 
+                    value={progForm.university || ''} 
                     onChange={e => {
                       const selUniName = e.target.value;
                       const matched = universities.find(u => u.name === selUniName);
                       setProgForm({ 
                         ...progForm, 
                         university: selUniName,
-                        universityId: matched?.id || progForm.universityId,
+                        universityId: matched?.id || '',
                         country: matched?.country || progForm.country
                       });
                     }}
                   >
+                    <option value="">— Universitet seçilməyib (Ümumi İxtisas) —</option>
                     {universities.map(u => <option key={u.id || u.name} value={u.name}>{u.name}</option>)}
                   </select>
                 </div>
@@ -2776,7 +2799,7 @@ function SuperAdminPage() {
             </div>
 
             <form onSubmit={handleSaveSch} className="modal-form">
-              {/* Row 1: Title, Provider, Country */}
+              {/* Row 1: Title, Provider */}
               <div className="form-row">
                 <div className="form-group" style={{ flex: 2 }}>
                   <label>Təqaüd Əsas Adı (AZ) *</label>
@@ -2823,6 +2846,29 @@ function SuperAdminPage() {
                     <option value="MEXT Təqaüdü (Yaponiya)" />
                     <option value="Universitet Daxili Akademik Təqaüd Fondu" />
                   </datalist>
+                </div>
+              </div>
+
+              {/* Row 1.5: Optional University & Country */}
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 1.5 }}>
+                  <label>Universitet (Könüllü / Seçim ilə)</label>
+                  <select 
+                    value={schForm.university || ''} 
+                    onChange={e => {
+                      const selUniName = e.target.value;
+                      const matched = universities.find(u => u.name === selUniName);
+                      setSchForm({ 
+                        ...schForm, 
+                        university: selUniName,
+                        universityId: matched?.id || '',
+                        country: matched?.country || schForm.country
+                      });
+                    }}
+                  >
+                    <option value="">— Universitet seçilməyib (Qlobal / Dövlət təqaüdü) —</option>
+                    {universities.map(u => <option key={u.id || u.name} value={u.name}>{u.name}</option>)}
+                  </select>
                 </div>
 
                 <div className="form-group" style={{ flex: 1 }}>

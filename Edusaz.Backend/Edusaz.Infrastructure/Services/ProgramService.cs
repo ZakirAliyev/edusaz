@@ -42,7 +42,7 @@ public class ProgramService : IProgramService
 
         if (countryId.HasValue && countryId.Value != Guid.Empty)
         {
-            query = query.Where(p => p.University.CountryId == countryId.Value);
+            query = query.Where(p => p.University != null && p.University.CountryId == countryId.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(field))
@@ -58,7 +58,7 @@ public class ProgramService : IProgramService
                 p.FieldOfStudy.ToLower().Contains(cleanSearch) ||
                 p.DegreeLevel.ToLower().Contains(cleanSearch) ||
                 p.Translations.Any(t => t.Title.ToLower().Contains(cleanSearch) || t.Description.ToLower().Contains(cleanSearch)) ||
-                p.University.Translations.Any(ut => ut.Name.ToLower().Contains(cleanSearch))
+                (p.University != null && p.University.Translations.Any(ut => ut.Name.ToLower().Contains(cleanSearch)))
             );
         }
 
@@ -83,21 +83,13 @@ public class ProgramService : IProgramService
 
     public async Task<ProgramDto> CreateProgramAsync(CreateProgramDto dto)
     {
-        if (dto.UniversityId == Guid.Empty)
+        Guid? finalUniId = null;
+        if (dto.UniversityId.HasValue && dto.UniversityId.Value != Guid.Empty)
         {
-            var firstUni = await _context.Universities.FirstOrDefaultAsync();
-            if (firstUni == null)
+            var uniExists = await _context.Universities.AnyAsync(u => u.Id == dto.UniversityId.Value);
+            if (uniExists)
             {
-                throw new Exception("Universitet tapılmadı. Proqram yaratmaq üçün əvvəlcə Universitet əlavə edilməlidir.");
-            }
-            dto.UniversityId = firstUni.Id;
-        }
-        else
-        {
-            var uniExists = await _context.Universities.AnyAsync(u => u.Id == dto.UniversityId);
-            if (!uniExists)
-            {
-                throw new Exception($"Göstərilən Universitet (ID: {dto.UniversityId}) tapılmadı.");
+                finalUniId = dto.UniversityId.Value;
             }
         }
 
@@ -106,7 +98,7 @@ public class ProgramService : IProgramService
         var program = new Program
         {
             Id = Guid.NewGuid(),
-            UniversityId = dto.UniversityId,
+            UniversityId = finalUniId,
             DegreeLevel = dto.DegreeLevel ?? dto.Level ?? "Bakalavr",
             Duration = dto.Duration ?? "4 il",
             TuitionFee = dto.TuitionFee ?? "3,500 AZN / il",
@@ -188,7 +180,9 @@ public class ProgramService : IProgramService
         if (program == null)
             throw new Exception("Program not found");
 
-        if (dto.UniversityId != Guid.Empty) program.UniversityId = dto.UniversityId;
+        if (dto.UniversityId.HasValue && dto.UniversityId.Value != Guid.Empty) program.UniversityId = dto.UniversityId.Value;
+        else program.UniversityId = null;
+
         if (!string.IsNullOrEmpty(dto.DegreeLevel)) program.DegreeLevel = dto.DegreeLevel;
         else if (!string.IsNullOrEmpty(dto.Level)) program.DegreeLevel = dto.Level;
 
@@ -270,8 +264,8 @@ public class ProgramService : IProgramService
         {
             Id = p.Id,
             UniversityId = p.UniversityId,
-            UniversityName = uniTranslation?.Name ?? "University",
-            Country = p.University?.CountryRef?.DefaultName ?? p.University?.Country ?? "",
+            UniversityName = uniTranslation?.Name ?? p.University?.Translations?.FirstOrDefault()?.Name ?? "Ümumi / Təyin edilməyib",
+            Country = p.University?.CountryRef?.DefaultName ?? p.University?.Country ?? "Qlobal",
             CountryId = p.University?.CountryId,
             LogoUrl = p.University?.LogoUrl ?? "",
 

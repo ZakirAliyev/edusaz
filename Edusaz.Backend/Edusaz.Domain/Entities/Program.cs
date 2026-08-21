@@ -6,8 +6,8 @@ namespace Edusaz.Domain.Entities;
 
 public class Program : BaseEntity
 {
-    public Guid UniversityId { get; set; }
-    public University University { get; set; }
+    public Guid? UniversityId { get; set; }
+    public University? University { get; set; }
 
     public string DegreeLevel { get; set; } // Bachelor, Master, PhD, Diploma
     public string FieldOfStudy { get; set; }
