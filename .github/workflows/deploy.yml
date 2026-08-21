@@ -55,12 +55,12 @@ jobs:
           strip_components: 1
 
       # --- 3. RESTART SERVICES ON VPS ---
-      - name: Restart Backend & Reload Nginx
+      - name: Restart Backend & Reverse Proxy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: root
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            systemctl restart edusaz-backend || systemctl restart edusaz || systemctl restart edusaz-api || true
-            systemctl reload nginx
+            systemctl restart edusaz-backend || systemctl restart edusaz || systemctl restart edusaz-api || systemctl restart kestrel-edusaz || systemctl restart dotnet-edusaz || true
+            systemctl reload caddy || systemctl restart caddy || systemctl reload nginx || systemctl restart nginx || true
