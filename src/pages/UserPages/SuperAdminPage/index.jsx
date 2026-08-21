@@ -768,71 +768,57 @@ function SuperAdminPage() {
 
   // AI Auto-Translate Program to 31 Languages
   const handleAiTranslateProg = async () => {
-    if (!progForm.title.trim()) {
+    if (!progForm.title?.trim() && !progForm.description?.trim()) {
       toast.showError("Zəhmət olmasa əvvəlcə proqramın əsas adını (AZ) daxil edin!");
       return;
     }
 
     setIsTranslatingProg(true);
-    setProgProgress({
-      visible: true,
-      percent: 15,
-      text: 'AI 31 dil modelinə qoşulur və tərcümə paketi hazırlanır... (15%)'
-    });
+    setProgProgress({ visible: true, percent: 10, text: '31 dildə proqram tərcümə paketi hazırlanır...' });
+    toast.showInfo("Proqram məlumatları 31 qlobal dilə tərcümə olunur... ⏳");
 
     try {
-      const sourceTitle = progForm.title.trim();
-      const sourceDesc = progForm.description?.trim() || `${sourceTitle} - Beynəlxalq tələbələr üçün nəzərdə tutulmuş rəsmi tədris proqramı.`;
-      
-      const newTranslations = { ...(progForm.translations || generateDefault31Translations(sourceTitle, '', sourceDesc)) };
+      const baseTitle = progForm.title?.trim() || '';
+      const baseDesc = progForm.description?.trim() || `${baseTitle} - Beynəlxalq tələbələr üçün nəzərdə tutulmuş rəsmi tədris proqramı.`;
 
-      const chunk1 = ALL_31_LANGUAGES.slice(0, 11);
-      const chunk2 = ALL_31_LANGUAGES.slice(11, 21);
-      const chunk3 = ALL_31_LANGUAGES.slice(21);
+      const newTranslations = { ...(progForm.translations || {}) };
 
-      // Chunk 1
-      setProgProgress({
-        visible: true,
-        percent: 35,
-        text: 'Avropa dilləri tərcümə olunur (EN, DE, FR, IT, ES, TR, RU... 35%)'
-      });
-      await new Promise(r => setTimeout(r, 450));
-      for (const lang of chunk1) {
-        newTranslations[lang.code] = {
-          name: translateSimpleText(sourceTitle, lang.code),
-          title: translateSimpleText(sourceTitle, lang.code),
-          description: translateSimpleText(sourceDesc, lang.code)
-        };
+      const chunks = [];
+      for (let i = 0; i < ALL_31_LANGUAGES.length; i += 5) {
+        chunks.push(ALL_31_LANGUAGES.slice(i, i + 5));
       }
 
-      // Chunk 2
-      setProgProgress({
-        visible: true,
-        percent: 65,
-        text: 'Şərqi Avropa və Asiya dilləri tərcümə olunur (PL, UK, ZH, JA, KO, AR... 65%)'
-      });
-      await new Promise(r => setTimeout(r, 450));
-      for (const lang of chunk2) {
-        newTranslations[lang.code] = {
-          name: translateSimpleText(sourceTitle, lang.code),
-          title: translateSimpleText(sourceTitle, lang.code),
-          description: translateSimpleText(sourceDesc, lang.code)
-        };
-      }
+      let completedLangs = 0;
+      for (const chunk of chunks) {
+        await Promise.all(
+          chunk.map(async (lang) => {
+            const langCode = lang.code;
+            if (langCode === 'az') {
+              newTranslations['az'] = { name: baseTitle, title: baseTitle, description: baseDesc };
+              completedLangs++;
+              return;
+            }
 
-      // Chunk 3
-      setProgProgress({
-        visible: true,
-        percent: 90,
-        text: 'Digər 31 qlobal dil tamamlanır və təsdiqlənir... (90%)'
-      });
-      await new Promise(r => setTimeout(r, 400));
-      for (const lang of chunk3) {
-        newTranslations[lang.code] = {
-          name: translateSimpleText(sourceTitle, lang.code),
-          title: translateSimpleText(sourceTitle, lang.code),
-          description: translateSimpleText(sourceDesc, lang.code)
-        };
+            const [tTitle, tDesc] = await Promise.all([
+              translateText(baseTitle, 'az', langCode),
+              translateText(baseDesc, 'az', langCode)
+            ]);
+
+            newTranslations[langCode] = {
+              name: tTitle || `${baseTitle} (${langCode.toUpperCase()})`,
+              title: tTitle || `${baseTitle} (${langCode.toUpperCase()})`,
+              description: tDesc || baseDesc
+            };
+            completedLangs++;
+          })
+        );
+
+        const currentPercent = Math.min(95, Math.round((completedLangs / ALL_31_LANGUAGES.length) * 100));
+        setProgProgress({
+          visible: true,
+          percent: currentPercent,
+          text: `31 dil tərcümə olunur: ${completedLangs}/${ALL_31_LANGUAGES.length} dil (${currentPercent}%)`
+        });
       }
 
       setProgForm(prev => ({
@@ -1030,69 +1016,58 @@ function SuperAdminPage() {
     setModalType('scholarship');
   };
 
+  // AI Auto-Translate Scholarship to 31 Languages
   const handleAiTranslateSch = async () => {
-    if (!schForm.title.trim()) {
+    if (!schForm.title?.trim() && !schForm.description?.trim()) {
       toast.showError("Zəhmət olmasa əvvəlcə təqaüdün əsas adını (AZ) daxil edin!");
       return;
     }
 
     setIsTranslatingSch(true);
-    setSchProgress({
-      visible: true,
-      percent: 15,
-      text: 'AI 31 dil modelinə qoşulur və tərcümə paketi hazırlanır... (15%)'
-    });
+    setSchProgress({ visible: true, percent: 10, text: '31 dildə təqaüd tərcümə paketi hazırlanır...' });
+    toast.showInfo("Təqaüd məlumatları 31 qlobal dilə tərcümə olunur... ⏳");
 
     try {
-      const sourceTitle = schForm.title.trim();
-      const sourceDesc = schForm.description?.trim() || `${sourceTitle} - Beynəlxalq tələbələr üçün təhsil və yaşayış xərclərini əhatə edən xüsusi təqaüd proqramı.`;
-      
-      const newTranslations = { ...(schForm.translations || generateDefault31Translations(sourceTitle, '', sourceDesc)) };
+      const baseTitle = schForm.title?.trim() || '';
+      const baseDesc = schForm.description?.trim() || `${baseTitle} - Beynəlxalq tələbələr üçün təhsil və yaşayış xərclərini əhatə edən xüsusi təqaüd proqramı.`;
 
-      const chunk1 = ALL_31_LANGUAGES.slice(0, 11);
-      const chunk2 = ALL_31_LANGUAGES.slice(11, 21);
-      const chunk3 = ALL_31_LANGUAGES.slice(21);
+      const newTranslations = { ...(schForm.translations || {}) };
 
-      // Chunk 1
-      setSchProgress({
-        visible: true,
-        percent: 35,
-        text: 'Avropa dilləri tərcümə olunur (EN, DE, FR, IT, ES, TR, RU... 35%)'
-      });
-      await new Promise(r => setTimeout(r, 450));
-      for (const lang of chunk1) {
-        newTranslations[lang.code] = {
-          name: translateSimpleText(sourceTitle, lang.code),
-          description: translateSimpleText(sourceDesc, lang.code)
-        };
+      const chunks = [];
+      for (let i = 0; i < ALL_31_LANGUAGES.length; i += 5) {
+        chunks.push(ALL_31_LANGUAGES.slice(i, i + 5));
       }
 
-      // Chunk 2
-      setSchProgress({
-        visible: true,
-        percent: 65,
-        text: 'Şərqi Avropa və Asiya dilləri tərcümə olunur (PL, UK, ZH, JA, KO, AR... 65%)'
-      });
-      await new Promise(r => setTimeout(r, 450));
-      for (const lang of chunk2) {
-        newTranslations[lang.code] = {
-          name: translateSimpleText(sourceTitle, lang.code),
-          description: translateSimpleText(sourceDesc, lang.code)
-        };
-      }
+      let completedLangs = 0;
+      for (const chunk of chunks) {
+        await Promise.all(
+          chunk.map(async (lang) => {
+            const langCode = lang.code;
+            if (langCode === 'az') {
+              newTranslations['az'] = { name: baseTitle, description: baseDesc };
+              completedLangs++;
+              return;
+            }
 
-      // Chunk 3
-      setSchProgress({
-        visible: true,
-        percent: 90,
-        text: 'Digər 31 qlobal dil tamamlanır və təsdiqlənir... (90%)'
-      });
-      await new Promise(r => setTimeout(r, 400));
-      for (const lang of chunk3) {
-        newTranslations[lang.code] = {
-          name: translateSimpleText(sourceTitle, lang.code),
-          description: translateSimpleText(sourceDesc, lang.code)
-        };
+            const [tTitle, tDesc] = await Promise.all([
+              translateText(baseTitle, 'az', langCode),
+              translateText(baseDesc, 'az', langCode)
+            ]);
+
+            newTranslations[langCode] = {
+              name: tTitle || `${baseTitle} (${langCode.toUpperCase()})`,
+              description: tDesc || baseDesc
+            };
+            completedLangs++;
+          })
+        );
+
+        const currentPercent = Math.min(95, Math.round((completedLangs / ALL_31_LANGUAGES.length) * 100));
+        setSchProgress({
+          visible: true,
+          percent: currentPercent,
+          text: `31 dil tərcümə olunur: ${completedLangs}/${ALL_31_LANGUAGES.length} dil (${currentPercent}%)`
+        });
       }
 
       setSchForm(prev => ({
