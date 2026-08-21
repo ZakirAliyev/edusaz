@@ -100,10 +100,17 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Seed data
-using (var scope = app.Services.CreateScope())
+// Seed data safely without crashing application
+try
 {
-    await Edusaz.Infrastructure.Contexts.DataSeeder.SeedAsync(scope.ServiceProvider);
+    using (var scope = app.Services.CreateScope())
+    {
+        await Edusaz.Infrastructure.Contexts.DataSeeder.SeedAsync(scope.ServiceProvider);
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[CRITICAL] Data seeding error on startup: {ex.Message}");
 }
 
 // Enable Swagger UI in all environments (including Production at /swagger)

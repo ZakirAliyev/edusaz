@@ -15,22 +15,38 @@ public static class DataSeeder
     {
         var context = serviceProvider.GetRequiredService<EdusazDbContext>();
 
-        await context.Database.MigrateAsync();
-
         try
         {
             await context.Database.ExecuteSqlRawAsync(@"
-                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""Images"" text[] DEFAULT '{}';
-                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""VideoUrls"" text[] DEFAULT '{}';
+                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""Images"" text[] DEFAULT ('{}'::text[]);
+                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""VideoUrls"" text[] DEFAULT ('{}'::text[]);
+                ALTER TABLE ""Programs"" ALTER COLUMN ""UniversityId"" DROP NOT NULL;
+                ALTER TABLE ""Scholarships"" ALTER COLUMN ""UniversityId"" DROP NOT NULL;
             ");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"DB Schema sync: {ex.Message}");
+            Console.WriteLine($"DB Schema sync pre-check: {ex.Message}");
+        }
+
+        try
+        {
+            await context.Database.MigrateAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DB Migration warning: {ex.Message}");
         }
 
         // 1. Seed Roles & SuperAdmin User
-        await SeedSuperAdminAsync(serviceProvider, context);
+        try
+        {
+            await SeedSuperAdminAsync(serviceProvider, context);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"SeedSuperAdminAsync error: {ex.Message}");
+        }
 
         // 2. Seed Languages
         await SeedLanguagesAsync(context);
