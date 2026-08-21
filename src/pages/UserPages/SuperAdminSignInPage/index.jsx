@@ -52,18 +52,6 @@ function SuperAdminSignInPage() {
             EduSaz platformasını tam idarə et. Universitetlər, kurslar, istifadəçilər və bütün məlumatlar üzərindən tam nəzarət.
           </p>
 
-          <div className="sa-credentials-box">
-            <p className="sa-creds-label">🔐 SuperAdmin Girişi</p>
-            <div className="sa-cred-row">
-              <span className="sa-cred-key">Email:</span>
-              <code className="sa-cred-val">superadmin@edu.saz</code>
-            </div>
-            <div className="sa-cred-row">
-              <span className="sa-cred-key">Parol:</span>
-              <code className="sa-cred-val">EduSaz2026!</code>
-            </div>
-          </div>
-
           <div className="sa-stats">
             <div className="sa-stat">
               <span className="sa-stat-icon">🏛️</span>

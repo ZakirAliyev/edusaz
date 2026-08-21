@@ -22,7 +22,19 @@ import CourseDetailPage from "../pages/UserPages/CourseDetailPage/index.jsx";
 import UserProfilePage from "../pages/UserPages/UserProfilePage/index.jsx";
 import HiddenTalentsPage from "../pages/UserPages/HiddenTalentsPage/index.jsx";
 
+import Cookies from "js-cookie";
 import PrivateRoute from "../components/Common/PrivateRoute.jsx";
+
+const SuperAdminRoute = () => {
+    const token = Cookies.get('userToken');
+    const role = (localStorage.getItem('userRole') || '').toLowerCase();
+
+    if (!token || role !== 'superadmin') {
+        return <SuperAdminSignInPage />;
+    }
+
+    return <SuperAdminPage />;
+};
 
 export const ROUTES = [
     {
@@ -104,8 +116,12 @@ export const ROUTES = [
         element: <PrivateRoute allowedRoles={['universityadmin', 'UniversityAdmin']}><UniversityPortalPage/></PrivateRoute>
     },
     {
+        path: '/portal',
+        element: <PrivateRoute allowedRoles={['universityadmin', 'UniversityAdmin']}><UniversityPortalPage/></PrivateRoute>
+    },
+    {
         path: '/superadmin',
-        element: <PrivateRoute allowedRoles={['superadmin', 'SuperAdmin']}><SuperAdminPage/></PrivateRoute>
+        element: <SuperAdminRoute />
     },
     {
         path: '/superadmin/login',
@@ -113,6 +129,10 @@ export const ROUTES = [
     },
     {
         path: '/instructor-portal',
+        element: <PrivateRoute allowedRoles={['instructor', 'Instructor', 'teacher', 'Teacher', 'coursecenter', 'CourseCenter']}><InstructorPortalPage/></PrivateRoute>
+    },
+    {
+        path: '/instructor/courses',
         element: <PrivateRoute allowedRoles={['instructor', 'Instructor', 'teacher', 'Teacher', 'coursecenter', 'CourseCenter']}><InstructorPortalPage/></PrivateRoute>
     }
 ];
