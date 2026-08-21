@@ -19,9 +19,9 @@ import {
   useDeleteScholarshipMutation,
   useGetTeamMembersQuery,
   useCreateTeamMemberMutation,
-  useDeleteTeamMemberMutation,
   useGetUserProfileQuery,
-  useUpdateUserProfileMutation
+  useUpdateUserProfileMutation,
+  useChangeUserPasswordMutation
 } from '../../../services/apis/userApi';
 import { translateText } from '../../../services/translationService';
 import { useToast } from '../../../context/ToastContext';
@@ -320,8 +320,17 @@ function UniversityPortalPage() {
     adminEmail: loggedInUserEmail,
     contactPhone: '+994 12 539 05 17',
     notificationEmail: true,
+    notificationSms: false,
     weeklyDigest: true
   });
+
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false });
+  const [changeUserPassword, { isLoading: isChangingPassword }] = useChangeUserPasswordMutation();
 
   useEffect(() => {
     if (loggedInAdminProfile) {
@@ -825,6 +834,30 @@ function UniversityPortalPage() {
       toast.showSuccess("✅ Məlumatlarınız uğurla yadda saxlanıldı!");
     } catch (err) {
       toast.showSuccess("✅ Tənzimləmələr yadda saxlanıldı!");
+    }
+  };
+
+  // Change Password Handler
+  const handleChangePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!passwordForm.newPassword || passwordForm.newPassword.length < 4) {
+      toast.showError("Yeni şifrə ən azı 4 simvoldan ibarət olmalıdır!");
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.showError("Yeni şifrə ilə təsdiq şifrəsi uyğun gəlmir!");
+      return;
+    }
+    try {
+      await changeUserPassword({
+        email: loggedInUserEmail,
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
+      }).unwrap();
+      toast.showSuccess("🔒 Şifrəniz uğurla dəyişdirildi!");
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      toast.showError(err?.data?.message || err?.message || "Şifrə dəyişdirilərkən xəta baş verdi.");
     }
   };
 
@@ -1730,65 +1763,206 @@ function UniversityPortalPage() {
             </div>
           )}
 
-          {/* TAB 7: SETTINGS (Linked to Real Logged In Admin Profile) */}
+          {/* TAB 7: SETTINGS & SECURITY (Admin Profile, Password Change, Notification Preferences) */}
           {activeTab === 'Settings' && (
             <div className="portal-panel settings-panel animate-fade-in">
               <div className="super-table-container">
                 <div className="table-header-box">
                   <div>
-                    <h3>⚙️ Portal Tənzimləmələri və Admin Məlumatları</h3>
-                    <p className="table-desc">Daxil olmuş cari universitet admininin profil məlumatları və bildiriş parametrləri.</p>
+                    <h3>⚙️ Portal Tənzimləmələri və Təhlükəsizlik</h3>
+                    <p className="table-desc">Cari universitet admininin profil məlumatları, şifrə yeniləməsi və bildiriş parametrləri.</p>
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                  <form onSubmit={handleSaveSettings} style={{ background: '#12102a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px' }}>
-                    <h4 style={{ color: '#fff', margin: '0 0 16px 0', fontSize: '15px', fontWeight: '700' }}>
-                      👤 Cari Admin Profili
-                    </h4>
-                    <div className="form-group" style={{ marginBottom: '14px' }}>
-                      <label>Ad və Soyad</label>
+                <div className="settings-grid">
+                  {/* CARD 1: ADMIN PROFILE */}
+                  <form onSubmit={handleSaveSettings} className="settings-card">
+                    <div className="card-header">
+                      <div className="header-title-group">
+                        <span className="card-icon">👤</span>
+                        <h4>Admin Profili</h4>
+                      </div>
+                      <span className="card-badge">Hesab Sahibi</span>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Ad və Soyad *</label>
                       <input 
                         type="text" 
+                        required
                         value={portalSettings.adminName} 
                         onChange={e => setPortalSettings({ ...portalSettings, adminName: e.target.value })} 
+                        placeholder="Məsələn: Gülçöhrə Sultanova"
                       />
                     </div>
-                    <div className="form-group" style={{ marginBottom: '14px' }}>
-                      <label>Email Ünvanı (Giriş Emaili)</label>
+
+                    <div className="form-group">
+                      <label>Giriş Email Ünvanı</label>
                       <input 
                         type="email" 
                         disabled
                         value={portalSettings.adminEmail} 
-                        style={{ opacity: 0.8, cursor: 'not-allowed' }}
+                        style={{ opacity: 0.85, cursor: 'not-allowed', background: '#0e0c24' }}
                       />
+                      <span className="verified-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Təsdiqlənmiş Universitet Admini Emaili
+                      </span>
                     </div>
-                    <div className="form-group" style={{ marginBottom: '20px' }}>
+
+                    <div className="form-group">
                       <label>Əlaqə Telefonu</label>
                       <input 
                         type="text" 
                         value={portalSettings.contactPhone} 
                         onChange={e => setPortalSettings({ ...portalSettings, contactPhone: e.target.value })} 
+                        placeholder="+994 50 123 45 67"
                       />
                     </div>
-                    <button type="submit" className="btn-save-primary">
+
+                    <div className="form-group">
+                      <label>Təhkim Olunmuş Müəssisə</label>
+                      <div style={{ padding: '12px 14px', background: '#181538', borderRadius: '10px', color: '#c4b5fd', fontWeight: '600', fontSize: '13px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        🏛️ {uniForm.name || currentUni?.name || 'Universitet'}
+                      </div>
+                    </div>
+
+                    <button type="submit" className="btn-save-primary" style={{ marginTop: '8px' }}>
                       💾 Profil Məlumatlarını Yenilə
                     </button>
                   </form>
 
-                  <div style={{ background: '#12102a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '24px' }}>
-                    <h4 style={{ color: '#fff', margin: '0 0 16px 0', fontSize: '15px', fontWeight: '700' }}>
-                      🔔 Bildiriş Parametrləri
-                    </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cbd5e1', cursor: 'pointer' }}>
-                        <input type="checkbox" checked={portalSettings.notificationEmail} onChange={e => setPortalSettings({ ...portalSettings, notificationEmail: e.target.checked })} />
-                        Yeni tələbə müraciəti gəldikdə admin emailinə bildiriş göndər
+                  {/* CARD 2: PASSWORD CHANGE */}
+                  <form onSubmit={handleChangePasswordSubmit} className="settings-card">
+                    <div className="card-header">
+                      <div className="header-title-group">
+                        <span className="card-icon">🔒</span>
+                        <h4>Şifrəni Dəyişdir</h4>
+                      </div>
+                      <span className="card-badge" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', borderColor: 'rgba(16, 185, 129, 0.3)' }}>Təhlükəsizlik</span>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Cari Şifrə</label>
+                      <div style={{ position: 'relative' }}>
+                        <input 
+                          type={showPass.current ? 'text' : 'password'} 
+                          value={passwordForm.currentPassword}
+                          onChange={e => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                          placeholder="Cari şifrənizi daxil edin..."
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowPass(p => ({ ...p, current: !p.current }))}
+                          style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '14px' }}
+                        >
+                          {showPass.current ? '🙈' : '👁️'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Yeni Şifrə *</label>
+                      <div style={{ position: 'relative' }}>
+                        <input 
+                          type={showPass.new ? 'text' : 'password'} 
+                          required
+                          value={passwordForm.newPassword}
+                          onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                          placeholder="Yeni güclü şifrə daxil edin..."
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowPass(p => ({ ...p, new: !p.new }))}
+                          style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '14px' }}
+                        >
+                          {showPass.new ? '🙈' : '👁️'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Yeni Şifrənin Təkrarı *</label>
+                      <div style={{ position: 'relative' }}>
+                        <input 
+                          type={showPass.confirm ? 'text' : 'password'} 
+                          required
+                          value={passwordForm.confirmPassword}
+                          onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                          placeholder="Yeni şifrəni təkrar yazın..."
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowPass(p => ({ ...p, confirm: !p.confirm }))}
+                          style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '14px' }}
+                        >
+                          {showPass.confirm ? '🙈' : '👁️'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button 
+                      type="submit" 
+                      className="btn-save-primary" 
+                      disabled={isChangingPassword}
+                      style={{ marginTop: '8px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+                    >
+                      {isChangingPassword ? '⏳ Yenilənir...' : '🔒 Şifrəni Yenilə'}
+                    </button>
+                  </form>
+
+                  {/* CARD 3: NOTIFICATIONS & SYSTEM */}
+                  <div className="settings-card">
+                    <div className="card-header">
+                      <div className="header-title-group">
+                        <span className="card-icon">🔔</span>
+                        <h4>Bildiriş Parametrləri</h4>
+                      </div>
+                      <span className="card-badge" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', borderColor: 'rgba(245, 158, 11, 0.3)' }}>Avtomatlaşdırma</span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <label className="notification-option">
+                        <div className="opt-text">
+                          <strong>Tələbə Müraciətləri Bildirişi</strong>
+                          <span>Yeni tələbə müraciət edən kimi admin emailinə bildiriş gəlsin</span>
+                        </div>
+                        <input 
+                          type="checkbox" 
+                          checked={portalSettings.notificationEmail} 
+                          onChange={e => setPortalSettings({ ...portalSettings, notificationEmail: e.target.checked })} 
+                        />
                       </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#cbd5e1', cursor: 'pointer' }}>
-                        <input type="checkbox" checked={portalSettings.weeklyDigest} onChange={e => setPortalSettings({ ...portalSettings, weeklyDigest: e.target.checked })} />
-                        Həftəlik müraciət və baxış hesabatını emailə göndər
+
+                      <label className="notification-option">
+                        <div className="opt-text">
+                          <strong>Həftəlik Analitika Hesabatı</strong>
+                          <span>Hər bazar ertəsi universitet profilinin baxış və müraciət statistikası emailə göndərilsin</span>
+                        </div>
+                        <input 
+                          type="checkbox" 
+                          checked={portalSettings.weeklyDigest} 
+                          onChange={e => setPortalSettings({ ...portalSettings, weeklyDigest: e.target.checked })} 
+                        />
                       </label>
+
+                      <label className="notification-option">
+                        <div className="opt-text">
+                          <strong>SMS Təcili Xəbərdarlıqlar</strong>
+                          <span>Təqaüd və proqram son tarixləri yaxınlaşdıqda xatırlatma</span>
+                        </div>
+                        <input 
+                          type="checkbox" 
+                          checked={portalSettings.notificationSms || false} 
+                          onChange={e => setPortalSettings({ ...portalSettings, notificationSms: e.target.checked })} 
+                        />
+                      </label>
+                    </div>
+
+                    <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
+                      <button type="button" className="btn-save-primary" onClick={handleSaveSettings} style={{ width: '100%' }}>
+                        💾 Parametrləri Yadda Saxla
+                      </button>
                     </div>
                   </div>
                 </div>

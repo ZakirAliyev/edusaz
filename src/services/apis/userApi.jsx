@@ -179,6 +179,13 @@ export const userApi = createApi({
             }),
             invalidatesTags: ['UserProfile'],
         }),
+        changeUserPassword: builder.mutation({
+            query: (body) => ({
+                url: '/Auth/change-password',
+                method: 'POST',
+                body,
+            }),
+        }),
         getAnalytics: builder.query({
             query: (universityId = 'my') => `/Analytics/university/${universityId}`,
             transformResponse: (response) => response.data,
@@ -491,6 +498,7 @@ export const {
     useCreatePartnershipApplicationMutation,
     useGetUserProfileQuery,
     useUpdateUserProfileMutation,
+    useChangeUserPasswordMutation,
     useGetAnalyticsQuery,
     useGetStudentLeadsQuery,
     useCreateStudentApplicationMutation,

@@ -83,6 +83,45 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<UserProfileDto>.SuccessResponse(updated, "User profile updated successfully"));
     }
 
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        var targetEmail = dto.Email ?? User.Identity?.Name;
+        if (string.IsNullOrEmpty(targetEmail)) return Unauthorized();
+
+        var user = await _userManager.FindByEmailAsync(targetEmail);
+        if (user == null) return NotFound(ApiResponse<string>.ErrorResponse("İstifadəçi tapılmadı.", 404));
+
+        if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 4)
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse("Yeni şifrə ən azı 4 simvol olmalıdır."));
+        }
+
+        if (!string.IsNullOrEmpty(dto.CurrentPassword))
+        {
+            var changeResult = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
+            if (!changeResult.Succeeded)
+            {
+                var errors = string.Join("; ", changeResult.Errors.Select(e => e.Description));
+                return BadRequest(ApiResponse<string>.ErrorResponse($"Cari şifrə yanlışdır: {errors}"));
+            }
+        }
+        else
+        {
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetResult = await _userManager.ResetPasswordAsync(user, resetToken, dto.NewPassword);
+            if (!resetResult.Succeeded)
+            {
+                var errors = string.Join("; ", resetResult.Errors.Select(e => e.Description));
+                return BadRequest(ApiResponse<string>.ErrorResponse($"Şifrə yenilənmə xətası: {errors}"));
+            }
+        }
+
+        return Ok(ApiResponse<string>.SuccessResponse("Şifrəniz uğurla dəyişdirildi! 🔒"));
+    }
+
+
     // ── Admin Endpoints ────────────────────────────────────────────────────────
 
     [Authorize(Roles = "SuperAdmin")]

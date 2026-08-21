@@ -44,3 +44,12 @@ public class AdminUpdateUserDto
     public string? Password { get; set; }
     public string? Status { get; set; }
 }
+
+public class ChangePasswordDto
+{
+    public string? Email { get; set; }
+    public string? CurrentPassword { get; set; }
+    public string NewPassword { get; set; } = string.Empty;
+}
+
+
