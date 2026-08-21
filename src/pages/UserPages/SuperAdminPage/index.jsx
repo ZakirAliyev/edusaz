@@ -4,6 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../context/ToastContext';
 import ScrollToTop from '../../../components/Common/ScrollToTop';
 import { translateText } from '../../../services/translationService';
+import {
+  useGetHiddenTalentsQuery,
+  useUpdateHiddenTalentStatusMutation,
+  useDeleteHiddenTalentMutation,
+  useGetUsersQuery,
+  useAdminCreateUserMutation,
+  useAdminUpdateUserMutation,
+  useAdminDeleteUserMutation
+} from '../../../services/apis/userApi';
 import './index.scss';
 
 const getApiBaseUrl = () => {
