@@ -32,22 +32,19 @@ function RegisterDetailsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (role === 'instructor') {
-        // Instructor now uses the same register endpoint but with Instructor role
-        await registerUser({
-          ...formData,
-          role: 'Instructor'
-        }).unwrap();
-        toast.showSuccess("Müəllim hesabı yaradıldı! 🎓 Zəhmət olmasa daxil olun.");
-        navigate('/signin');
-        return;
-      }
+      const payload = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password
+      };
 
-      await registerUser(formData).unwrap();
-      toast.showSuccess(t('auth.registerSuccess') + " 📧 E-poçtunuza təsdiq məktubu göndərildi.");
+      await registerUser(payload).unwrap();
+      toast.showSuccess("Qeydiyyat uğurla tamamlandı! 🎓 Zəhmət olmasa daxil olun.");
       navigate('/signin');
     } catch (err) {
-      toast.showError(err?.data?.message || t('auth.registerError'));
+      const errorMessage = err?.data?.message || err?.data || err?.error || t('auth.registerError') || "Qeydiyyat zamanı xəta baş verdi.";
+      toast.showError(errorMessage);
     }
   };
 
