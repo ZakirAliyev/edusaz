@@ -23,4 +23,5 @@ public class CreateCountryDto
     public int UniversityCount { get; set; }
     public string AverageCost { get; set; } = string.Empty;
     public string ImageUrl { get; set; } = string.Empty;
+    public string BaseLanguageCode { get; set; } = "az";
 }

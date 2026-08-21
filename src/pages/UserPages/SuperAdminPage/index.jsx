@@ -58,6 +58,49 @@ const CAMPUS_IMAGE_PRESETS = [
   { label: 'Medical Center', url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80', thumb: '🏥' }
 ];
 
+const PRESET_FLAGS = [
+  { flag: '🇦🇿', name: 'Azərbaycan' },
+  { flag: '🇹🇷', name: 'Türkiyə' },
+  { flag: '🇺🇸', name: 'ABŞ' },
+  { flag: '🇬🇧', name: 'Böyük Britaniya' },
+  { flag: '🇩🇪', name: 'Almaniya' },
+  { flag: '🇮🇹', name: 'İtaliya' },
+  { flag: '🇫🇷', name: 'Fransa' },
+  { flag: '🇪🇸', name: 'İspaniya' },
+  { flag: '🇵🇱', name: 'Polşa' },
+  { flag: '🇭🇺', name: 'Macarıstan' },
+  { flag: '🇳🇱', name: 'Niderland' },
+  { flag: '🇸🇪', name: 'İsveç' },
+  { flag: '🇦🇪', name: 'BƏƏ' },
+  { flag: '🇨🇦', name: 'Kanada' },
+  { flag: '🇲🇾', name: 'Malayziya' },
+  { flag: '🇷🇺', name: 'Rusiya' },
+  { flag: '🇨🇳', name: 'Çin' },
+  { flag: '🇯🇵', name: 'Yaponiya' },
+  { flag: '🇰🇷', name: 'Cənubi Koreya' },
+  { flag: '🇬🇪', name: 'Gürcüstan' },
+  { flag: '🇺🇦', name: 'Ukrayna' },
+  { flag: '🇦🇹', name: 'Avstriya' },
+  { flag: '🇨🇭', name: 'İsveçrə' },
+  { flag: '🇦🇺', name: 'Avstraliya' },
+  { flag: '🇳🇴', name: 'Norveç' },
+  { flag: '🇫🇮', name: 'Finlandiya' },
+  { flag: '🇩🇰', name: 'Danimarka' },
+  { flag: '🇵🇹', name: 'Portuqaliya' },
+  { flag: '🇨🇿', name: 'Çexiya' },
+  { flag: '🇷🇴', name: 'Rumıniya' },
+  { flag: '🇧🇬', name: 'Bolqarıstan' },
+  { flag: '🇰🇿', name: 'Qazaxıstan' },
+  { flag: '🇺🇿', name: 'Özbəkistan' },
+  { flag: '🇸🇦', name: 'Səudiyyə Ərəbistanı' },
+  { flag: '🇮🇳', name: 'Hindistan' },
+  { flag: '🇧🇷', name: 'Braziliya' },
+  { flag: '🇮🇪', name: 'İrlandiya' },
+  { flag: '🇸🇬', name: 'Sinqapur' },
+  { flag: '🇳🇿', name: 'Yeni Zelandiya' },
+  { flag: '🌐', name: 'Digər / Qlobal' }
+];
+
 const generateDefault31Translations = (baseName = '', baseCity = '', baseDesc = '') => {
   const map = {};
   ALL_31_LANGUAGES.forEach(lang => {
@@ -169,13 +212,14 @@ function SuperAdminPage() {
 
   const [countryForm, setCountryForm] = useState({
     code: '',
-    flag: '🌐',
+    flag: '🇦🇿',
     nameAz: '',
     capital: '',
     universitiesCount: 0,
-    status: 'Aktiv',
-    translations: generateDefault31Translations('')
+    status: 'Aktiv'
   });
+  const [isSavingCountry, setIsSavingCountry] = useState(false);
+  const [countryProgress, setCountryProgress] = useState({ visible: false, percent: 0, text: '' });
 
   const [activeLangSubTab, setActiveLangSubTab] = useState('az');
   const [isTranslatingUni, setIsTranslatingUni] = useState(false);
@@ -293,10 +337,8 @@ function SuperAdminPage() {
             code: (c.code || 'AZ').toUpperCase(),
             flag: c.flagEmoji || '🌐',
             nameAz: c.name || 'Ölkə',
-            capital: c.capital || 'Paytaxt',
-            universitiesCount: c.universityCount || 10,
-            status: 'Aktiv',
-            translations: generateDefault31Translations(c.name || '')
+            universitiesCount: c.universityCount ?? 0,
+            status: 'Aktiv'
           }));
           setCountries(mappedCtrys);
         }
@@ -1334,28 +1376,21 @@ function SuperAdminPage() {
   // --- 4. COUNTRY CRUD HANDLERS --- //
   const openCountryModal = (mode, ctry = null) => {
     setModalMode(mode);
-    setActiveLangSubTab('az');
+    setIsSavingCountry(false);
+    setCountryProgress({ visible: false, percent: 0, text: '' });
     if (mode === 'edit' && ctry) {
       setEditingItem(ctry);
       setCountryForm({
-        code: ctry.code || '',
-        flag: ctry.flag || '🌐',
         nameAz: ctry.nameAz || '',
-        capital: ctry.capital || '',
-        universitiesCount: ctry.universitiesCount || 0,
-        status: ctry.status || 'Aktiv',
-        translations: ctry.translations || generateDefault31Translations(ctry.nameAz)
+        flag: ctry.flag || '🇦🇿',
+        code: ctry.code || ''
       });
     } else {
       setEditingItem(null);
       setCountryForm({
-        code: '',
-        flag: '🌐',
         nameAz: '',
-        capital: '',
-        universitiesCount: 0,
-        status: 'Aktiv',
-        translations: generateDefault31Translations('')
+        flag: '🇦🇿',
+        code: ''
       });
     }
     setModalType('country');
@@ -1363,10 +1398,28 @@ function SuperAdminPage() {
 
   const handleSaveCountry = async (e) => {
     e.preventDefault();
-    if (!countryForm.nameAz.trim() || !countryForm.code.trim()) {
-      toast.showError("Ölkə adı və ISO kodu mütləqdir!");
+    if (!countryForm.nameAz.trim()) {
+      toast.showError("Ölkə adı mütləqdir!");
       return;
     }
+    if (isSavingCountry) return;
+
+    setIsSavingCountry(true);
+    setCountryProgress({ visible: true, percent: 15, text: "31 dildə tərcümə və baza qeydiyyatı başladılır..." });
+
+    const pInterval = setInterval(() => {
+      setCountryProgress(prev => {
+        if (prev.percent >= 90) {
+          clearInterval(pInterval);
+          return { visible: true, percent: 90, text: "31 dildə qlobal profillər yekunlaşdırılır..." };
+        }
+        return {
+          visible: true,
+          percent: prev.percent + 15,
+          text: `31 dildə tərcümə olunur: ${prev.percent + 15}%`
+        };
+      });
+    }, 350);
 
     const baseUrl = getApiBaseUrl();
     try {
@@ -1375,44 +1428,64 @@ function SuperAdminPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code: countryForm.code.toLowerCase(),
-            defaultName: countryForm.nameAz,
-            flagEmoji: countryForm.flag,
-            capital: countryForm.capital
+            name: countryForm.nameAz.trim(),
+            flagEmoji: countryForm.flag || '🌐',
+            baseLanguageCode: 'az'
           })
         });
 
+        clearInterval(pInterval);
+        setCountryProgress({ visible: true, percent: 100, text: "✅ 31 dildə uğurla tamamlandı!" });
+
         if (res.ok) {
-          toast.showSuccess("Yeni ölkə bazaya əlavə olundu!");
-          loadDataFromBackend();
+          toast.showSuccess("Yeni ölkə 31 dildə tərcümə olunaraq bazaya əlavə edildi!");
+          setTimeout(() => {
+            setModalType(null);
+            setIsSavingCountry(false);
+            setCountryProgress({ visible: false, percent: 0, text: '' });
+            loadDataFromBackend();
+          }, 600);
         } else {
-          setCountries(prev => [{ id: Date.now(), ...countryForm }, ...prev]);
-          toast.showSuccess("Ölkə əlavə olundu!");
+          const err = await res.json().catch(() => ({}));
+          toast.showError(err.message || "Ölkə əlavə edilərkən xəta baş verdi");
+          setIsSavingCountry(false);
+          setCountryProgress({ visible: false, percent: 0, text: '' });
         }
       } else {
         const res = await fetch(`${baseUrl}/Countries/${editingItem.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code: countryForm.code.toLowerCase(),
-            defaultName: countryForm.nameAz,
-            flagEmoji: countryForm.flag,
-            capital: countryForm.capital
+            name: countryForm.nameAz.trim(),
+            flagEmoji: countryForm.flag || '🌐',
+            baseLanguageCode: 'az'
           })
         });
 
+        clearInterval(pInterval);
+        setCountryProgress({ visible: true, percent: 100, text: "✅ 31 dildə yeniləndi!" });
+
         if (res.ok) {
-          toast.showSuccess("Ölkə bazada yeniləndi!");
-          loadDataFromBackend();
+          toast.showSuccess("Ölkə məlumatları 31 dildə yeniləndi!");
+          setTimeout(() => {
+            setModalType(null);
+            setIsSavingCountry(false);
+            setCountryProgress({ visible: false, percent: 0, text: '' });
+            loadDataFromBackend();
+          }, 600);
         } else {
-          setCountries(prev => prev.map(c => c.id === editingItem.id ? { ...c, ...countryForm } : c));
-          toast.showSuccess("Ölkə yeniləndi!");
+          const err = await res.json().catch(() => ({}));
+          toast.showError(err.message || "Ölkə yenilənərkən xəta baş verdi");
+          setIsSavingCountry(false);
+          setCountryProgress({ visible: false, percent: 0, text: '' });
         }
       }
-    } catch {
-      toast.showSuccess("Ölkə yadda saxlanıldı!");
+    } catch (err) {
+      clearInterval(pInterval);
+      setIsSavingCountry(false);
+      setCountryProgress({ visible: false, percent: 0, text: '' });
+      toast.showError("Şəbəkə xətası baş verdi");
     }
-    setModalType(null);
   };
 
   // --- 5. DELETE MODAL HANDLER --- //
@@ -1904,28 +1977,35 @@ function SuperAdminPage() {
                 <table className="super-data-table">
                   <thead>
                     <tr>
-                      <th>Bayraq</th>
+                      <th style={{ width: '80px' }}>Bayraq</th>
                       <th>Ölkə Adı</th>
-                      <th>ISO Kod</th>
-                      <th>Paytaxt</th>
-                      <th>Universitetlər</th>
-                      <th>Əməliyyatlar</th>
+                      <th style={{ textAlign: 'center' }}>Universitetlər</th>
+                      <th style={{ textAlign: 'right' }}>Əməliyyatlar</th>
                     </tr>
                   </thead>
                   <tbody>
                     {countries
-                      .filter(c => !searchTerm || c.nameAz.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .filter(c => !searchTerm || (c.nameAz && c.nameAz.toLowerCase().includes(searchTerm.toLowerCase().trim())) || (c.code && c.code.toLowerCase().includes(searchTerm.toLowerCase().trim())))
                       .map(ctry => (
                         <tr key={ctry.id}>
-                          <td style={{ fontSize: '24px' }}>{ctry.flag}</td>
-                          <td><strong>{ctry.nameAz}</strong></td>
-                          <td><code>{ctry.code}</code></td>
-                          <td>{ctry.capital}</td>
-                          <td>{ctry.universitiesCount} universitet</td>
-                          <td>
-                            <div className="row-actions">
-                              <button className="btn-edit" onClick={() => openCountryModal('edit', ctry)}>✏️</button>
-                              <button className="btn-delete" onClick={() => setDeleteTarget({ type: 'country', id: ctry.id, name: ctry.nameAz })}>🗑️</button>
+                          <td style={{ fontSize: '26px' }}>{ctry.flag}</td>
+                          <td><strong style={{ fontSize: '15px' }}>{ctry.nameAz}</strong></td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span className="badge-count" style={{
+                              background: 'rgba(59, 130, 246, 0.12)',
+                              color: '#60a5fa',
+                              padding: '5px 14px',
+                              borderRadius: '20px',
+                              fontWeight: 600,
+                              fontSize: '13px'
+                            }}>
+                              🏛️ {ctry.universitiesCount ?? 0} universitet
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <div className="row-actions" style={{ justifyContent: 'flex-end' }}>
+                              <button className="btn-edit" onClick={() => openCountryModal('edit', ctry)} title="Redaktə et">✏️</button>
+                              <button className="btn-delete" onClick={() => setDeleteTarget({ type: 'country', id: ctry.id, name: ctry.nameAz })} title="Sil">🗑️</button>
                             </div>
                           </td>
                         </tr>
@@ -3306,60 +3386,96 @@ function SuperAdminPage() {
       {/* 4. COUNTRY MODAL */}
       {modalType === 'country' && (
         <div className="modal-overlay">
-          <div className="modal-card animate-fade-in">
+          <div className="modal-card animate-fade-in" style={{ maxWidth: '520px' }}>
             <div className="modal-header">
               <h3>{modalMode === 'add' ? '🌍 Yeni Ölkə Əlavə Et' : '✏️ Ölkə Məlumatlarını Yenilə'}</h3>
-              <button className="btn-close-modal" onClick={() => setModalType(null)}>&times;</button>
+              <button className="btn-close-modal" onClick={() => !isSavingCountry && setModalType(null)} disabled={isSavingCountry}>&times;</button>
             </div>
 
             <form onSubmit={handleSaveCountry} className="modal-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Ölkə Adı (Azərbaycan) *</label>
-                  <input 
-                    type="text" 
-                    value={countryForm.nameAz} 
-                    onChange={e => setCountryForm({ ...countryForm, nameAz: e.target.value })} 
-                    placeholder="Məsələn: Kanada" 
-                    required 
-                  />
-                </div>
-                <div className="form-group">
-                  <label>ISO Kod (Məs: CA, US, AZ) *</label>
-                  <input 
-                    type="text" 
-                    value={countryForm.code} 
-                    onChange={e => setCountryForm({ ...countryForm, code: e.target.value.toUpperCase() })} 
-                    placeholder="CA" 
-                    required 
-                  />
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label>Ölkə Adı (Azərbaycan) *</label>
+                <input 
+                  type="text" 
+                  value={countryForm.nameAz} 
+                  onChange={e => {
+                    const val = e.target.value;
+                    const matchedFlag = PRESET_FLAGS.find(f => f.name.toLowerCase() === val.trim().toLowerCase());
+                    setCountryForm(prev => ({
+                      ...prev,
+                      nameAz: val,
+                      flag: matchedFlag ? matchedFlag.flag : prev.flag
+                    }));
+                  }} 
+                  placeholder="Məsələn: İtaliya" 
+                  required 
+                  disabled={isSavingCountry}
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '24px' }}>
+                <label>Bayraq Emojisi (Seçim ilə)</label>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div style={{
+                    fontSize: '32px',
+                    width: '54px',
+                    height: '46px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(255,255,255,0.06)',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.12)'
+                  }}>
+                    {countryForm.flag || '🌐'}
+                  </div>
+                  <select
+                    value={countryForm.flag}
+                    onChange={e => setCountryForm({ ...countryForm, flag: e.target.value })}
+                    className="super-select"
+                    style={{ flex: 1, padding: '12px 14px', borderRadius: '8px', fontSize: '15px' }}
+                    disabled={isSavingCountry}
+                  >
+                    {PRESET_FLAGS.map((f, idx) => (
+                      <option key={idx} value={f.flag}>
+                        {f.flag} {f.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Bayraq Emojisi</label>
-                  <input 
-                    type="text" 
-                    value={countryForm.flag} 
-                    onChange={e => setCountryForm({ ...countryForm, flag: e.target.value })} 
-                    placeholder="🇨🇦" 
-                  />
+              {/* Dynamic Loading Progress Bar */}
+              {countryProgress.visible && (
+                <div className="uni-progress-container animate-fade-in" style={{ marginBottom: '20px' }}>
+                  <div className="uni-progress-header">
+                    <span className="uni-progress-text">
+                      {countryProgress.percent === 100 ? '✅' : '⚡'} {countryProgress.text}
+                    </span>
+                    <span className="uni-progress-badge">{countryProgress.percent}%</span>
+                  </div>
+                  <div className="uni-progress-track">
+                    <div 
+                      className={`uni-progress-fill ${countryProgress.percent === 100 ? 'complete' : ''}`}
+                      style={{ width: `${countryProgress.percent}%` }}
+                    >
+                      <span className="uni-progress-glow"></span>
+                    </div>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Paytaxt</label>
-                  <input 
-                    type="text" 
-                    value={countryForm.capital} 
-                    onChange={e => setCountryForm({ ...countryForm, capital: e.target.value })} 
-                    placeholder="Ottava" 
-                  />
-                </div>
-              </div>
+              )}
 
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>{t('superAdmin.cancel', 'Ləğv Et')}</button>
-                <button type="submit" className="btn-save">{t('superAdmin.save', 'Bazada Yadda Saxla')}</button>
+                <button type="button" className="btn-cancel" onClick={() => setModalType(null)} disabled={isSavingCountry}>
+                  {t('superAdmin.cancel', 'Ləğv Et')}
+                </button>
+                <button type="submit" className="btn-save" disabled={isSavingCountry}>
+                  {isSavingCountry ? (
+                    <span>⏳ Yadda saxlanılır ({countryProgress.percent}%)...</span>
+                  ) : (
+                    modalMode === 'add' ? 'Ölkəni Əlavə Et (31 Dil)' : 'Yenilə (31 Dil)'
+                  )}
+                </button>
               </div>
             </form>
           </div>
