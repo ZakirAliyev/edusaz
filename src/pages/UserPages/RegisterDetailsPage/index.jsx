@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useRegisterUserMutation, useInstructorRegisterMutation } from '../../../services/apis/userApi';
+import { useRegisterUserMutation } from '../../../services/apis/userApi';
 import { useToast } from '../../../context/ToastContext';
 import './index.scss';
 
@@ -18,9 +18,7 @@ function RegisterDetailsPage() {
   const location = useLocation();
   const role = location.state?.role || localStorage.getItem('userRole') || 'student';
   const [registerUser, { isLoading: isUserLoading }] = useRegisterUserMutation();
-  const [instructorRegister, { isLoading: isInstructorLoading }] = useInstructorRegisterMutation();
-
-  const isLoading = isUserLoading || isInstructorLoading;
+  const isLoading = isUserLoading;
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -35,12 +33,10 @@ function RegisterDetailsPage() {
     e.preventDefault();
     try {
       if (role === 'instructor') {
-        await instructorRegister({
-          email: formData.email,
-          password: formData.password,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          displayName: `${formData.firstName} ${formData.lastName}`
+        // Instructor now uses the same register endpoint but with Instructor role
+        await registerUser({
+          ...formData,
+          role: 'Instructor'
         }).unwrap();
         toast.showSuccess("Müəllim hesabı yaradıldı! 🎓 Zəhmət olmasa daxil olun.");
         navigate('/signin');

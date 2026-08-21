@@ -20,5 +20,8 @@ public class User : IdentityUser<Guid>
     public string EnglishScore { get; set; } = "IELTS 6.5";
     public string DegreeLevel { get; set; } = "Bachelor";
     public string DesiredField { get; set; } = "Computer Science";
+    
+    // UniversityAdmin ownership
+    public Guid? UniversityId { get; set; }
     //
 }

@@ -14,6 +14,7 @@ import {
 } from '../../../services/apis/userApi';
 import { useToast } from '../../../context/ToastContext';
 import ScrollToTop from '../../../components/Common/ScrollToTop.jsx';
+import Cookies from 'js-cookie';
 import './index.scss';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -112,16 +113,29 @@ function InstructorPortalPage() {
 
   // Auth check
   const [isAuth, setIsAuth] = useState(false);
-  const instructorEmail = localStorage.getItem('instructorEmail') || '';
+  
+  let userEmail = '';
+  const token = Cookies.get('userToken');
+  const role = localStorage.getItem('userRole');
+
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userEmail = payload.email || payload.http1 || '';
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const instructorEmail = userEmail; // Keep using instructorEmail variable for backward compatibility with queries
 
   useEffect(() => {
-    const isInstructor = localStorage.getItem('isInstructor') === 'true' && instructorEmail;
-    if (!isInstructor) {
-      navigate('/instructor/signin');
+    if (!token || (role !== 'teacher' && role !== 'coursecenter' && role !== 'instructor')) {
+      navigate('/signin');
     } else {
       setIsAuth(true);
     }
-  }, [navigate, instructorEmail]);
+  }, [navigate, token, role]);
 
   // Navigation
   const [activeTab, setActiveTab] = useState('Overview');
@@ -172,10 +186,9 @@ function InstructorPortalPage() {
   }, [profile]);
 
   const handleLogout = () => {
-    localStorage.removeItem('isInstructor');
-    localStorage.removeItem('instructorToken');
-    localStorage.removeItem('instructorEmail');
-    navigate('/instructor/signin');
+    Cookies.remove('userToken');
+    localStorage.removeItem('userRole');
+    navigate('/signin');
   };
 
   // ── Course Form Helpers ────────────────────────────────────────────────────

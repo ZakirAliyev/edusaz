@@ -79,45 +79,6 @@ function RegisterRolePage() {
                 <p>{t('auth.studentDesc')}</p>
               </div>
             </div>
-
-            <div
-              className={`role-option ${selectedRole === 'university' ? 'selected' : ''}`}
-              onClick={() => handleSelect('university')}
-            >
-              <div className="role-icon">
-                <BuildingIcon />
-              </div>
-              <div className="role-text">
-                <h4>{t('auth.universityRole')}</h4>
-                <p>{t('auth.universityDesc')}</p>
-              </div>
-            </div>
-
-            <div
-              className={`role-option ${selectedRole === 'instructor' ? 'selected' : ''}`}
-              onClick={() => handleSelect('instructor')}
-            >
-              <div className="role-icon">
-                👨‍🏫
-              </div>
-              <div className="role-text">
-                <h4>Müəllim / Instructor</h4>
-                <p>Kurslarınızı yaradın, video dərslər əlavə edin və tələbələrə tədris edin.</p>
-              </div>
-            </div>
-
-            <div
-              className={`role-option ${selectedRole === 'agent' ? 'selected' : ''}`}
-              onClick={() => handleSelect('agent')}
-            >
-              <div className="role-icon">
-                <BriefcaseIcon />
-              </div>
-              <div className="role-text">
-                <h4>{t('auth.agentRole')}</h4>
-                <p>{t('auth.agentDesc')}</p>
-              </div>
-            </div>
           </div>
 
           <div className="register-actions">

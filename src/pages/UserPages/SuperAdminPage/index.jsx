@@ -128,17 +128,25 @@ function SuperAdminPage() {
   const navigate = useNavigate();
   const toast = useToast();
 
+  const { data: rawTalents, isLoading: isTalentsLoading, refetch: refetchTalents } = useGetHiddenTalentsQuery();
+  const [updateTalentStatus] = useUpdateHiddenTalentStatusMutation();
+  const [deleteTalent] = useDeleteHiddenTalentMutation();
+
+  const { data: usersData, isLoading: isUsersLoading, refetch: refetchUsers } = useGetUsersQuery();
+  const [adminCreateUser] = useAdminCreateUserMutation();
+  const [adminUpdateUser] = useAdminUpdateUserMutation();
+  const [adminDeleteUser] = useAdminDeleteUserMutation();
+
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('isSuperAdmin') === 'true';
   });
   const [credentials, setCredentials] = useState({ email: '', password: '' });
 
-  const [activeTab, setActiveTab] = useState('Universities');
+  const [activeTab, setActiveTab] = useState('Users');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Database Data States
   const [universities, setUniversities] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [scholarships, setScholarships] = useState([]);
@@ -150,13 +158,24 @@ function SuperAdminPage() {
   const [talentNotes, setTalentNotes] = useState('');
   const [analytics, setAnalytics] = useState(null);
 
-  // Modal States
   const [modalType, setModalType] = useState(null);
   const [modalMode, setModalMode] = useState('add');
   const [editingItem, setEditingItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // Course Form State with 31 Languages, Cover Image, and Video Lectures
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [userFormData, setUserFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    role: 'Student',
+    universityId: ''
+  });
+  const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('All');
+
   const [courseForm, setCourseForm] = useState({
     title: '',
     description: '',
@@ -188,7 +207,6 @@ function SuperAdminPage() {
   const [courseProgress, setCourseProgress] = useState({ visible: false, percent: 0, text: '' });
   const courseFileInputRef = useRef(null);
 
-  // University Form State with 31 Languages & Complete Fields
   const [uniForm, setUniForm] = useState({
     name: '',
     country: 'Azərbaycan',
@@ -274,12 +292,10 @@ function SuperAdminPage() {
   const uniFileInputRef = useRef(null);
   const uniGalleryInputRef = useRef(null);
 
-  // --- API FETCH DATA FROM BACKEND DATABASE ---
   const loadDataFromBackend = useCallback(async () => {
     setIsLoading(true);
     const baseUrl = getApiBaseUrl();
     try {
-      // 1. Fetch Universities from Backend
       const uniRes = await fetch(`${baseUrl}/Universities?lang=az`);
       if (uniRes.ok) {
         const json = await uniRes.json();
@@ -310,7 +326,6 @@ function SuperAdminPage() {
         }
       }
 
-      // 2. Fetch Programs from Backend
       const progRes = await fetch(`${baseUrl}/Programs?lang=az`);
       if (progRes.ok) {
         const json = await progRes.json();
@@ -340,7 +355,6 @@ function SuperAdminPage() {
         }
       }
 
-      // 3. Fetch Scholarships from Backend
       const schRes = await fetch(`${baseUrl}/Scholarships?lang=az`);
       if (schRes.ok) {
         const json = await schRes.json();
@@ -370,7 +384,6 @@ function SuperAdminPage() {
         }
       }
 
-      // 3.5. Fetch Courses from Backend
       const courseRes = await fetch(`${baseUrl}/Courses?lang=az`);
       if (courseRes.ok) {
         const json = await courseRes.json();
@@ -379,7 +392,6 @@ function SuperAdminPage() {
         }
       }
 
-      // 4. Fetch Countries from Backend
       const ctryRes = await fetch(`${baseUrl}/Countries?lang=az`);
       if (ctryRes.ok) {
         const json = await ctryRes.json();
@@ -396,7 +408,6 @@ function SuperAdminPage() {
         }
       }
 
-      // 5. Fetch Languages from Backend
       const langRes = await fetch(`${baseUrl}/Languages`);
       if (langRes.ok) {
         const json = await langRes.json();
@@ -414,7 +425,6 @@ function SuperAdminPage() {
         }
       }
 
-      // 6. Fetch Talents from Backend
       try {
         const talRes = await fetch(`${baseUrl}/HiddenTalents`);
         if (talRes.ok) {
@@ -427,7 +437,6 @@ function SuperAdminPage() {
         console.warn("Talents fetch error:", err);
       }
 
-      // 7. Fetch SuperAdmin Overview Analytics
       const analyticsRes = await fetch(`${baseUrl}/Analytics/superadmin`);
       if (analyticsRes.ok) {
         const json = await analyticsRes.json();
@@ -448,7 +457,6 @@ function SuperAdminPage() {
     }
   }, [isAuthenticated, loadDataFromBackend]);
 
-  // Handle Login Submit against backend API / credentials
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     const validEmail = credentials.email.trim().toLowerCase();
@@ -498,7 +506,68 @@ function SuperAdminPage() {
     navigate('/');
   };
 
-  // --- 1. UNIVERSITY CRUD HANDLERS WITH 31 LANGUAGES & FULL FIELDS --- //
+  const handleOpenUserModal = (user = null) => {
+    if (user) {
+      setEditingUser(user);
+      setUserFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        password: '',
+        role: user.role || 'Student',
+        universityId: user.universityId || ''
+      });
+    } else {
+      setEditingUser(null);
+      setUserFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        role: 'Student',
+        universityId: ''
+      });
+    }
+    setShowUserModal(true);
+  };
+
+  const handleUserSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingUser) {
+        await adminUpdateUser({ id: editingUser.id, ...userFormData }).unwrap();
+        toast.showSuccess('İstifadəçi uğurla yeniləndi');
+      } else {
+        await adminCreateUser(userFormData).unwrap();
+        toast.showSuccess('İstifadəçi uğurla yaradıldı');
+      }
+      setShowUserModal(false);
+      refetchUsers();
+    } catch (err) {
+      toast.showError(err?.data?.message || 'Xəta baş verdi');
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    if (window.confirm('Bu istifadəçini silmək istədiyinizə əminsiniz?')) {
+      try {
+        await adminDeleteUser(id).unwrap();
+        toast.showSuccess('İstifadəçi silindi');
+        refetchUsers();
+      } catch (err) {
+        toast.showError('Xəta baş verdi');
+      }
+    }
+  };
+
+  const filteredUsers = (usersData?.data || []).filter(u => {
+    const matchesSearch = (u.firstName?.toLowerCase() || '').includes(userSearch.toLowerCase()) ||
+                          (u.lastName?.toLowerCase() || '').includes(userSearch.toLowerCase()) ||
+                          (u.email?.toLowerCase() || '').includes(userSearch.toLowerCase());
+    const matchesRole = userRoleFilter === 'All' || u.role === userRoleFilter;
+    return matchesSearch && matchesRole;
+  });
+
   const openUniModal = (mode, uni = null) => {
     setModalMode(mode);
     setActiveLangSubTab('az');
@@ -552,7 +621,6 @@ function SuperAdminPage() {
     setModalType('uni');
   };
 
-  // Upload University Cover/Logo Image File to Backend wwwroot
   const handleUniFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -596,7 +664,6 @@ function SuperAdminPage() {
     }
   };
 
-  // Upload Multiple Campus / Gallery Images
   const handleUniGalleryUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -631,7 +698,6 @@ function SuperAdminPage() {
         }));
         toast.showSuccess(`✨ ${newUrls.length} ədəd şəkil uğurla əlavə olundu!`);
       } else {
-        // Fallback: upload one by one if multiple endpoint is unavailable
         const fallbackUrls = [];
         for (const f of validFiles) {
           const singleFormData = new FormData();
@@ -662,7 +728,6 @@ function SuperAdminPage() {
     }
   };
 
-  // Remove a gallery image
   const handleRemoveUniImage = (indexToRemove) => {
     setUniForm(prev => ({
       ...prev,
@@ -671,7 +736,6 @@ function SuperAdminPage() {
     toast.showInfo("Şəkil siyahıdan silindi.");
   };
 
-  // Add Video URL
   const handleAddVideoUrl = () => {
     if (!videoUrlInput.trim()) {
       toast.showError("Zəhmət olmasa video linki daxil edin (YouTube, Vimeo və s.)!");
@@ -686,7 +750,6 @@ function SuperAdminPage() {
     toast.showSuccess("🎥 Video linki uğurla əlavə olundu!");
   };
 
-  // Remove Video URL
   const handleRemoveVideoUrl = (indexToRemove) => {
     setUniForm(prev => ({
       ...prev,
@@ -695,7 +758,6 @@ function SuperAdminPage() {
     toast.showInfo("Video linki silindi.");
   };
 
-  // AI Auto-Translate University to 31 Languages
   const handleAiTranslateUni = async () => {
     if (!uniForm.name && !uniForm.description) {
       toast.showError("Zəhmət olmasa əvvəlcə əsas adı və ya təsviri daxil edin!");
@@ -902,7 +964,6 @@ function SuperAdminPage() {
     }
   };
 
-  // Helper to parse tuition fee string into amount, currency, and period
   const parseTuitionFee = (feeStr) => {
     if (!feeStr) return { amount: '3500', currency: 'AZN', period: '/ il' };
     const clean = String(feeStr).replace(/,/g, '').trim();
@@ -928,7 +989,6 @@ function SuperAdminPage() {
     return { amount, currency, period };
   };
 
-  // --- 2. PROGRAM CRUD HANDLERS --- //
   const openProgModal = (mode, prog = null) => {
     setModalMode(mode);
     setActiveProgLangSubTab('az');
@@ -975,7 +1035,6 @@ function SuperAdminPage() {
     setModalType('program');
   };
 
-  // AI Auto-Translate Program to 31 Languages
   const handleAiTranslateProg = async () => {
     if (!progForm.title?.trim() && !progForm.description?.trim()) {
       toast.showError("Zəhmət olmasa əvvəlcə proqramın əsas adını (AZ) daxil edin!");
@@ -1178,7 +1237,6 @@ function SuperAdminPage() {
     }
   };
 
-  // --- 3. SCHOLARSHIP CRUD HANDLERS (31-Language AI Translation & Save) --- //
   const openSchModal = (mode, sch = null) => {
     setModalMode(mode);
     setActiveSchLangSubTab('az');
@@ -1225,7 +1283,6 @@ function SuperAdminPage() {
     setModalType('scholarship');
   };
 
-  // AI Auto-Translate Scholarship to 31 Languages
   const handleAiTranslateSch = async () => {
     if (!schForm.title?.trim() && !schForm.description?.trim()) {
       toast.showError("Zəhmət olmasa əvvəlcə təqaüdün əsas adını (AZ) daxil edin!");
@@ -1501,7 +1558,6 @@ function SuperAdminPage() {
     }
   };
 
-  // --- 3.5. COURSE CRUD HANDLERS --- //
   const openCourseModal = async (mode, crs = null) => {
     setModalMode(mode);
     setActiveCourseLangSubTab('az');
@@ -1549,51 +1605,8 @@ function SuperAdminPage() {
               return acc;
             }, {}) : generateDefault31Translations(detail.title, '', detail.description)
           });
-        } else {
-          setCourseForm({
-            title: crs.title || '',
-            description: crs.description || '',
-            shortDescription: crs.shortDescription || '',
-            whatYouLearn: crs.whatYouLearn || '',
-            requirements: crs.requirements || '',
-            category: crs.category || 'Proqramlaşdırma',
-            instructorName: crs.instructorName || 'EduSaz Academy',
-            price: crs.price !== undefined ? crs.price : '0',
-            discountPrice: crs.discountPrice !== undefined ? crs.discountPrice : '0',
-            currency: crs.currency || 'AZN',
-            isFree: crs.isFree || crs.price === 0,
-            level: crs.level || 'Bütün Səviyyələr',
-            duration: '24 saat',
-            language: crs.language || 'az',
-            thumbnailUrl: crs.thumbnailUrl || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
-            previewVideoUrl: crs.previewVideoUrl || '',
-            isPublished: crs.isPublished !== false,
-            videoLectures: [{ title: '1. Giriş Dərsi', videoUrl: '', durationMinutes: 15, isFree: true }],
-            translations: generateDefault31Translations(crs.title, '', crs.description)
-          });
         }
       } catch {
-        setCourseForm({
-          title: crs.title || '',
-          description: crs.description || '',
-          shortDescription: crs.shortDescription || '',
-          whatYouLearn: crs.whatYouLearn || '',
-          requirements: crs.requirements || '',
-          category: crs.category || 'Proqramlaşdırma',
-          instructorName: crs.instructorName || 'EduSaz Academy',
-          price: crs.price !== undefined ? crs.price : '0',
-          discountPrice: crs.discountPrice !== undefined ? crs.discountPrice : '0',
-          currency: crs.currency || 'AZN',
-          isFree: crs.isFree || crs.price === 0,
-          level: crs.level || 'Bütün Səviyyələr',
-          duration: '24 saat',
-          language: crs.language || 'az',
-          thumbnailUrl: crs.thumbnailUrl || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
-          previewVideoUrl: crs.previewVideoUrl || '',
-          isPublished: crs.isPublished !== false,
-          videoLectures: [{ title: '1. Giriş Dərsi', videoUrl: '', durationMinutes: 15, isFree: true }],
-          translations: generateDefault31Translations(crs.title, '', crs.description)
-        });
       }
     } else {
       setEditingItem(null);
@@ -1759,7 +1772,6 @@ function SuperAdminPage() {
     }
   };
 
-  // --- 4. COUNTRY CRUD HANDLERS --- //
   const openCountryModal = (mode, ctry = null) => {
     setModalMode(mode);
     setIsSavingCountry(false);
@@ -1874,7 +1886,6 @@ function SuperAdminPage() {
     }
   };
 
-  // --- 5. DELETE MODAL HANDLER --- //
   const confirmDeleteAction = async () => {
     if (!deleteTarget) return;
     const baseUrl = getApiBaseUrl();
@@ -1907,7 +1918,6 @@ function SuperAdminPage() {
     setDeleteTarget(null);
   };
 
-  // Update Talent Status & Admin Notes
   const handleUpdateTalent = async (talentId, newStatus) => {
     const baseUrl = getApiBaseUrl();
     try {
@@ -1929,13 +1939,11 @@ function SuperAdminPage() {
     }
   };
 
-  // Language toggling
   const toggleLanguageActive = async (code) => {
     setLanguages(prev => prev.map(l => l.code === code ? { ...l, active: !l.active } : l));
     toast.showInfo(`${code.toUpperCase()} dili üçün status dəyişdirildi.`);
   };
 
-  // --- LOGIN SCREEN IF NOT AUTHENTICATED ---
   if (!isAuthenticated) {
     return (
       <div className="super-admin-page">
@@ -1990,12 +1998,10 @@ function SuperAdminPage() {
     );
   }
 
-  // --- AUTHENTICATED SUPERADMIN PANEL ---
   return (
     <div className="super-admin-page">
       <ScrollToTop />
 
-      {/* 1. TOP SUPERADMIN NAV HEADER */}
       <header className="super-header">
         <div className="header-left">
           <div className="admin-logo">
@@ -2014,7 +2020,6 @@ function SuperAdminPage() {
         </div>
 
         <div className="header-right">
-          {/* Active Global Language Switcher */}
           <div className="super-lang-select-wrap">
             <span style={{ fontSize: '12px', color: '#94a3b8', marginRight: '6px' }}>Dil:</span>
             <select 
@@ -2037,7 +2042,6 @@ function SuperAdminPage() {
         </div>
       </header>
 
-      {/* 2. STATS OVERVIEW CARDS */}
       <section className="super-stats-section">
         <div className="stats-grid">
           <div className="stat-card" onClick={() => setActiveTab('Universities')}>
@@ -2096,9 +2100,11 @@ function SuperAdminPage() {
         </div>
       </section>
 
-      {/* 3. MAIN NAVIGATION TABS */}
       <main className="super-main-container">
         <nav className="super-tabs-nav">
+          <button className={`tab-btn ${activeTab === 'Users' ? 'active' : ''}`} onClick={() => setActiveTab('Users')}>
+            👤 İstifadəçilər
+          </button>
           <button className={`tab-btn ${activeTab === 'Universities' ? 'active' : ''}`} onClick={() => setActiveTab('Universities')}>
             🏛️ {t('superAdmin.universities', 'Universitetlər')} ({universities.length})
           </button>

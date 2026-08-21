@@ -15,12 +15,13 @@ import UniversityDetailPage from "../pages/UserPages/UniversityDetailPage/index.
 import UniversityPortalPage from "../pages/UserPages/UniversityPortalPage/index.jsx";
 import SuperAdminPage from "../pages/UserPages/SuperAdminPage/index.jsx";
 import InstructorPortalPage from "../pages/UserPages/InstructorPortalPage/index.jsx";
-import InstructorSignInPage from "../pages/UserPages/InstructorSignInPage/index.jsx";
 
 import CoursesPage from "../pages/UserPages/CoursesPage/index.jsx";
 import CourseDetailPage from "../pages/UserPages/CourseDetailPage/index.jsx";
 import UserProfilePage from "../pages/UserPages/UserProfilePage/index.jsx";
 import HiddenTalentsPage from "../pages/UserPages/HiddenTalentsPage/index.jsx";
+
+import PrivateRoute from "../components/Common/PrivateRoute.jsx";
 
 export const ROUTES = [
     {
@@ -33,7 +34,7 @@ export const ROUTES = [
             },
             {
                 path: 'profile',
-                element: <UserProfilePage/>
+                element: <PrivateRoute allowedRoles={['student', 'Student']}><UserProfilePage/></PrivateRoute>
             },
             {
                 path: 'universities',
@@ -99,18 +100,14 @@ export const ROUTES = [
     },
     {
         path: '/university-portal',
-        element: <UniversityPortalPage/>
+        element: <PrivateRoute allowedRoles={['universityadmin', 'UniversityAdmin']}><UniversityPortalPage/></PrivateRoute>
     },
     {
         path: '/superadmin',
-        element: <SuperAdminPage/>
+        element: <PrivateRoute allowedRoles={['superadmin', 'SuperAdmin']}><SuperAdminPage/></PrivateRoute>
     },
     {
         path: '/instructor-portal',
-        element: <InstructorPortalPage/>
-    },
-    {
-        path: '/instructor/signin',
-        element: <InstructorSignInPage/>
+        element: <PrivateRoute allowedRoles={['instructor', 'Instructor', 'teacher', 'Teacher', 'coursecenter', 'CourseCenter']}><InstructorPortalPage/></PrivateRoute>
     }
 ];

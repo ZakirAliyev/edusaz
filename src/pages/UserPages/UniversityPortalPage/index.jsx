@@ -27,6 +27,7 @@ import { autoTranslateCourseData, ALL_31_LANGUAGES, LANGUAGE_META } from '../../
 import { useToast } from '../../../context/ToastContext';
 import ScrollToTop from '../../../components/Common/ScrollToTop';
 import { LanguageSelector } from '../../../components/UserComponents/LanguageSelector';
+import Cookies from 'js-cookie';
 import './index.scss';
 
 // SVG Icons
@@ -107,13 +108,39 @@ function UniversityPortalPage() {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const savedUni = JSON.parse(localStorage.getItem('myUniversity') || 'null');
-  const [currentUni, setCurrentUni] = useState(savedUni || null);
-  const [activeTab, setActiveTab] = useState(savedUni ? 'Overview' : 'University Profile');
+  const token = Cookies.get('userToken');
+  let jwtUniId = null;
+  let isAuth = false;
 
-  const targetUniId = currentUni?.id || currentUni?.Id || savedUni?.id || savedUni?.Id;
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      jwtUniId = payload.universityId || payload.UniversityId || null;
+      const role = localStorage.getItem('userRole');
+      if (role === 'universityadmin') {
+        isAuth = true;
+      }
+    } catch (e) {
+      console.error('Token parse error', e);
+    }
+  }
 
-  const { data: backendPrograms } = useGetProgramsQuery(i18n.language);
+  useEffect(() => {
+    if (!isAuth) {
+      navigate('/signin');
+    }
+  }, [navigate, isAuth]);
+
+  const [currentUni, setCurrentUni] = useState(null);
+  const [activeTab, setActiveTab] = useState(jwtUniId ? 'Overview' : 'University Profile');
+
+  const targetUniId = jwtUniId;
+
+  const { data: backendPrograms } = useGetProgramsQuery(
+    targetUniId
+      ? { lang: i18n.language, universityId: targetUniId }
+      : i18n.language
+  );
   const { data: backendCountries } = useGetCountriesQuery(i18n.language);
   const { data: backendUniversities } = useGetUniversitiesQuery(i18n.language);
   const { data: backendScholarships } = useGetScholarshipsQuery(

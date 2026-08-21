@@ -68,33 +68,7 @@ public static class DataSeeder
         // 4. Seed Universities
         await SeedUniversitiesAsync(context, enId, azId, trId);
 
-        // 5. Clean / Clear Programs & Scholarships (User will upload manually)
-        if (await context.ProgramTranslations.AnyAsync())
-        {
-            context.ProgramTranslations.RemoveRange(await context.ProgramTranslations.ToListAsync());
-            await context.SaveChangesAsync();
-        }
-        if (await context.Programs.AnyAsync())
-        {
-            context.Programs.RemoveRange(await context.Programs.ToListAsync());
-            await context.SaveChangesAsync();
-        }
-
-        if (await context.ScholarshipSubscriptions.AnyAsync())
-        {
-            context.ScholarshipSubscriptions.RemoveRange(await context.ScholarshipSubscriptions.ToListAsync());
-            await context.SaveChangesAsync();
-        }
-        if (await context.ScholarshipTranslations.AnyAsync())
-        {
-            context.ScholarshipTranslations.RemoveRange(await context.ScholarshipTranslations.ToListAsync());
-            await context.SaveChangesAsync();
-        }
-        if (await context.Scholarships.AnyAsync())
-        {
-            context.Scholarships.RemoveRange(await context.Scholarships.ToListAsync());
-            await context.SaveChangesAsync();
-        }
+        // 5. Programs & Scholarships are now managed via admin panel — no longer cleared on restart
 
         // 6. Seed Instructors & Courses
         await SeedInstructorsAndCoursesAsync(serviceProvider, context, enId, azId, trId);
@@ -110,14 +84,15 @@ public static class DataSeeder
 
         if (userManager != null && roleManager != null)
         {
+            // Seed all required roles
+            var requiredRoles = new[] { "SuperAdmin", "Instructor", "Student", "Teacher", "CourseCenter", "UniversityAdmin" };
+            foreach (var roleName in requiredRoles)
+            {
+                if (!await roleManager.RoleExistsAsync(roleName))
+                    await roleManager.CreateAsync(new Role { Name = roleName });
+            }
+
             const string superAdminRole = "SuperAdmin";
-            const string instructorRole = "Instructor";
-
-            if (!await roleManager.RoleExistsAsync(superAdminRole))
-                await roleManager.CreateAsync(new Role { Name = superAdminRole });
-
-            if (!await roleManager.RoleExistsAsync(instructorRole))
-                await roleManager.CreateAsync(new Role { Name = instructorRole });
 
             const string adminEmail = "superadmin@edu.saz";
             var superAdminUser = await userManager.FindByEmailAsync(adminEmail);

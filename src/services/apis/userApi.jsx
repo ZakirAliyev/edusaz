@@ -242,20 +242,38 @@ export const userApi = createApi({
             transformResponse: (response) => response.data,
         }),
 
-        // ── Instructor Auth ──────────────────────────────────────────────────
-        instructorLogin: builder.mutation({
-            query: (credentials) => ({
-                url: '/Instructors/login',
-                method: 'POST',
-                body: credentials,
-            }),
+        // ── Admin User Management ────────────────────────────────────────────
+        getUsers: builder.query({
+            query: (role) => {
+                let url = '/Auth/users';
+                if (role) url += `?role=${role}`;
+                return url;
+            },
+            transformResponse: (response) => response.data,
+            providesTags: ['Users'],
         }),
-        instructorRegister: builder.mutation({
-            query: (data) => ({
-                url: '/Instructors/register',
+        adminCreateUser: builder.mutation({
+            query: (userData) => ({
+                url: '/Auth/admin-create',
                 method: 'POST',
-                body: data,
+                body: userData,
             }),
+            invalidatesTags: ['Users'],
+        }),
+        adminUpdateUser: builder.mutation({
+            query: ({ id, ...userData }) => ({
+                url: `/Auth/users/${id}`,
+                method: 'PUT',
+                body: userData,
+            }),
+            invalidatesTags: ['Users'],
+        }),
+        adminDeleteUser: builder.mutation({
+            query: (id) => ({
+                url: `/Auth/users/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Users'],
         }),
 
         // ── Instructor Profile ───────────────────────────────────────────────
@@ -427,9 +445,11 @@ export const {
     useGetAnalyticsQuery,
     useGetStudentLeadsQuery,
     useUpdateStudentLeadStatusMutation,
-    // Instructor
-    useInstructorLoginMutation,
-    useInstructorRegisterMutation,
+    // Admin Users
+    useGetUsersQuery,
+    useAdminCreateUserMutation,
+    useAdminUpdateUserMutation,
+    useAdminDeleteUserMutation,
     useGetInstructorProfileQuery,
     useUpdateInstructorProfileMutation,
     useGetMyCoursesQuery,

@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+.git/
+.env
+*.user
+*.userprefs
+*.suo
+*.pidb
+*.booproj

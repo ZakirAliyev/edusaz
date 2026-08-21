@@ -46,14 +46,15 @@ public class AuthService : IAuthService
             FirstName = registerDto.FirstName,
             LastName = registerDto.LastName,
             Country = "Azərbaycan",
-            Gpa = 3.6,
-            EnglishScore = "IELTS 6.5",
-            DegreeLevel = "Bakalavr",
-            DesiredField = "Kompüter Elmləri / İT",
             CreatedAt = DateTime.UtcNow
         };
 
         var result = await _userManager.CreateAsync(user, registerDto.Password);
+        if (result.Succeeded)
+        {
+            // Public registration is always Student role
+            await _userManager.AddToRoleAsync(user, "Student");
+        }
         return result.Succeeded;
     }
 
@@ -61,6 +62,9 @@ public class AuthService : IAuthService
     {
         var user = await _userManager.FindByEmailAsync(loginDto.Email);
         if (user == null) return null!;
+
+        if (user.IsDeleted)
+            return null!;
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
         if (!result.Succeeded) return null!;
@@ -71,18 +75,23 @@ public class AuthService : IAuthService
     private async Task<TokenDto> GenerateTokenAsync(User user)
     {
         var roles = await _userManager.GetRolesAsync(user);
-        var mainRole = roles.FirstOrDefault() 
-                       ?? ((user.Email != null && (user.Email.Contains("code.edu.az") || user.Email.Contains("admin") || user.Email.Contains("uni"))) 
-                           ? "University" 
-                           : "Student");
+        var mainRole = roles.FirstOrDefault() ?? "Student";
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
             new Claim(ClaimTypes.Role, mainRole),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("firstName", user.FirstName ?? ""),
+            new Claim("lastName", user.LastName ?? "")
         };
+
+        // Add UniversityId claim for UniversityAdmin
+        if (mainRole == "UniversityAdmin" && user.UniversityId.HasValue)
+        {
+            claims.Add(new Claim("universityId", user.UniversityId.Value.ToString()));
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"] ?? "edusaz_super_secret_key_1234567890"));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -106,29 +115,14 @@ public class AuthService : IAuthService
 
     public async Task<UserProfileDto?> GetUserProfileAsync(string email)
     {
-        var user = await _userManager.FindByEmailAsync(email) 
-                   ?? await _userManager.Users.FirstOrDefaultAsync();
+        if (string.IsNullOrWhiteSpace(email))
+            return null;
 
+        var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
-        {
-            user = new User
-            {
-                Id = Guid.NewGuid(),
-                FirstName = "Əli",
-                LastName = "Əliyev",
-                Email = string.IsNullOrEmpty(email) ? "student@edusaz.com" : email,
-                UserName = string.IsNullOrEmpty(email) ? "student@edusaz.com" : email,
-                PhoneNumber = "+994 50 123 45 67",
-                Country = "Azərbaycan",
-                Gpa = 3.6,
-                EnglishScore = "IELTS 6.5",
-                DegreeLevel = "Bakalavr",
-                DesiredField = "Kompüter Elmləri / İT"
-            };
-            await _userManager.CreateAsync(user, "Password123!");
-        }
+            return null;
 
-        // Fetch user activities from database
+        // Fetch real user activities from database
         var subs = await _context.ScholarshipSubscriptions
             .Include(s => s.Scholarship)
             .Where(s => s.Email == user.Email || s.UserId == user.Id)
@@ -145,57 +139,45 @@ public class AuthService : IAuthService
             Date = s.CreatedDate
         }).ToList();
 
-        if (!activities.Any())
-        {
-            activities.Add(new UserActivityDto
-            {
-                Title = "Stipendium Hungaricum",
-                Description = "95% Uyğunluq analizi aparıldı",
-                Date = DateTime.UtcNow.AddHours(-2)
-            });
-            activities.Add(new UserActivityDto
-            {
-                Title = "DAAD Təqaüdü",
-                Description = "E-poçt bildirişi aktivləşdirildi",
-                Date = DateTime.UtcNow.AddDays(-1)
-            });
-        }
+        var roles = await _userManager.GetRolesAsync(user);
 
         return new UserProfileDto
         {
             Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Email = user.Email ?? "student@edusaz.com",
-            Phone = user.PhoneNumber ?? "+994 50 123 45 67",
-            Country = string.IsNullOrEmpty(user.Country) ? "Azərbaycan" : user.Country,
-            Gpa = user.Gpa > 0 ? user.Gpa : 3.6,
-            EnglishScore = string.IsNullOrEmpty(user.EnglishScore) ? "IELTS 6.5" : user.EnglishScore,
-            DegreeLevel = string.IsNullOrEmpty(user.DegreeLevel) ? "Bakalavr" : user.DegreeLevel,
-            DesiredField = string.IsNullOrEmpty(user.DesiredField) ? "Kompüter Elmləri / İT" : user.DesiredField,
-            ScholarshipCount = Math.Max(subs.Count, 3),
-            Activities = activities
+            Email = user.Email ?? "",
+            Phone = user.PhoneNumber ?? "",
+            Country = user.Country ?? "",
+            Gpa = user.Gpa,
+            EnglishScore = user.EnglishScore ?? "",
+            DegreeLevel = user.DegreeLevel ?? "",
+            DesiredField = user.DesiredField ?? "",
+            ScholarshipCount = subs.Count,
+            Activities = activities,
+            Role = roles.FirstOrDefault() ?? "Student",
+            ProfileImageUrl = user.ProfileImageUrl ?? ""
         };
     }
 
     public async Task<UserProfileDto> UpdateUserProfileAsync(string email, UpdateUserProfileDto dto)
     {
-        var user = await _userManager.FindByEmailAsync(email) 
-                   ?? await _userManager.Users.FirstOrDefaultAsync();
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+            throw new Exception("İstifadəçi tapılmadı.");
 
-        if (user != null)
-        {
-            user.FirstName = dto.FirstName;
-            user.LastName = dto.LastName;
-            if (!string.IsNullOrEmpty(dto.Phone)) user.PhoneNumber = dto.Phone;
-            if (!string.IsNullOrEmpty(dto.Country)) user.Country = dto.Country;
-            if (dto.Gpa > 0) user.Gpa = dto.Gpa;
-            if (!string.IsNullOrEmpty(dto.EnglishScore)) user.EnglishScore = dto.EnglishScore;
-            if (!string.IsNullOrEmpty(dto.DegreeLevel)) user.DegreeLevel = dto.DegreeLevel;
-            if (!string.IsNullOrEmpty(dto.DesiredField)) user.DesiredField = dto.DesiredField;
+        if (!string.IsNullOrEmpty(dto.FirstName)) user.FirstName = dto.FirstName;
+        if (!string.IsNullOrEmpty(dto.LastName)) user.LastName = dto.LastName;
+        if (!string.IsNullOrEmpty(dto.Phone)) user.PhoneNumber = dto.Phone;
+        if (!string.IsNullOrEmpty(dto.Country)) user.Country = dto.Country;
+        if (dto.Gpa > 0) user.Gpa = dto.Gpa;
+        if (!string.IsNullOrEmpty(dto.EnglishScore)) user.EnglishScore = dto.EnglishScore;
+        if (!string.IsNullOrEmpty(dto.DegreeLevel)) user.DegreeLevel = dto.DegreeLevel;
+        if (!string.IsNullOrEmpty(dto.DesiredField)) user.DesiredField = dto.DesiredField;
+        if (!string.IsNullOrEmpty(dto.ProfileImageUrl)) user.ProfileImageUrl = dto.ProfileImageUrl;
+        user.UpdatedAt = DateTime.UtcNow;
 
-            await _userManager.UpdateAsync(user);
-        }
+        await _userManager.UpdateAsync(user);
 
         return (await GetUserProfileAsync(email))!;
     }

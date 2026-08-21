@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
-import { useLoginUserMutation, useInstructorLoginMutation } from '../../../services/apis/userApi';
+import { useLoginUserMutation } from '../../../services/apis/userApi';
 import { useToast } from '../../../context/ToastContext';
 import './index.scss';
 
@@ -32,46 +32,32 @@ function SignInPage() {
   const toast = useToast();
   const navigate = useNavigate();
   
-  const [selectedRole, setSelectedRole] = useState('student'); // 'student' | 'instructor' | 'university'
-  const [loginUser, { isLoading: isUserLoading }] = useLoginUserMutation();
-  const [instructorLogin, { isLoading: isInstructorLoading }] = useInstructorLoginMutation();
+  const [loginUser, { isLoading }] = useLoginUserMutation();
   
   const [formData, setFormData] = useState({ email: '', password: '' });
-
-  const isLoading = isUserLoading || isInstructorLoading;
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (selectedRole === 'instructor') {
-        const res = await instructorLogin(formData).unwrap();
-        const token = res?.data?.accessToken || res?.accessToken;
-        if (token) {
-          localStorage.setItem('instructorToken', token);
-          localStorage.setItem('instructorEmail', formData.email);
-          localStorage.setItem('isInstructor', 'true');
-          localStorage.setItem('userRole', 'instructor');
-          toast.showSuccess('Müəllim kimi daxil oldunuz! 🎓');
-          navigate('/instructor-portal');
-          return;
-        }
-      }
-
       const response = await loginUser(formData).unwrap();
       const tokenData = response.data || response;
       const token = tokenData?.accessToken || tokenData;
+      const role = tokenData?.role || 'Student';
 
       Cookies.set('userToken', token, { expires: 1 });
+      localStorage.setItem('userRole', role.toLowerCase());
 
-      if (selectedRole === 'university') {
-        localStorage.setItem('userRole', 'university');
-        toast.showSuccess(t('auth.loginSuccess'));
+      toast.showSuccess(t('auth.loginSuccess'));
+
+      if (role === 'SuperAdmin') {
+        navigate('/superadmin');
+      } else if (role === 'UniversityAdmin') {
         navigate('/university-portal');
+      } else if (role === 'Teacher' || role === 'CourseCenter') {
+        navigate('/instructor-portal');
       } else {
-        localStorage.setItem('userRole', 'student');
-        toast.showSuccess(t('auth.loginSuccess'));
         navigate('/profile');
       }
     } catch (err) {
@@ -119,30 +105,7 @@ function SignInPage() {
             <p>{t('auth.newToEdusaz')} <Link to="/register">{t('auth.createAccount')}</Link></p>
           </div>
 
-          {/* Role Selection Tabs */}
-          <div className="role-selector-tabs">
-            <button
-              type="button"
-              className={`role-tab ${selectedRole === 'student' ? 'active' : ''}`}
-              onClick={() => setSelectedRole('student')}
-            >
-              🎓 Tələbə
-            </button>
-            <button
-              type="button"
-              className={`role-tab ${selectedRole === 'university' ? 'active' : ''}`}
-              onClick={() => setSelectedRole('university')}
-            >
-              🏫 Universitet
-            </button>
-            <button
-              type="button"
-              className={`role-tab ${selectedRole === 'instructor' ? 'active' : ''}`}
-              onClick={() => setSelectedRole('instructor')}
-            >
-              👨‍🏫 Müəllim
-            </button>
-          </div>
+          {/* Role Selection Tabs Removed - Unified Login */}
 
           <form className="sr-form" onSubmit={handleSubmit}>
             <div className="form-group">
@@ -164,7 +127,7 @@ function SignInPage() {
             </div>
 
             <button type="submit" className="btn-submit" disabled={isLoading}>
-              {isLoading ? '...' : `${t('auth.submitSignIn')} (${selectedRole === 'instructor' ? 'Müəllim' : selectedRole === 'university' ? 'Universitet' : 'Tələbə'})`} <span>&rarr;</span>
+              {isLoading ? '...' : t('auth.submitSignIn')} <span>&rarr;</span>
             </button>
           </form>
         </div>

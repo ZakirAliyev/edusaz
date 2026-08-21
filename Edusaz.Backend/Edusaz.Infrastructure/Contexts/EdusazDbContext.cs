@@ -39,6 +39,9 @@ public class EdusazDbContext : IdentityDbContext<User, Role, Guid>
 
     // Hidden Talents & Ideas
     public DbSet<HiddenTalent> HiddenTalents { get; set; }
+    
+    // Reviews
+    public DbSet<Review> Reviews { get; set; }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

@@ -17,6 +17,8 @@ public class UserProfileDto
     public string DesiredField { get; set; } = "Kompüter Elmləri / İT";
     public int ScholarshipCount { get; set; }
     public List<UserActivityDto> Activities { get; set; } = new();
+    public string Role { get; set; } = "Student";
+    public string? ProfileImageUrl { get; set; }
 }
 
 public class UserActivityDto
@@ -37,4 +39,5 @@ public class UpdateUserProfileDto
     public string? EnglishScore { get; set; }
     public string? DegreeLevel { get; set; }
     public string? DesiredField { get; set; }
+    public string? ProfileImageUrl { get; set; }
 }
