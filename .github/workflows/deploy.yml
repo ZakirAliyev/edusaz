@@ -86,8 +86,15 @@ jobs:
             sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "Gpa" double precision;' || true
             sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "StudentApplications" ADD COLUMN IF NOT EXISTS "CourseId" uuid;' || true
 
-            # 2. Clean all users except SuperAdmin
-            sudo -u postgres psql -d edusaz_db -c "DELETE FROM \"AspNetUsers\" WHERE lower(trim(\"Email\")) NOT IN ('superadmin@edu.saz', 'superadmin@edusaz.com');" || true
+            # 2. Clean all users except SuperAdmin with proper cascade
+            sudo -u postgres psql -d edusaz_db -c '
+              DELETE FROM "AspNetUserRoles" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
+              DELETE FROM "AspNetUserTokens" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
+              DELETE FROM "AspNetUserClaims" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
+              DELETE FROM "AspNetUserLogins" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
+              DELETE FROM "Instructors" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
+              DELETE FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27);
+            ' || true
 
             # If PostgreSQL runs inside a docker container on VPS:
             if command -v docker &> /dev/null; then
@@ -103,11 +110,16 @@ jobs:
                 docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "EnglishScore" text;' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "Gpa" double precision;' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "StudentApplications" ADD COLUMN IF NOT EXISTS "CourseId" uuid;' 2>/dev/null || true
-                docker exec $container psql -U postgres -d edusaz_db -c "DELETE FROM \"AspNetUsers\" WHERE lower(trim(\"Email\")) NOT IN ('superadmin@edu.saz', 'superadmin@edusaz.com');" 2>/dev/null || true
+                docker exec $container psql -U postgres -d edusaz_db -c '
+                  DELETE FROM "AspNetUserRoles" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
+                  DELETE FROM "AspNetUserTokens" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
+                  DELETE FROM "Instructors" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
+                  DELETE FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27);
+                ' 2>/dev/null || true
               done
             fi
 
-            # 2. Set permissions and start backend & reverse proxy
+            # 3. Set permissions and start backend & reverse proxy
             chmod -R 755 /var/www/edusaz-backend || true
             systemctl daemon-reload
             systemctl start edusaz-backend || systemctl start edusaz || systemctl start edusaz-api || systemctl start kestrel-edusaz || true
