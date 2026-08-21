@@ -85,6 +85,19 @@ export const userApi = createApi({
                 body: programData,
             }),
         }),
+        updateProgram: builder.mutation({
+            query: ({ id, ...body }) => ({
+                url: `/Programs/${id}`,
+                method: 'PUT',
+                body,
+            }),
+        }),
+        deleteProgram: builder.mutation({
+            query: (id) => ({
+                url: `/Programs/${id}`,
+                method: 'DELETE',
+            }),
+        }),
         getCountries: builder.query({
             query: (lang = 'en') => `/Countries?lang=${lang}`,
             transformResponse: (response) => response.data,
@@ -455,6 +468,8 @@ export const {
     useUpdateUniversityMutation,
     useGetProgramsQuery,
     useCreateProgramMutation,
+    useUpdateProgramMutation,
+    useDeleteProgramMutation,
     useGetCountriesQuery,
     useGetCountryByIdQuery,
     useGetUniversitiesByCountryQuery,
