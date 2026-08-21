@@ -18,6 +18,13 @@ public static class DataSeeder
         try
         {
             await context.Database.ExecuteSqlRawAsync(@"
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""UniversityId"" uuid;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""ProfileImageUrl"" text;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""Country"" text;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""DegreeLevel"" text;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""DesiredField"" text;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""EnglishScore"" text;
+                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""Gpa"" double precision;
                 CREATE TABLE IF NOT EXISTS ""UniversityMedias"" (
                     ""Id"" uuid PRIMARY KEY,
                     ""UniversityId"" uuid NOT NULL,
