@@ -839,6 +839,46 @@
             flex-direction: column;
             gap: 8px;
 
+            .file-upload-row-action {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              flex-wrap: wrap;
+              margin-bottom: 2px;
+
+              .btn-upload-file-trigger {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: linear-gradient(135deg, rgba(74, 222, 128, 0.2), rgba(16, 185, 129, 0.2));
+                border: 1px solid rgba(74, 222, 128, 0.4);
+                color: #4ade80;
+                padding: 7px 14px;
+                border-radius: 10px;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s;
+
+                &:hover {
+                  background: linear-gradient(135deg, rgba(74, 222, 128, 0.35), rgba(16, 185, 129, 0.35));
+                  color: #fff;
+                  transform: translateY(-1px);
+                  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.25);
+                }
+
+                &:disabled {
+                  opacity: 0.6;
+                  cursor: not-allowed;
+                }
+              }
+
+              .or-divider-text {
+                font-size: 11px;
+                color: #94a3b8;
+              }
+            }
+
             .preset-label {
               font-size: 11px;
               color: #94a3b8;

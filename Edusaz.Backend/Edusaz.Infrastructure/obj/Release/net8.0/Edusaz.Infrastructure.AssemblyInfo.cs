@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Edusaz.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+322cdda0fb03a9a5b9b6f00685696b24f29a3421")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7705886b6d9d1981de55c162da4d5ca57c638393")]
 [assembly: System.Reflection.AssemblyProductAttribute("Edusaz.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Edusaz.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

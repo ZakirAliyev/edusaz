@@ -118,3 +118,4 @@
 /Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/obj/Release/net8.0/Edusaz.API.pdb
 /Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/obj/Release/net8.0/Edusaz.API.genruntimeconfig.cache
 /Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/obj/Release/net8.0/ref/Edusaz.API.dll
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/bin/Release/net8.0/Edusaz.API.staticwebassets.runtime.json

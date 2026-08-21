@@ -81,6 +81,7 @@ builder.Services.AddScoped<ITeamMemberService, TeamMemberService>();
 builder.Services.AddScoped<IPartnershipService, PartnershipService>();
 builder.Services.AddScoped<IInstructorService, InstructorService>();
 builder.Services.AddScoped<IHiddenTalentService, HiddenTalentService>();
+builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<ITranslationAIService, GoogleTranslationService>();
 builder.Services.AddHttpClient("GoogleTranslate");
 

@@ -1,11 +1,39 @@
 {
   "Version": 1,
-  "Hash": "k9/DoZj0rFsXJKMFLXFmxpH8CZSw0vxogHrCJ/Dy018=",
+  "Hash": "CrL3Y2JwBPZ2WolPSZVN9XzUL4lvAZRnrqZVFJA5+Jo=",
   "Source": "Edusaz.API",
   "BasePath": "_content/Edusaz.API",
   "Mode": "Default",
   "ManifestType": "Publish",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": []
+  "DiscoveryPatterns": [
+    {
+      "Name": "Edusaz.API/wwwroot",
+      "Source": "Edusaz.API",
+      "ContentRoot": "/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/wwwroot/",
+      "BasePath": "_content/Edusaz.API",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/wwwroot/uploads/universities/ed52c2781ad049208fe5c341fcc2ba38_test_campus.png",
+      "SourceId": "Edusaz.API",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/wwwroot/",
+      "BasePath": "_content/Edusaz.API",
+      "RelativePath": "uploads/universities/ed52c2781ad049208fe5c341fcc2ba38_test_campus.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/universities/ed52c2781ad049208fe5c341fcc2ba38_test_campus.png"
+    }
+  ]
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../context/ToastContext';
@@ -155,6 +155,8 @@ function SuperAdminPage() {
 
   const [activeLangSubTab, setActiveLangSubTab] = useState('az');
   const [isTranslatingUni, setIsTranslatingUni] = useState(false);
+  const [isUploadingImg, setIsUploadingImg] = useState(false);
+  const uniFileInputRef = useRef(null);
 
   // --- API FETCH DATA FROM BACKEND DATABASE ---
   const loadDataFromBackend = useCallback(async () => {
@@ -396,6 +398,50 @@ function SuperAdminPage() {
       });
     }
     setModalType('uni');
+  };
+
+  // Upload University Image File to Backend wwwroot
+  const handleUniFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.showError("Zəhmət olmasa yalnız şəkil faylı seçin (PNG, JPG, WEBP və s.).");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setIsUploadingImg(true);
+    toast.showInfo("Şəkil wwwroot qovluğuna yüklənir... ⏳");
+
+    try {
+      const baseUrl = getApiBaseUrl();
+      const res = await fetch(`${baseUrl}/Upload?folder=universities`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const uploadedUrl = json.data?.fileUrl || json.data?.relativeUrl || json.fileUrl;
+        setUniForm(prev => ({
+          ...prev,
+          logoUrl: uploadedUrl
+        }));
+        toast.showSuccess("Şəkil wwwroot qovluğuna uğurla yükləndi!");
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        toast.showError(errJson.message || "Şəkil yüklənərkən xəta baş verdi.");
+      }
+    } catch (err) {
+      console.error("Image upload error:", err);
+      toast.showError("Serverlə əlaqə xətası.");
+    } finally {
+      setIsUploadingImg(false);
+      if (e.target) e.target.value = '';
+    }
   };
 
   // AI Auto-Translate University to 31 Languages
@@ -1563,11 +1609,31 @@ function SuperAdminPage() {
                     <span className="preview-badge">📷 Kampus Şəkli</span>
                   </div>
                   <div className="uni-image-inputs">
+                    {/* Direct File Upload to wwwroot */}
+                    <div className="file-upload-row-action">
+                      <input 
+                        type="file" 
+                        ref={uniFileInputRef} 
+                        accept="image/*" 
+                        style={{ display: 'none' }} 
+                        onChange={handleUniFileUpload} 
+                      />
+                      <button 
+                        type="button" 
+                        className="btn-upload-file-trigger" 
+                        disabled={isUploadingImg}
+                        onClick={() => uniFileInputRef.current?.click()}
+                      >
+                        {isUploadingImg ? '⏳ Şəkil wwwroot-a yüklənir...' : '📁 Kompüterdən Şəkil Yüklə (wwwroot)'}
+                      </button>
+                      <span className="or-divider-text">və ya URL linki daxil edin:</span>
+                    </div>
+
                     <input 
                       type="url" 
                       value={uniForm.logoUrl} 
                       onChange={e => setUniForm({ ...uniForm, logoUrl: e.target.value })} 
-                      placeholder="https://images.unsplash.com/... və ya loqo URL" 
+                      placeholder="https://images.unsplash.com/... və ya /uploads/universities/..." 
                     />
                     <span className="preset-label">{t('superAdmin.choosePreset', 'və ya Hazır Qalereyadan Kampus Şəkli Seçin:')}</span>
                     <div className="campus-presets-row">
@@ -1749,6 +1815,34 @@ function SuperAdminPage() {
                     <span>{uniForm.hasScholarship ? '✓ Bəli (Var)' : '✕ Xeyr'}</span>
                   </label>
                 </div>
+              </div>
+
+              {/* Core Description - Main Azerbaijani text to be translated to 31 languages */}
+              <div className="form-group" style={{ marginTop: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 700, color: '#c084fc' }}>
+                    📝 {t('superAdmin.universityDescription', 'Universitet Haqqında Ətraflı Məlumat (Təsvir / Description)')} *
+                  </label>
+                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                    Burada yazın, aşağıdakı "✨ AI 31 Dilə Avtomatik Tərcümə Et" ilə 31 dilə çevrilsin
+                  </span>
+                </div>
+                <textarea 
+                  rows={4} 
+                  value={uniForm.description} 
+                  onChange={e => {
+                    const val = e.target.value;
+                    setUniForm(prev => ({
+                      ...prev,
+                      description: val,
+                      translations: {
+                        ...(prev.translations || {}),
+                        az: { ...(prev.translations?.az || {}), description: val }
+                      }
+                    }));
+                  }} 
+                  placeholder="Məsələn: ADA Universiteti Azərbaycanda ali təhsilin ən müasir standartlarını təqdim edən beynəlxalq səviyyəli universitetdir. İT, Dövlət İdarəçiliyi və Biznes sahələrində liderdir..." 
+                />
               </div>
 
               {/* 31-Language Multi-tab Translation Section */}
