@@ -20,13 +20,20 @@ public class AuthService : IAuthService
 {
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
+    private readonly RoleManager<Role> _roleManager;
     private readonly EdusazDbContext _context;
     private readonly IConfiguration _configuration;
 
-    public AuthService(UserManager<User> userManager, SignInManager<User> signInManager, EdusazDbContext context, IConfiguration configuration)
+    public AuthService(
+        UserManager<User> userManager, 
+        SignInManager<User> signInManager, 
+        RoleManager<Role> roleManager,
+        EdusazDbContext context, 
+        IConfiguration configuration)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _roleManager = roleManager;
         _context = context;
         _configuration = configuration;
     }
@@ -43,19 +50,27 @@ public class AuthService : IAuthService
         {
             UserName = registerDto.Email,
             Email = registerDto.Email,
-            FirstName = registerDto.FirstName,
-            LastName = registerDto.LastName,
+            FirstName = string.IsNullOrWhiteSpace(registerDto.FirstName) ? registerDto.Email.Split('@')[0] : registerDto.FirstName,
+            LastName = registerDto.LastName ?? "",
             Country = "Azərbaycan",
             CreatedAt = DateTime.UtcNow
         };
 
         var result = await _userManager.CreateAsync(user, registerDto.Password);
-        if (result.Succeeded)
+        if (!result.Succeeded)
         {
-            // Public registration is always Student role
-            await _userManager.AddToRoleAsync(user, "Student");
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            throw new Exception($"Qeydiyyat xətası: {errors}");
         }
-        return result.Succeeded;
+
+        var assignedRole = "Student";
+        if (!await _roleManager.RoleExistsAsync(assignedRole))
+        {
+            await _roleManager.CreateAsync(new Role { Name = assignedRole });
+        }
+        await _userManager.AddToRoleAsync(user, assignedRole);
+
+        return true;
     }
 
     public async Task<TokenDto> LoginAsync(LoginDto loginDto)

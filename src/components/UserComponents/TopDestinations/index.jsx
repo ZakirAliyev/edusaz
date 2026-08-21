@@ -31,14 +31,6 @@ function TopDestinations() {
   const navigate = useNavigate();
   const { data: apiCountries = [], isLoading } = useGetCountriesQuery(language);
 
-  const handleImageError = (e, code) => {
-    if (fallbackImages[code] && e.target.src !== fallbackImages[code]) {
-      e.target.src = fallbackImages[code];
-    } else {
-      e.target.style.display = 'none';
-    }
-  };
-
   return (
     <section id="top-destinations">
       <div className="td-inner">
@@ -46,37 +38,36 @@ function TopDestinations() {
           <div className="td-header-left">
             <span className="td-badge">
               <GlobeIcon />
-              {t('topDestinations.badge')}
+              {t('topDestinations.badge') || 'Ölkələr'}
             </span>
-            <h2 className="td-title">{t('topDestinations.title')}</h2>
+            <h2 className="td-title">{t('topDestinations.title') || 'Dünyanın ən populyar təhsil ölkələri'}</h2>
           </div>
           <button className="btn-view-all" onClick={() => navigate('/destinations')}>
-            {t('topDestinations.viewAll')} &gt;
+            {t('topDestinations.viewAll') || 'Hamısına bax'} &gt;
           </button>
         </div>
 
         {isLoading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading backend countries...</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Ölkələr yüklənir...</div>
         ) : (
           <div className="td-grid">
             {(Array.isArray(apiCountries) ? apiCountries : (apiCountries?.data || [])).slice(0, 10).map(dest => (
-              <Link to={`/destinations/${dest.code || dest.id}`} key={dest.id} style={{ textDecoration: 'none' }}>
+              <Link to={`/destinations/${dest.code || dest.id}`} key={dest.id} className="td-card-link">
                 <div className="td-card">
-                  <img
-                    src={dest.imageUrl || fallbackImages[dest.code]}
-                    alt={dest.name}
-                    className="td-card-img"
-                    onError={(e) => handleImageError(e, dest.code)}
-                  />
-                  <div className="td-card-overlay">
-                    <div className="td-card-content">
-                      <div className="td-card-title">
-                        <span className="td-flag">{dest.flagEmoji || '🌐'}</span>
-                        <h3>{dest.name}</h3>
-                      </div>
-                      <span className="td-count">{dest.universityCount} {t('topDestinations.countSuffix')}</span>
-                      <span className="td-label">{dest.label}</span>
+                  <div className="td-card-flag-wrapper">
+                    <span className="td-flag">{dest.flagEmoji || '🌐'}</span>
+                  </div>
+                  <div className="td-card-content">
+                    <h3 className="td-card-name">{dest.name}</h3>
+                    <div className="td-meta-row">
+                      <span className="td-count">🏛️ {dest.universityCount || 0} universitet</span>
                     </div>
+                    {dest.label && <span className="td-label">{dest.label}</span>}
+                  </div>
+                  <div className="td-arrow-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
                   </div>
                 </div>
               </Link>
