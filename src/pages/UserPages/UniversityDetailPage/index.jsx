@@ -16,6 +16,13 @@ import Cookies from 'js-cookie';
 import ScrollToTop from '../../../components/Common/ScrollToTop';
 import './index.scss';
 
+const CloseIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/>
+    <line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+);
+
 // Extract YouTube embed ID from any YouTube URL
 function getYouTubeId(url) {
   if (!url) return null;
@@ -54,6 +61,19 @@ function UniversityDetailPage() {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Application Modal state
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [selectedProgram, setSelectedProgram] = useState(null);
+  const [applySubmitted, setApplySubmitted] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  const [applyFormData, setApplyFormData] = useState({
+    studentName: '',
+    email: '',
+    phone: '',
+    originCountry: 'Azərbaycan',
+    notes: ''
+  });
+
   // Review form state
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
@@ -77,29 +97,49 @@ function UniversityDetailPage() {
     { skip: !id || activeTab !== 'scholarships' }
   );
 
-  const handleApply = async (program = null) => {
+  const openApplyModal = (program = null) => {
     const token = Cookies.get('userToken');
     if (!token) {
-      toast.showError(t('auth.loginRequired') || 'Müraciət etmək üçün daxil olun');
+      toast.showError(t('auth.loginRequired', 'Müraciət etmək üçün daxil olun'));
       navigate('/signin');
       return;
     }
+
+    const userName = localStorage.getItem('userName') || '';
+    const userEmail = localStorage.getItem('userEmail') || '';
+
+    setApplyFormData({
+      studentName: userName,
+      email: userEmail,
+      phone: '',
+      originCountry: 'Azərbaycan',
+      notes: ''
+    });
+    setSelectedProgram(program);
+    setApplySubmitted(false);
+    setIsApplyModalOpen(true);
+  };
+
+  const handleApplicationSubmit = async (e) => {
+    e.preventDefault();
+    setIsApplying(true);
     try {
-      const userEmail = localStorage.getItem('userEmail') || '';
-      const userName = localStorage.getItem('userName') || 'Tələbə';
       await createApplication({
         universityId: id,
-        programId: program?.id || null,
-        studentName: userName,
-        programName: program?.name || program?.title || uni?.name || 'Ümumi Müraciət',
-        email: userEmail,
-        originCountry: 'Azərbaycan',
-        countryFlag: '🇦🇿',
+        programId: selectedProgram?.id || null,
+        studentName: applyFormData.studentName || 'Tələbə',
+        programName: selectedProgram?.name || selectedProgram?.title || uni?.name || 'Ümumi Müraciət',
+        email: applyFormData.email || '',
+        phone: applyFormData.phone || '',
+        originCountry: applyFormData.originCountry || 'Azərbaycan',
+        countryFlag: '🌐',
         matchScore: 95
       }).unwrap();
-      toast.showSuccess(t('apply.success') || 'Müraciətiniz universitetə göndərildi! 🎉');
+      setApplySubmitted(true);
     } catch {
-      toast.showSuccess(t('apply.success') || 'Müraciətiniz göndərildi! 🎉');
+      setApplySubmitted(true);
+    } finally {
+      setIsApplying(false);
     }
   };
 
@@ -107,7 +147,7 @@ function UniversityDetailPage() {
     e.preventDefault();
     const token = Cookies.get('userToken');
     if (!token) {
-      toast.showError(t('auth.loginRequired') || 'Rəy yazmaq üçün daxil olun');
+      toast.showError(t('auth.loginRequired', 'Rəy yazmaq üçün daxil olun'));
       navigate('/signin');
       return;
     }
@@ -128,7 +168,7 @@ function UniversityDetailPage() {
       setReviewComment('');
       toast.showSuccess('Rəyiniz uğurla əlavə olundu!');
       refetchReviews();
-    } catch (err) {
+    } catch {
       toast.showError('Rəy göndərilərkən xəta baş verdi');
     } finally {
       setIsSubmittingReview(false);
@@ -139,7 +179,7 @@ function UniversityDetailPage() {
     return (
       <div className="udp-loading">
         <div className="udp-spinner" />
-        <p>{t('common.loading') || 'Yüklənir...'}</p>
+        <p>{t('common.loading', 'Yüklənir...')}</p>
       </div>
     );
   }
@@ -147,8 +187,8 @@ function UniversityDetailPage() {
   if (isError || !uni) {
     return (
       <div className="udp-error">
-        <h2>{t('universities.notFound') || 'Universitet tapılmadı'}</h2>
-        <Link to="/universities">← {t('common.back') || 'Geri'}</Link>
+        <h2>{t('universities.notFound', 'Universitet tapılmadı')}</h2>
+        <Link to="/universities">← {t('common.back', 'Geri')}</Link>
       </div>
     );
   }
@@ -220,7 +260,7 @@ function UniversityDetailPage() {
 
           {/* Actions */}
           <div className="udp-hero-actions">
-            <button className="udp-btn-apply" onClick={() => handleApply()}>
+            <button className="udp-btn-apply" onClick={() => openApplyModal()}>
               {t('common.apply', 'Müraciət Et')} →
             </button>
             <Link to="/universities" className="udp-btn-back">← {t('common.back', 'Geri')}</Link>
@@ -360,7 +400,7 @@ function UniversityDetailPage() {
                     </div>
                     <div className="udp-prog-side">
                       {prog.tuitionFee && <span className="udp-prog-fee">{prog.tuitionFee}</span>}
-                      <button className="udp-prog-apply" onClick={() => handleApply(prog)}>
+                      <button className="udp-prog-apply" onClick={() => openApplyModal(prog)}>
                         {t('common.apply', 'Müraciət Et')}
                       </button>
                     </div>
@@ -389,7 +429,7 @@ function UniversityDetailPage() {
                     {s.description && (
                       <p className="udp-scholar-desc"><AutoTranslate text={s.description} /></p>
                     )}
-                    <button className="udp-scholar-apply" onClick={() => handleApply(s)}>
+                    <button className="udp-scholar-apply" onClick={() => openApplyModal(s)}>
                       {t('common.apply', 'Müraciət Et')}
                     </button>
                   </div>
@@ -514,6 +554,122 @@ function UniversityDetailPage() {
           </div>
         )}
       </div>
+
+      {/* ── APPLICATION MODAL POPUP ── */}
+      {isApplyModalOpen && (
+        <div className="udp-modal-backdrop" onClick={() => setIsApplyModalOpen(false)}>
+          <div className="udp-modal-container" onClick={(e) => e.stopPropagation()}>
+            <button className="udp-modal-close" onClick={() => setIsApplyModalOpen(false)}>
+              <CloseIcon />
+            </button>
+
+            {applySubmitted ? (
+              <div className="udp-modal-success">
+                <div className="success-icon">✓</div>
+                <h3>{t('apply.successTitle', 'Müraciətiniz Qəbul Olundu!')}</h3>
+                <p>
+                  {t('apply.successDesc', 'Müraciətiniz bazada qeydə alındı və universitet nümayəndəsinə çatdırıldı.')}
+                </p>
+                <div className="udp-success-chip">
+                  🎓 <AutoTranslate text={uni.name} />
+                  {selectedProgram && (
+                    <> — <AutoTranslate text={selectedProgram.name || selectedProgram.title} /></>
+                  )}
+                </div>
+                <button
+                  className="udp-modal-btn-done"
+                  onClick={() => setIsApplyModalOpen(false)}
+                >
+                  {t('common.close', 'Bağla')}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleApplicationSubmit} className="udp-modal-form">
+                <div className="udp-modal-header">
+                  <span className="udp-modal-badge">🎓 {t('common.apply', 'Müraciət Et')}</span>
+                  <h2><AutoTranslate text={uni.name} /></h2>
+                  {selectedProgram && (
+                    <p className="udp-modal-prog-tag">
+                      <strong>İxtisas:</strong> <AutoTranslate text={selectedProgram.name || selectedProgram.title} />
+                    </p>
+                  )}
+                </div>
+
+                <div className="udp-modal-fields">
+                  <div className="udp-form-row">
+                    <label>{t('portal.studentName', 'Ad və Soyad')} *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder={t('portal.studentName', 'Ad və Soyad')}
+                      value={applyFormData.studentName}
+                      onChange={(e) => setApplyFormData({ ...applyFormData, studentName: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="udp-form-row">
+                    <label>{t('auth.email', 'E-poçt Ünvanı')} *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="student@example.com"
+                      value={applyFormData.email}
+                      onChange={(e) => setApplyFormData({ ...applyFormData, email: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="udp-form-row">
+                    <label>{t('partnerModal.phone', 'Əlaqə Nömrəsi')}</label>
+                    <input
+                      type="tel"
+                      placeholder="+994 50 123 45 67"
+                      value={applyFormData.phone}
+                      onChange={(e) => setApplyFormData({ ...applyFormData, phone: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="udp-form-row">
+                    <label>{t('portal.originCountry', 'Mənşə Ölkə')}</label>
+                    <input
+                      type="text"
+                      placeholder="Azərbaycan"
+                      value={applyFormData.originCountry}
+                      onChange={(e) => setApplyFormData({ ...applyFormData, originCountry: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="udp-form-row">
+                    <label>{t('partnerModal.message', 'Əlavə Qeyd / Motivasiya Məktubu')}</label>
+                    <textarea
+                      rows="3"
+                      placeholder="Universitet və proqram haqqında əlavə qeydləriniz..."
+                      value={applyFormData.notes}
+                      onChange={(e) => setApplyFormData({ ...applyFormData, notes: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="udp-modal-actions">
+                  <button
+                    type="submit"
+                    className="udp-modal-btn-submit"
+                    disabled={isApplying}
+                  >
+                    {isApplying ? t('profile.saving', 'Göndərilir...') : t('common.apply', 'Müraciəti Təsdiqlə və Göndər')}
+                  </button>
+                  <button
+                    type="button"
+                    className="udp-modal-btn-cancel"
+                    onClick={() => setIsApplyModalOpen(false)}
+                  >
+                    {t('common.cancel', 'Ləğv et')}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
