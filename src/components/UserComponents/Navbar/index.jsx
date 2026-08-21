@@ -114,7 +114,7 @@ function Navbar() {
                         </li>
                         <li>
                             <NavLink to="/courses" className={({ isActive }) => `nav-link-item ${isActive ? 'active' : ''}`}>
-                                {t('nav.courses', { defaultValue: 'Courses' })}
+                                {t('nav.courses', 'Kurslar')}
                             </NavLink>
                         </li>
                         <li>
@@ -148,24 +148,25 @@ function Navbar() {
                             <div className="logged-in-profile">
                                 <Link to={
                                     (userRole === 'superadmin' || userRole === 'SuperAdmin') ? '/superadmin' :
-                                    (userRole === 'universityadmin' || userRole === 'UniversityAdmin') ? '/university-portal' :
-                                    (userRole === 'instructor' || userRole === 'Instructor' || userRole === 'teacher' || userRole === 'Teacher' || userRole === 'coursecenter' || userRole === 'CourseCenter') ? '/instructor-portal' :
+                                    (userRole === 'UniversityAdmin' || userRole === 'universityadmin') ? '/portal' :
+                                    (userRole === 'Teacher' || userRole === 'CourseCenter' || userRole === 'instructor') ? '/instructor/courses' :
                                     '/profile'
-                                } className="btn-profile">
-                                    <UserIcon /> {
-                                        (userRole === 'superadmin' || userRole === 'SuperAdmin') ? 'Admin Panel' :
-                                        (userRole === 'universityadmin' || userRole === 'UniversityAdmin') ? t('nav.portal') :
-                                        (userRole === 'instructor' || userRole === 'Instructor' || userRole === 'teacher' || userRole === 'Teacher' || userRole === 'coursecenter' || userRole === 'CourseCenter') ? 'Portal' :
-                                        t('nav.profile')
-                                    }
+                                } className="user-profile-link">
+                                    <UserIcon />
+                                    <span>{localStorage.getItem('userName') || t('nav.profile')}</span>
                                 </Link>
-                                <button className="btn-signout" onClick={handleSignOut}>
-                                    {t('nav.exit')}
+                                <button onClick={handleSignOut} className="btn-logout" title={t('nav.exit')}>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                        <polyline points="16 17 21 12 16 7" />
+                                        <line x1="21" y1="12" x2="9" y2="12" />
+                                    </svg>
                                 </button>
                             </div>
                         ) : (
                             <Link to="/signin" className="btn-signin">
-                                {t('nav.signIn')}
+                                <UserIcon />
+                                <span>{t('nav.signIn')}</span>
                             </Link>
                         )}
 
@@ -176,7 +177,11 @@ function Navbar() {
                     </div>
 
                     {/* Mobile Menu Toggle Button */}
-                    <button className="mobile-toggle-btn" onClick={toggleMenu} aria-label="Toggle Menu">
+                    <button 
+                        className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} 
+                        onClick={toggleMenu}
+                        aria-label="Toggle navigation menu"
+                    >
                         {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
                     </button>
                 </nav>
@@ -189,6 +194,11 @@ function Navbar() {
                         <li>
                             <NavLink to="/universities" className={({ isActive }) => `mobile-nav-link-item ${isActive ? 'active' : ''}`} onClick={toggleMenu}>
                                 {t('nav.browseUniversities')}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/courses" className={({ isActive }) => `mobile-nav-link-item ${isActive ? 'active' : ''}`} onClick={toggleMenu}>
+                                {t('nav.courses', 'Kurslar')}
                             </NavLink>
                         </li>
                         <li>

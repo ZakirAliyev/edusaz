@@ -437,6 +437,47 @@ const navTalentsMap = {
   kr: "숨은 재능"
 };
 
+const navCoursesMap = {
+  az: "Kurslar",
+  en: "Courses",
+  tr: "Kurslar",
+  ru: "Курсы",
+  de: "Kurse",
+  fr: "Cours",
+  es: "Cursos",
+  it: "Corsi",
+  ar: "الدورات",
+  zh: "课程",
+  pt: "Cursos",
+  nl: "Cursussen",
+  pl: "Kursy",
+  se: "Kurser",
+  sv: "Kurser",
+  fi: "Kurssit",
+  no: "Kurs",
+  da: "Kurser",
+  dk: "Kurser",
+  cs: "Kurzy",
+  cz: "Kurzy",
+  hu: "Kurzusok",
+  ro: "Cursuri",
+  el: "Μαθήματα",
+  gr: "Μαθήματα",
+  hi: "पाठ्यक्रम",
+  id: "Kursus",
+  th: "หลักสูตร",
+  vi: "Khóa học",
+  fa: "دوره‌ها",
+  uk: "Курси",
+  ua: "Курси",
+  bg: "Курсове",
+  sk: "Kurzy",
+  ja: "コース",
+  jp: "コース",
+  ko: "강좌",
+  kr: "강좌"
+};
+
 const coursesTranslations = {
   az: {
     platform: "Online Kurslar Platforması",
@@ -688,6 +729,7 @@ export function buildAllResourceBundles() {
         nav: {
           ...(en.nav || {}),
           ...(baseDict.nav || {}),
+          courses: navCoursesMap[code] || "Courses",
           talents: navTalentsMap[code] || "Talents"
         },
         portal: {
