@@ -253,10 +253,14 @@ function CourseDetailPage() {
                   {course.sections.map((section, sIdx) => (
                     <div key={section.id || sIdx} className="cdp-section">
                       <button
+                        type="button"
                         className="cdp-section__header"
-                        onClick={() => setActiveSection(activeSection === sIdx ? null : sIdx)}
+                        onClick={() => setActiveSection(activeSection === sIdx ? -1 : sIdx)}
                       >
                         <span className="cdp-section__title">
+                          <span style={{ marginRight: '10px', fontSize: '11px', color: '#7A5CFF', display: 'inline-block' }}>
+                            {activeSection === sIdx || activeSection === null ? '▼' : '▶'}
+                          </span>
                           {t('courses.section', 'Bölmə')} {sIdx + 1}: <AutoTranslate text={section.title} />
                         </span>
                         <span className="cdp-section__meta">
