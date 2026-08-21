@@ -131,10 +131,13 @@ function UniversityPortalPage() {
     }
   }, [navigate, isAuth]);
 
-  const [currentUni, setCurrentUni] = useState(null);
-  const [activeTab, setActiveTab] = useState(jwtUniId ? 'Overview' : 'University Profile');
+  const loggedInUserEmail = localStorage.getItem('userEmail') || localStorage.getItem('adminEmail') || '';
+  const { data: loggedInAdminProfile } = useGetUserProfileQuery(loggedInUserEmail, { skip: !loggedInUserEmail });
 
-  const targetUniId = jwtUniId;
+  const targetUniId = jwtUniId || loggedInAdminProfile?.universityId || localStorage.getItem('universityId') || null;
+
+  const [currentUni, setCurrentUni] = useState(null);
+  const [activeTab, setActiveTab] = useState('Overview');
 
   const { data: backendPrograms } = useGetProgramsQuery(
     targetUniId
@@ -169,13 +172,10 @@ function UniversityPortalPage() {
   const [createTeamMemberBackend] = useCreateTeamMemberMutation();
   const [deleteTeamMemberBackend] = useDeleteTeamMemberMutation();
 
-  const loggedInUserEmail = localStorage.getItem('userEmail') || localStorage.getItem('adminEmail') || 'admin@bdu.edu.az';
-  const { data: loggedInAdminProfile } = useGetUserProfileQuery(loggedInUserEmail);
-
   const [createUniversity, { isLoading: isCreatingUni }] = useCreateUniversityMutation();
   const [createProgram] = useCreateProgramMutation();
 
-  const [programsList, setProgramsList] = useState(savedUni?.programs || backendPrograms || []);
+  const [programsList, setProgramsList] = useState([]);
 
   const [showInlineProgramForm, setShowInlineProgramForm] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -183,26 +183,60 @@ function UniversityPortalPage() {
 
   // University Profile Form State
   const [uniFormData, setUniFormData] = useState({
-    Name: savedUni?.Name || '',
-    Country: savedUni?.Country || '',
-    City: savedUni?.City || '',
-    Address: savedUni?.Address || '',
-    WorldRanking: savedUni?.WorldRanking || '#450',
-    AcceptanceRate: savedUni?.AcceptanceRate || '75%',
-    TuitionRange: savedUni?.TuitionRange || '$4,000 - $8,000 / yr',
-    EstablishedYear: savedUni?.EstablishedYear || 2010,
-    TotalStudents: savedUni?.TotalStudents || '12,500',
-    InternationalStudentsRatio: savedUni?.InternationalStudentsRatio || '15%',
-    CampusSize: savedUni?.CampusSize || '120 Acres',
-    Accreditation: savedUni?.Accreditation || 'Ministry of Science & Education',
-    HousingAvailable: savedUni?.HousingAvailable || 'Yes',
-    InstructionLanguage: savedUni?.InstructionLanguage || 'English',
-    WebsiteUrl: savedUni?.WebsiteUrl || '',
-    LogoUrl: savedUni?.LogoUrl || '',
-    CoverUrl: savedUni?.CoverUrl || '',
-    Description: savedUni?.Description || '',
-    translations: savedUni?.translations || {}
+    Name: '',
+    Country: 'Azərbaycan',
+    City: 'Bakı',
+    Address: '',
+    WorldRanking: '#450',
+    AcceptanceRate: '75%',
+    TuitionRange: '$4,000 - $8,000 / yr',
+    EstablishedYear: 2010,
+    TotalStudents: '12,500',
+    InternationalStudentsRatio: '15%',
+    CampusSize: '120 Acres',
+    Accreditation: 'Ministry of Science & Education',
+    HousingAvailable: 'Yes',
+    InstructionLanguage: 'English',
+    WebsiteUrl: '',
+    LogoUrl: '',
+    CoverUrl: '',
+    Description: '',
+    translations: {}
   });
+
+  // Sync university form with backend when university data arrives
+  useEffect(() => {
+    if (backendUniversities && backendUniversities.length > 0) {
+      const found = targetUniId 
+        ? backendUniversities.find(u => u.id === targetUniId || u.Id === targetUniId)
+        : backendUniversities[0];
+
+      if (found) {
+        setCurrentUni(found);
+        setUniFormData({
+          Name: found.name || found.Name || '',
+          Country: found.country || found.Country || 'Azərbaycan',
+          City: found.city || found.City || 'Bakı',
+          Address: found.address || found.Address || '',
+          WorldRanking: found.ranking || found.WorldRanking || '#450',
+          AcceptanceRate: found.acceptanceRate || found.AcceptanceRate || '75%',
+          TuitionRange: found.tuition || found.TuitionRange || '$4,000 - $8,000 / yr',
+          EstablishedYear: found.establishedYear || found.EstablishedYear || 2010,
+          TotalStudents: found.totalStudents || found.TotalStudents || '12,500',
+          InternationalStudentsRatio: found.internationalStudentsRatio || found.InternationalStudentsRatio || '15%',
+          CampusSize: found.campusSize || found.CampusSize || '120 Acres',
+          Accreditation: found.accreditation || found.Accreditation || 'Ministry of Science & Education',
+          HousingAvailable: found.housingAvailable || found.HousingAvailable || 'Yes',
+          InstructionLanguage: found.teachingLanguage || found.InstructionLanguage || 'English',
+          WebsiteUrl: found.website || found.websiteUrl || found.WebsiteUrl || '',
+          LogoUrl: found.logoUrl || found.LogoUrl || '',
+          CoverUrl: found.coverUrl || found.CoverUrl || '',
+          Description: found.description || found.Description || '',
+          translations: found.translations || {}
+        });
+      }
+    }
+  }, [targetUniId, backendUniversities]);
 
   const handleUniChange = (e) => setUniFormData({ ...uniFormData, [e.target.name]: e.target.value });
 
