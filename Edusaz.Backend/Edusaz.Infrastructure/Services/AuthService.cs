@@ -43,7 +43,19 @@ public class AuthService : IAuthService
         var existing = await _userManager.FindByEmailAsync(registerDto.Email);
         if (existing != null)
         {
-            return false;
+            if (existing.IsDeleted)
+            {
+                var delRes = await _userManager.DeleteAsync(existing);
+                if (!delRes.Succeeded)
+                {
+                    _context.Users.Remove(existing);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
 
         var user = new User

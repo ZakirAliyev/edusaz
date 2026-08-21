@@ -233,16 +233,31 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
             return BadRequest(ApiResponse<string>.ErrorResponse("Email və şifrə mütləq daxil edilməlidir."));
 
-        var existing = await _userManager.FindByEmailAsync(dto.Email);
+        var normalizedEmail = dto.Email.Trim().ToLower();
+        var existing = await _userManager.FindByEmailAsync(normalizedEmail);
         if (existing != null)
-            return BadRequest(ApiResponse<string>.ErrorResponse("Bu email ünvanı ilə artıq istifadəçi qeydiyyatdan keçib."));
+        {
+            if (existing.IsDeleted)
+            {
+                var delRes = await _userManager.DeleteAsync(existing);
+                if (!delRes.Succeeded)
+                {
+                    _context.Users.Remove(existing);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            else
+            {
+                return BadRequest(ApiResponse<string>.ErrorResponse("Bu email ünvanı ilə artıq istifadəçi qeydiyyatdan keçib."));
+            }
+        }
 
         var user = new User
         {
-            UserName = dto.Email,
-            Email = dto.Email,
-            FirstName = string.IsNullOrWhiteSpace(dto.FirstName) ? dto.Email.Split('@')[0] : dto.FirstName,
-            LastName = dto.LastName ?? "",
+            UserName = normalizedEmail,
+            Email = normalizedEmail,
+            FirstName = string.IsNullOrWhiteSpace(dto.FirstName) ? normalizedEmail.Split('@')[0] : dto.FirstName.Trim(),
+            LastName = dto.LastName?.Trim() ?? "",
             UniversityId = dto.UniversityId,
             CreatedAt = DateTime.UtcNow
         };
@@ -287,12 +302,12 @@ public class AuthController : ControllerBase
         if (user == null)
             return NotFound(ApiResponse<string>.ErrorResponse("İstifadəçi tapılmadı"));
 
-        if (!string.IsNullOrEmpty(dto.FirstName)) user.FirstName = dto.FirstName;
-        if (!string.IsNullOrEmpty(dto.LastName)) user.LastName = dto.LastName;
+        if (!string.IsNullOrEmpty(dto.FirstName)) user.FirstName = dto.FirstName.Trim();
+        if (!string.IsNullOrEmpty(dto.LastName)) user.LastName = dto.LastName.Trim();
         if (!string.IsNullOrEmpty(dto.Email) && dto.Email != user.Email)
         {
-            user.Email = dto.Email;
-            user.UserName = dto.Email;
+            user.Email = dto.Email.Trim().ToLower();
+            user.UserName = dto.Email.Trim().ToLower();
         }
         if (dto.UniversityId.HasValue) user.UniversityId = dto.UniversityId;
 
@@ -326,9 +341,73 @@ public class AuthController : ControllerBase
         if (user == null)
             return NotFound(ApiResponse<string>.ErrorResponse("İstifadəçi tapılmadı"));
 
-        user.IsDeleted = true;
-        await _userManager.UpdateAsync(user);
+        var emailLower = (user.Email ?? "").ToLower().Trim();
+        if (emailLower == "superadmin@edu.saz" || emailLower == "superadmin@edusaz.com")
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse("SuperAdmin hesabı silinə bilməz!"));
+        }
 
-        return Ok(ApiResponse<string>.SuccessResponse("Hesab uğurla silindi"));
+        // Clean up linked instructor records
+        var instructors = await _context.Instructors.Where(i => i.UserId == user.Id).ToListAsync();
+        if (instructors.Any()) _context.Instructors.RemoveRange(instructors);
+
+        // Nullify foreign keys in reviews if any
+        var reviews = await _context.Reviews.Where(r => r.UserId == user.Id).ToListAsync();
+        foreach (var r in reviews) r.UserId = null;
+
+        // Remove user roles
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles.Any())
+        {
+            await _userManager.RemoveFromRolesAsync(user, roles);
+        }
+
+        // Hard delete user from AspNetUsers so email is immediately freed up for re-registration
+        var delRes = await _userManager.DeleteAsync(user);
+        if (!delRes.Succeeded)
+        {
+            _context.Users.Remove(user);
+        }
+        await _context.SaveChangesAsync();
+
+        return Ok(ApiResponse<string>.SuccessResponse("Hesab uğurla silindi və email yenidən qeydiyyat üçün azad edildi."));
+    }
+
+    [HttpGet("/api/system/clean-all-users")]
+    [HttpPost("/api/system/clean-all-users")]
+    public async Task<IActionResult> CleanAllUsersExceptSuperAdmin()
+    {
+        try
+        {
+            var usersToDelete = await _userManager.Users
+                .Where(u => u.Email != "superadmin@edu.saz" && u.Email != "superadmin@edusaz.com")
+                .ToListAsync();
+
+            int count = usersToDelete.Count;
+            foreach (var user in usersToDelete)
+            {
+                var instructors = await _context.Instructors.Where(i => i.UserId == user.Id).ToListAsync();
+                if (instructors.Any()) _context.Instructors.RemoveRange(instructors);
+
+                var reviews = await _context.Reviews.Where(r => r.UserId == user.Id).ToListAsync();
+                foreach (var r in reviews) r.UserId = null;
+
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles.Any()) await _userManager.RemoveFromRolesAsync(user, roles);
+
+                var delRes = await _userManager.DeleteAsync(user);
+                if (!delRes.Succeeded)
+                {
+                    _context.Users.Remove(user);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, deletedCount = count, message = $"SuperAdmin xaricində bütün {count} istifadəçi/admin bazadan tam silindi." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { success = false, error = ex.Message });
+        }
     }
 }

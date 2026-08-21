@@ -83,8 +83,7 @@ public static class DataSeeder
 
         // 5. Programs & Scholarships are now managed via admin panel — no longer cleared on restart
 
-        // 6. Seed Instructors & Courses
-        await SeedInstructorsAndCoursesAsync(serviceProvider, context, enId, azId, trId);
+        // 6. User accounts are created strictly by SuperAdmin via panel — no automatic user/admin seeding
 
         // 7. Seed Student Applications, Campaigns, Team Members
         await SeedPortalDataAsync(context, azId, enId);
