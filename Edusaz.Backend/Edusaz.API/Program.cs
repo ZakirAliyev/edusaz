@@ -12,6 +12,8 @@ using Edusaz.Infrastructure.Repositories.Languages;
 using Edusaz.Infrastructure.Repositories.Universities;
 using Edusaz.Application.Abstracts.Repositories.Countries;
 using Edusaz.Infrastructure.Repositories.Countries;
+using Edusaz.Application.Abstracts.Repositories.UniversityMedias;
+using Edusaz.Infrastructure.Repositories.UniversityMedias;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -63,11 +65,14 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
 // Register Repositories & Services
 builder.Services.AddScoped<ILanguageReadRepository, LanguageReadRepository>();
 builder.Services.AddScoped<ILanguageWriteRepository, LanguageWriteRepository>();
 builder.Services.AddScoped<IUniversityReadRepository, UniversityReadRepository>();
 builder.Services.AddScoped<IUniversityWriteRepository, UniversityWriteRepository>();
+builder.Services.AddScoped<IUniversityMediaReadRepository, UniversityMediaReadRepository>();
+builder.Services.AddScoped<IUniversityMediaWriteRepository, UniversityMediaWriteRepository>();
 builder.Services.AddScoped<ICountryReadRepository, CountryReadRepository>();
 builder.Services.AddScoped<ICountryWriteRepository, CountryWriteRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();

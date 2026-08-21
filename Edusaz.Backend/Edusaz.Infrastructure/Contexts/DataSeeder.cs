@@ -18,10 +18,17 @@ public static class DataSeeder
         try
         {
             await context.Database.ExecuteSqlRawAsync(@"
-                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""Images"" text[] DEFAULT ARRAY[]::text[];
-                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""VideoUrls"" text[] DEFAULT ARRAY[]::text[];
-                ALTER TABLE ""Programs"" ALTER COLUMN ""UniversityId"" DROP NOT NULL;
-                ALTER TABLE ""Scholarships"" ALTER COLUMN ""UniversityId"" DROP NOT NULL;
+                CREATE TABLE IF NOT EXISTS ""UniversityMedias"" (
+                    ""Id"" uuid PRIMARY KEY,
+                    ""UniversityId"" uuid NOT NULL,
+                    ""MediaType"" text NOT NULL,
+                    ""Url"" text NOT NULL,
+                    ""OrderIndex"" integer NOT NULL DEFAULT 0,
+                    ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                    ""LastUpdatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                    ""DeletedDate"" timestamp with time zone,
+                    ""IsDeleted"" boolean NOT NULL DEFAULT false
+                );
             ");
         }
         catch (Exception ex)

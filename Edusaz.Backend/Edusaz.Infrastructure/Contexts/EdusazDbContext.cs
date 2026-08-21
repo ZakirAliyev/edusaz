@@ -15,6 +15,7 @@ public class EdusazDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<Language> Languages { get; set; }
     public DbSet<University> Universities { get; set; }
     public DbSet<UniversityTranslation> UniversityTranslations { get; set; }
+    public DbSet<UniversityMedia> UniversityMedias { get; set; }
     public DbSet<Program> Programs { get; set; }
     public DbSet<ProgramTranslation> ProgramTranslations { get; set; }
     public DbSet<Country> Countries { get; set; }

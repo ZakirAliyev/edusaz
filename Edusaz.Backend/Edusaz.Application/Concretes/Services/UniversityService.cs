@@ -6,6 +6,7 @@ using Edusaz.Application.Abstracts.AI;
 using Edusaz.Application.Abstracts.Repositories.Countries;
 using Edusaz.Application.Abstracts.Repositories.Languages;
 using Edusaz.Application.Abstracts.Repositories.Universities;
+using Edusaz.Application.Abstracts.Repositories.UniversityMedias;
 using Edusaz.Application.Abstracts.Services;
 using Edusaz.Application.Dtos;
 using Edusaz.Domain.Entities;
@@ -17,6 +18,8 @@ public class UniversityService : IUniversityService
 {
     private readonly IUniversityReadRepository _universityReadRepository;
     private readonly IUniversityWriteRepository _universityWriteRepository;
+    private readonly IUniversityMediaReadRepository _universityMediaReadRepository;
+    private readonly IUniversityMediaWriteRepository _universityMediaWriteRepository;
     private readonly ILanguageReadRepository _languageReadRepository;
     private readonly ICountryReadRepository _countryReadRepository;
     private readonly ITranslationAIService _translationAiService;
@@ -24,12 +27,16 @@ public class UniversityService : IUniversityService
     public UniversityService(
         IUniversityReadRepository universityReadRepository, 
         IUniversityWriteRepository universityWriteRepository,
+        IUniversityMediaReadRepository universityMediaReadRepository,
+        IUniversityMediaWriteRepository universityMediaWriteRepository,
         ILanguageReadRepository languageReadRepository,
         ICountryReadRepository countryReadRepository,
         ITranslationAIService translationAiService)
     {
         _universityReadRepository = universityReadRepository;
         _universityWriteRepository = universityWriteRepository;
+        _universityMediaReadRepository = universityMediaReadRepository;
+        _universityMediaWriteRepository = universityMediaWriteRepository;
         _languageReadRepository = languageReadRepository;
         _countryReadRepository = countryReadRepository;
         _translationAiService = translationAiService;
@@ -43,6 +50,7 @@ public class UniversityService : IUniversityService
         );
 
         var countries = await _countryReadRepository.GetAllAsync(c => !c.IsDeleted);
+        var mediaList = await _universityMediaReadRepository.GetAllAsync(m => !m.IsDeleted);
 
         return universities.Select(u => {
             var country = u.CountryRef 
@@ -54,6 +62,11 @@ public class UniversityService : IUniversityService
             var translation = u.Translations != null 
                               ? (u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) ?? u.Translations.FirstOrDefault())
                               : null;
+
+            var uMedia = mediaList.Where(m => m.UniversityId == u.Id).OrderBy(m => m.OrderIndex).ToList();
+            var images = uMedia.Where(m => m.MediaType == "Image").Select(m => m.Url).ToList();
+            var videos = uMedia.Where(m => m.MediaType == "Video").Select(m => m.Url).ToList();
+
             return new UniversityDto
             {
                 Id = u.Id,
@@ -72,8 +85,8 @@ public class UniversityService : IUniversityService
                 Deadline = u.Deadline ?? "",
                 Ranking = u.Ranking ?? "",
                 HasScholarship = u.HasScholarship,
-                Images = u.Images ?? new(),
-                VideoUrls = u.VideoUrls ?? new()
+                Images = images,
+                VideoUrls = videos
             };
         }).ToList();
     }
@@ -97,6 +110,10 @@ public class UniversityService : IUniversityService
                           ? (u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) ?? u.Translations.FirstOrDefault())
                           : null;
 
+        var media = await _universityMediaReadRepository.GetAllAsync(m => m.UniversityId == id && !m.IsDeleted);
+        var images = media.Where(m => m.MediaType == "Image").OrderBy(m => m.OrderIndex).Select(m => m.Url).ToList();
+        var videos = media.Where(m => m.MediaType == "Video").OrderBy(m => m.OrderIndex).Select(m => m.Url).ToList();
+
         return new UniversityDto
         {
             Id = u.Id,
@@ -115,8 +132,8 @@ public class UniversityService : IUniversityService
             Deadline = u.Deadline,
             Ranking = u.Ranking,
             HasScholarship = u.HasScholarship,
-            Images = u.Images ?? new(),
-            VideoUrls = u.VideoUrls ?? new()
+            Images = images,
+            VideoUrls = videos
         };
     }
 
@@ -135,8 +152,6 @@ public class UniversityService : IUniversityService
             Deadline = dto.Deadline,
             Ranking = dto.Ranking,
             HasScholarship = dto.HasScholarship,
-            Images = dto.Images ?? new(),
-            VideoUrls = dto.VideoUrls ?? new(),
             Translations = new List<UniversityTranslation>()
         };
 
@@ -172,6 +187,41 @@ public class UniversityService : IUniversityService
         await _universityWriteRepository.AddAsync(university);
         await _universityWriteRepository.CommitAsync();
 
+        if (dto.Images != null && dto.Images.Count > 0)
+        {
+            int order = 0;
+            foreach (var img in dto.Images.Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                await _universityMediaWriteRepository.AddAsync(new UniversityMedia
+                {
+                    UniversityId = university.Id,
+                    MediaType = "Image",
+                    Url = img.Trim(),
+                    OrderIndex = order++
+                });
+            }
+        }
+
+        if (dto.VideoUrls != null && dto.VideoUrls.Count > 0)
+        {
+            int order = 0;
+            foreach (var vid in dto.VideoUrls.Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                await _universityMediaWriteRepository.AddAsync(new UniversityMedia
+                {
+                    UniversityId = university.Id,
+                    MediaType = "Video",
+                    Url = vid.Trim(),
+                    OrderIndex = order++
+                });
+            }
+        }
+
+        if ((dto.Images != null && dto.Images.Count > 0) || (dto.VideoUrls != null && dto.VideoUrls.Count > 0))
+        {
+            await _universityMediaWriteRepository.CommitAsync();
+        }
+
         return (await GetUniversityByIdAsync(university.Id, dto.BaseLanguageCode))!;
     }
 
@@ -195,8 +245,6 @@ public class UniversityService : IUniversityService
         u.Deadline = dto.Deadline;
         u.Ranking = dto.Ranking;
         u.HasScholarship = dto.HasScholarship;
-        if (dto.Images != null) u.Images = dto.Images;
-        if (dto.VideoUrls != null) u.VideoUrls = dto.VideoUrls;
 
         var baseTranslation = u.Translations.FirstOrDefault();
         if (baseTranslation != null)
@@ -217,6 +265,45 @@ public class UniversityService : IUniversityService
 
         await _universityWriteRepository.UpdateAsync(u);
         await _universityWriteRepository.CommitAsync();
+
+        // Update Media
+        var oldMedia = await _universityMediaReadRepository.GetAllAsync(m => m.UniversityId == id);
+        foreach (var m in oldMedia)
+        {
+            await _universityMediaWriteRepository.HardDeleteAsync(m);
+        }
+
+        if (dto.Images != null && dto.Images.Count > 0)
+        {
+            int order = 0;
+            foreach (var img in dto.Images.Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                await _universityMediaWriteRepository.AddAsync(new UniversityMedia
+                {
+                    UniversityId = id,
+                    MediaType = "Image",
+                    Url = img.Trim(),
+                    OrderIndex = order++
+                });
+            }
+        }
+
+        if (dto.VideoUrls != null && dto.VideoUrls.Count > 0)
+        {
+            int order = 0;
+            foreach (var vid in dto.VideoUrls.Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                await _universityMediaWriteRepository.AddAsync(new UniversityMedia
+                {
+                    UniversityId = id,
+                    MediaType = "Video",
+                    Url = vid.Trim(),
+                    OrderIndex = order++
+                });
+            }
+        }
+
+        await _universityMediaWriteRepository.CommitAsync();
 
         return (await GetUniversityByIdAsync(u.Id, dto.BaseLanguageCode))!;
     }
