@@ -18,8 +18,8 @@ public static class DataSeeder
         try
         {
             await context.Database.ExecuteSqlRawAsync(@"
-                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""Images"" text[] DEFAULT ('{}'::text[]);
-                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""VideoUrls"" text[] DEFAULT ('{}'::text[]);
+                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""Images"" text[] DEFAULT ARRAY[]::text[];
+                ALTER TABLE ""Universities"" ADD COLUMN IF NOT EXISTS ""VideoUrls"" text[] DEFAULT ARRAY[]::text[];
                 ALTER TABLE ""Programs"" ALTER COLUMN ""UniversityId"" DROP NOT NULL;
                 ALTER TABLE ""Scholarships"" ALTER COLUMN ""UniversityId"" DROP NOT NULL;
             ");
