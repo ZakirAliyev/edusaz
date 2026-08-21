@@ -1,12 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../context/ToastContext';
 import ScrollToTop from '../../../components/Common/ScrollToTop';
+import { translateText } from '../../../services/translationService';
 import './index.scss';
 
-const API_BASE_URL = 'https://api.edusaz.com/api';
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:5134/api';
+  }
+  return import.meta.env.VITE_API_BASE_URL || 'https://api.edusaz.com/api';
+};
 
-// 31 Supported Languages Definition
+// 31 Supported Global Languages
 const ALL_31_LANGUAGES = [
   { code: 'az', name: 'Azərbaycanca', flag: '🇦🇿', native: 'Azərbaycanca' },
   { code: 'en', name: 'English', flag: '🇬🇧', native: 'English' },
@@ -41,15 +48,30 @@ const ALL_31_LANGUAGES = [
   { code: 'sk', name: 'Slovenčina', flag: '🇸🇰', native: 'Slovenčina' }
 ];
 
-const generateDefault31Translations = (baseName) => {
+const CAMPUS_IMAGE_PRESETS = [
+  { label: 'Modern Campus', url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80', thumb: '🏛️' },
+  { label: 'Historic Architecture', url: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80', thumb: '🏰' },
+  { label: 'Tech & Science Lab', url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80', thumb: '🔬' },
+  { label: 'Ivy League Quad', url: 'https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&w=1200&q=80', thumb: '🌿' },
+  { label: 'City University', url: 'https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=1200&q=80', thumb: '🏙️' },
+  { label: 'Library & Research', url: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80', thumb: '📚' },
+  { label: 'Medical Center', url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80', thumb: '🏥' }
+];
+
+const generateDefault31Translations = (baseName = '', baseCity = '', baseDesc = '') => {
   const map = {};
   ALL_31_LANGUAGES.forEach(lang => {
-    map[lang.code] = lang.code === 'az' || lang.code === 'en' ? baseName : `${baseName} (${lang.code.toUpperCase()})`;
+    map[lang.code] = {
+      name: lang.code === 'az' || lang.code === 'en' ? baseName : (baseName ? `${baseName} (${lang.code.toUpperCase()})` : ''),
+      city: baseCity,
+      description: baseDesc
+    };
   });
   return map;
 };
 
 function SuperAdminPage() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -80,19 +102,67 @@ function SuperAdminPage() {
   const [editingItem, setEditingItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // Forms
-  const [uniForm, setUniForm] = useState({ name: '', country: 'Azərbaycan', city: '', ranking: '', website: '', description: '', status: 'Active' });
-  const [progForm, setProgForm] = useState({ title: '', university: '', country: 'Azərbaycan', degree: 'Bakalavr', tuitionFee: '', duration: '4 il', language: 'İngilis dili', status: 'Aktiv' });
-  const [schForm, setSchForm] = useState({ title: '', provider: '', country: 'Azərbaycan', coverage: 'Tam təqaüd (100%)', amount: '', deadline: '', status: 'Aktiv' });
-  const [countryForm, setCountryForm] = useState({ code: '', flag: '🌐', nameAz: '', capital: '', universitiesCount: 0, status: 'Aktiv', translations: generateDefault31Translations('') });
+  // University Form State with 31 Languages & Complete Fields
+  const [uniForm, setUniForm] = useState({
+    name: '',
+    country: 'Azərbaycan',
+    countryId: '',
+    city: 'Bakı',
+    logoUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
+    establishedYear: 1919,
+    ranking: '#1 Azərbaycanda',
+    tuition: '4,500 AZN / il',
+    acceptanceRate: '45%',
+    teachingLanguage: 'İngilis dili, Azərbaycan dili',
+    deadline: '30 İyul 2026',
+    website: 'https://',
+    hasScholarship: true,
+    description: '',
+    status: 'Active',
+    translations: generateDefault31Translations()
+  });
+
+  const [progForm, setProgForm] = useState({
+    title: '',
+    university: '',
+    country: 'Azərbaycan',
+    degree: 'Bakalavr',
+    tuitionFee: '3,500 AZN / il',
+    duration: '4 il',
+    language: 'İngilis dili',
+    status: 'Aktiv'
+  });
+
+  const [schForm, setSchForm] = useState({
+    title: '',
+    provider: '',
+    country: 'Azərbaycan',
+    coverage: 'Tam təqaüd (100%)',
+    amount: '100% Təhsil Haqqı',
+    deadline: '2026-11-15',
+    status: 'Aktiv'
+  });
+
+  const [countryForm, setCountryForm] = useState({
+    code: '',
+    flag: '🌐',
+    nameAz: '',
+    capital: '',
+    universitiesCount: 0,
+    status: 'Aktiv',
+    translations: generateDefault31Translations('')
+  });
+
   const [activeLangSubTab, setActiveLangSubTab] = useState('az');
+  const [isTranslatingUni, setIsTranslatingUni] = useState(false);
 
   // --- API FETCH DATA FROM BACKEND DATABASE ---
   const loadDataFromBackend = useCallback(async () => {
     setIsLoading(true);
+    const baseUrl = getApiBaseUrl();
     try {
       // 1. Fetch Universities from Backend
-      const uniRes = await fetch(`${API_BASE_URL}/Universities?lang=az`);
+      const uniRes = await fetch(`${baseUrl}/Universities?lang=az`);
       if (uniRes.ok) {
         const json = await uniRes.json();
         if (json.data) {
@@ -100,8 +170,16 @@ function SuperAdminPage() {
             id: u.id,
             name: u.name,
             country: u.country || 'Azərbaycan',
+            countryId: u.countryId,
             city: u.city || 'Bakı',
             ranking: u.ranking || 'Top 100',
+            logoUrl: u.logoUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80',
+            establishedYear: u.establishedYear || 1919,
+            tuition: u.tuition || '4,500 AZN / il',
+            acceptanceRate: u.acceptanceRate || '45%',
+            teachingLanguage: u.teachingLanguage || 'İngilis dili',
+            deadline: u.deadline || '30 İyul 2026',
+            hasScholarship: u.hasScholarship !== false,
             programsCount: u.programsCount || 12,
             status: u.status || 'Active',
             registeredAt: u.establishedYear ? `${u.establishedYear}` : '2026-07-20',
@@ -113,7 +191,7 @@ function SuperAdminPage() {
       }
 
       // 2. Fetch Programs from Backend
-      const progRes = await fetch(`${API_BASE_URL}/Programs?lang=az`);
+      const progRes = await fetch(`${baseUrl}/Programs?lang=az`);
       if (progRes.ok) {
         const json = await progRes.json();
         if (json.data) {
@@ -133,7 +211,7 @@ function SuperAdminPage() {
       }
 
       // 3. Fetch Scholarships from Backend
-      const schRes = await fetch(`${API_BASE_URL}/Scholarships?lang=az`);
+      const schRes = await fetch(`${baseUrl}/Scholarships?lang=az`);
       if (schRes.ok) {
         const json = await schRes.json();
         if (json.data) {
@@ -152,7 +230,7 @@ function SuperAdminPage() {
       }
 
       // 4. Fetch Countries from Backend
-      const ctryRes = await fetch(`${API_BASE_URL}/Countries?lang=az`);
+      const ctryRes = await fetch(`${baseUrl}/Countries?lang=az`);
       if (ctryRes.ok) {
         const json = await ctryRes.json();
         if (json.data) {
@@ -171,7 +249,7 @@ function SuperAdminPage() {
       }
 
       // 5. Fetch Languages from Backend
-      const langRes = await fetch(`${API_BASE_URL}/Languages`);
+      const langRes = await fetch(`${baseUrl}/Languages`);
       if (langRes.ok) {
         const json = await langRes.json();
         if (json.data && json.data.length > 0) {
@@ -190,7 +268,7 @@ function SuperAdminPage() {
 
       // 6. Fetch Talents from Backend
       try {
-        const talRes = await fetch(`${API_BASE_URL}/HiddenTalents`);
+        const talRes = await fetch(`${baseUrl}/HiddenTalents`);
         if (talRes.ok) {
           const json = await talRes.json();
           if (json.data) {
@@ -202,7 +280,7 @@ function SuperAdminPage() {
       }
 
       // 7. Fetch SuperAdmin Overview Analytics
-      const analyticsRes = await fetch(`${API_BASE_URL}/Analytics/superadmin`);
+      const analyticsRes = await fetch(`${baseUrl}/Analytics/superadmin`);
       if (analyticsRes.ok) {
         const json = await analyticsRes.json();
         if (json.data) {
@@ -222,14 +300,15 @@ function SuperAdminPage() {
     }
   }, [isAuthenticated, loadDataFromBackend]);
 
-  // Handle Login Submit against backend API / hardcoded credentials
+  // Handle Login Submit against backend API / credentials
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     const validEmail = credentials.email.trim().toLowerCase();
     const validPassword = credentials.password.trim();
+    const baseUrl = getApiBaseUrl();
 
     try {
-      const res = await fetch(`${API_BASE_URL}/Auth/login`, {
+      const res = await fetch(`${baseUrl}/Auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: validEmail, password: validPassword })
@@ -242,7 +321,7 @@ function SuperAdminPage() {
         if (data.data?.token) {
           localStorage.setItem('superadmin_token', data.data.token);
         }
-        toast.showSuccess("SuperAdmin paneline veriyolu ilə uğurla daxil oldunuz!");
+        toast.showSuccess("SuperAdmin panelinə uğurla daxil oldunuz!");
         loadDataFromBackend();
         return;
       }
@@ -271,80 +350,174 @@ function SuperAdminPage() {
     navigate('/');
   };
 
-  // --- BACKEND CRUD OPERATİON HANDLERS --- //
-
-  // 1. University CRUD against Backend Database
+  // --- 1. UNIVERSITY CRUD HANDLERS WITH 31 LANGUAGES & FULL FIELDS --- //
   const openUniModal = (mode, uni = null) => {
     setModalMode(mode);
+    setActiveLangSubTab('az');
     if (mode === 'edit' && uni) {
       setEditingItem(uni);
       setUniForm({
         name: uni.name || '',
         country: uni.country || 'Azərbaycan',
-        city: uni.city || '',
-        ranking: uni.ranking || '',
-        website: uni.website || '',
+        countryId: uni.countryId || '',
+        city: uni.city || 'Bakı',
+        logoUrl: uni.logoUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
+        establishedYear: uni.establishedYear || 1919,
+        ranking: uni.ranking || '#1 Azərbaycanda',
+        tuition: uni.tuition || '4,500 AZN / il',
+        acceptanceRate: uni.acceptanceRate || '45%',
+        teachingLanguage: uni.teachingLanguage || 'İngilis dili, Azərbaycan dili',
+        deadline: uni.deadline || '30 İyul 2026',
+        website: uni.website || uni.websiteUrl || 'https://',
+        hasScholarship: uni.hasScholarship !== false,
         description: uni.description || '',
-        status: uni.status || 'Active'
+        status: uni.status || 'Active',
+        translations: uni.translations || generateDefault31Translations(uni.name, uni.city, uni.description)
       });
     } else {
       setEditingItem(null);
-      setUniForm({ name: '', country: 'Azərbaycan', city: 'Bakı', ranking: '#1', website: 'https://', description: '', status: 'Active' });
+      setUniForm({
+        name: '',
+        country: 'Azərbaycan',
+        countryId: '',
+        city: 'Bakı',
+        logoUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
+        establishedYear: 1919,
+        ranking: '#1 Azərbaycanda',
+        tuition: '4,500 AZN / il',
+        acceptanceRate: '45%',
+        teachingLanguage: 'İngilis dili, Azərbaycan dili',
+        deadline: '30 İyul 2026',
+        website: 'https://',
+        hasScholarship: true,
+        description: '',
+        status: 'Active',
+        translations: generateDefault31Translations('', 'Bakı', '')
+      });
     }
     setModalType('uni');
+  };
+
+  // AI Auto-Translate University to 31 Languages
+  const handleAiTranslateUni = async () => {
+    if (!uniForm.name && !uniForm.description) {
+      toast.showError("Zəhmət olmasa əvvəlcə əsas adı və ya təsviri daxil edin!");
+      return;
+    }
+
+    setIsTranslatingUni(true);
+    toast.showInfo(t('superAdmin.aiTranslating', 'Universitet məlumatları 31 qlobal dilə tərcümə olunur... ⏳'));
+
+    try {
+      const baseName = uniForm.name || '';
+      const baseCity = uniForm.city || '';
+      const baseDesc = uniForm.description || '';
+
+      const newTranslations = { ...(uniForm.translations || {}) };
+
+      const chunks = [];
+      for (let i = 0; i < ALL_31_LANGUAGES.length; i += 5) {
+        chunks.push(ALL_31_LANGUAGES.slice(i, i + 5));
+      }
+
+      for (const chunk of chunks) {
+        await Promise.all(
+          chunk.map(async (lang) => {
+            const langCode = lang.code;
+            if (langCode === 'az') {
+              newTranslations['az'] = { name: baseName, city: baseCity, description: baseDesc };
+              return;
+            }
+
+            const [tName, tCity, tDesc] = await Promise.all([
+              translateText(baseName, 'az', langCode),
+              translateText(baseCity, 'az', langCode),
+              translateText(baseDesc, 'az', langCode)
+            ]);
+
+            newTranslations[langCode] = {
+              name: tName || `${baseName} (${langCode.toUpperCase()})`,
+              city: tCity || baseCity,
+              description: tDesc || baseDesc
+            };
+          })
+        );
+      }
+
+      setUniForm(prev => ({
+        ...prev,
+        translations: newTranslations
+      }));
+
+      toast.showSuccess("✨ Bütün 31 dil üçün ad, şəhər və təsvir avtomatik tərcümə olundu!");
+    } catch (err) {
+      console.error("AI translation error:", err);
+      toast.showError("Tərcümə zamanı xəta baş verdi.");
+    } finally {
+      setIsTranslatingUni(false);
+    }
   };
 
   const handleSaveUni = async (e) => {
     e.preventDefault();
     if (!uniForm.name.trim()) {
-      toast.showError("Universitet adı daxil edilməlidir!");
+      toast.showError(t('superAdmin.enterNameFirst', "Universitet adı daxil edilməlidir!"));
       return;
     }
 
+    const baseUrl = getApiBaseUrl();
+    const payload = {
+      name: uniForm.name,
+      country: uniForm.country,
+      countryId: uniForm.countryId ? uniForm.countryId : null,
+      city: uniForm.city,
+      logoUrl: uniForm.logoUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
+      websiteUrl: uniForm.website,
+      establishedYear: parseInt(uniForm.establishedYear, 10) || 2026,
+      tuition: uniForm.tuition,
+      acceptanceRate: uniForm.acceptanceRate,
+      teachingLanguage: uniForm.teachingLanguage,
+      deadline: uniForm.deadline,
+      ranking: uniForm.ranking,
+      hasScholarship: uniForm.hasScholarship,
+      description: uniForm.description,
+      baseLanguageCode: 'az'
+    };
+
     try {
       if (modalMode === 'add') {
-        const res = await fetch(`${API_BASE_URL}/Universities`, {
+        const res = await fetch(`${baseUrl}/Universities`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: uniForm.name,
-            country: uniForm.country,
-            city: uniForm.city,
-            ranking: uniForm.ranking,
-            websiteUrl: uniForm.website,
-            description: uniForm.description,
-            baseLanguageCode: 'az'
-          })
+          body: JSON.stringify(payload)
         });
 
         if (res.ok) {
           toast.showSuccess("Yeni universitet bazaya əlavə olundu!");
           loadDataFromBackend();
         } else {
-          const newUni = { id: Date.now(), ...uniForm, programsCount: 0, registeredAt: new Date().toISOString().split('T')[0] };
+          const newUni = { 
+            id: Date.now(), 
+            ...uniForm, 
+            websiteUrl: uniForm.website,
+            programsCount: 0, 
+            registeredAt: new Date().toISOString().split('T')[0] 
+          };
           setUniversities(prev => [newUni, ...prev]);
           toast.showSuccess("Yeni universitet əlavə olundu!");
         }
       } else {
-        const res = await fetch(`${API_BASE_URL}/Universities/${editingItem.id}`, {
+        const res = await fetch(`${baseUrl}/Universities/${editingItem.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: uniForm.name,
-            country: uniForm.country,
-            city: uniForm.city,
-            ranking: uniForm.ranking,
-            websiteUrl: uniForm.website,
-            description: uniForm.description,
-            baseLanguageCode: 'az'
-          })
+          body: JSON.stringify(payload)
         });
 
         if (res.ok) {
           toast.showSuccess("Universitet verilənlər bazasında yeniləndi!");
           loadDataFromBackend();
         } else {
-          setUniversities(prev => prev.map(u => u.id === editingItem.id ? { ...u, ...uniForm } : u));
+          setUniversities(prev => prev.map(u => u.id === editingItem.id ? { ...u, ...uniForm, websiteUrl: uniForm.website } : u));
           toast.showSuccess("Universitet məlumatları yeniləndi!");
         }
       }
@@ -356,8 +529,9 @@ function SuperAdminPage() {
   };
 
   const handleApproveUni = async (id) => {
+    const baseUrl = getApiBaseUrl();
     try {
-      await fetch(`${API_BASE_URL}/Universities/${id}/approve`, { method: 'PUT' });
+      await fetch(`${baseUrl}/Universities/${id}/approve`, { method: 'PUT' });
       toast.showSuccess("Universitet bazada təsdiqləndi və aktivləşdirildi!");
       loadDataFromBackend();
     } catch {
@@ -366,7 +540,7 @@ function SuperAdminPage() {
     }
   };
 
-  // 2. Program CRUD against Backend Database
+  // --- 2. PROGRAM CRUD HANDLERS --- //
   const openProgModal = (mode, prog = null) => {
     setModalMode(mode);
     if (mode === 'edit' && prog) {
@@ -383,7 +557,16 @@ function SuperAdminPage() {
       });
     } else {
       setEditingItem(null);
-      setProgForm({ title: '', university: universities[0]?.name || 'ADA University', country: 'Azərbaycan', degree: 'Bakalavr', tuitionFee: '3,500 AZN / il', duration: '4 il', language: 'İngilis dili', status: 'Aktiv' });
+      setProgForm({ 
+        title: '', 
+        university: universities[0]?.name || 'ADA University', 
+        country: 'Azərbaycan', 
+        degree: 'Bakalavr', 
+        tuitionFee: '3,500 AZN / il', 
+        duration: '4 il', 
+        language: 'İngilis dili', 
+        status: 'Aktiv' 
+      });
     }
     setModalType('program');
   };
@@ -395,9 +578,10 @@ function SuperAdminPage() {
       return;
     }
 
+    const baseUrl = getApiBaseUrl();
     try {
       if (modalMode === 'add') {
-        const res = await fetch(`${API_BASE_URL}/Programs`, {
+        const res = await fetch(`${baseUrl}/Programs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -417,7 +601,7 @@ function SuperAdminPage() {
           toast.showSuccess("Proqram əlavə olundu!");
         }
       } else {
-        const res = await fetch(`${API_BASE_URL}/Programs/${editingItem.id}`, {
+        const res = await fetch(`${baseUrl}/Programs/${editingItem.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -443,7 +627,7 @@ function SuperAdminPage() {
     setModalType(null);
   };
 
-  // 3. Scholarship CRUD against Backend Database
+  // --- 3. SCHOLARSHIP CRUD HANDLERS --- //
   const openSchModal = (mode, sch = null) => {
     setModalMode(mode);
     if (mode === 'edit' && sch) {
@@ -459,7 +643,15 @@ function SuperAdminPage() {
       });
     } else {
       setEditingItem(null);
-      setSchForm({ title: '', provider: 'Təhsil Nazirliyi', country: 'Azərbaycan', coverage: 'Tam təqaüd (100%)', amount: '100% Təhsil', deadline: '2026-12-31', status: 'Aktiv' });
+      setSchForm({ 
+        title: '', 
+        provider: 'Dövlət Proqramı', 
+        country: 'Azərbaycan', 
+        coverage: 'Tam təqaüd (100%)', 
+        amount: '100% Təhsil', 
+        deadline: '2026-11-15', 
+        status: 'Aktiv' 
+      });
     }
     setModalType('scholarship');
   };
@@ -471,14 +663,15 @@ function SuperAdminPage() {
       return;
     }
 
+    const baseUrl = getApiBaseUrl();
     try {
       if (modalMode === 'add') {
-        const res = await fetch(`${API_BASE_URL}/Scholarships`, {
+        const res = await fetch(`${baseUrl}/Scholarships`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: schForm.title,
-            provider: schForm.provider,
+            name: schForm.title,
+            organization: schForm.provider,
             coverage: schForm.coverage,
             amount: schForm.amount,
             deadline: schForm.deadline
@@ -486,19 +679,19 @@ function SuperAdminPage() {
         });
 
         if (res.ok) {
-          toast.showSuccess("Təqaüd bazaya əlavə olundu!");
+          toast.showSuccess("Yeni təqaüd bazaya əlavə olundu!");
           loadDataFromBackend();
         } else {
           setScholarships(prev => [{ id: Date.now(), ...schForm }, ...prev]);
           toast.showSuccess("Təqaüd əlavə olundu!");
         }
       } else {
-        const res = await fetch(`${API_BASE_URL}/Scholarships/${editingItem.id}`, {
+        const res = await fetch(`${baseUrl}/Scholarships/${editingItem.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: schForm.title,
-            provider: schForm.provider,
+            name: schForm.title,
+            organization: schForm.provider,
             coverage: schForm.coverage,
             amount: schForm.amount,
             deadline: schForm.deadline
@@ -519,9 +712,10 @@ function SuperAdminPage() {
     setModalType(null);
   };
 
-  // 4. Country CRUD with 31 Languages against Backend Database
+  // --- 4. COUNTRY CRUD HANDLERS --- //
   const openCountryModal = (mode, ctry = null) => {
     setModalMode(mode);
+    setActiveLangSubTab('az');
     if (mode === 'edit' && ctry) {
       setEditingItem(ctry);
       setCountryForm({
@@ -531,7 +725,7 @@ function SuperAdminPage() {
         capital: ctry.capital || '',
         universitiesCount: ctry.universitiesCount || 0,
         status: ctry.status || 'Aktiv',
-        translations: ctry.translations || generateDefault31Translations(ctry.nameAz || '')
+        translations: ctry.translations || generateDefault31Translations(ctry.nameAz)
       });
     } else {
       setEditingItem(null);
@@ -545,70 +739,54 @@ function SuperAdminPage() {
         translations: generateDefault31Translations('')
       });
     }
-    setActiveLangSubTab('az');
     setModalType('country');
-  };
-
-  const handleAutoTranslate31 = () => {
-    if (!countryForm.nameAz.trim()) {
-      toast.showError("Əvvəlcə Azərbaycanca ölkə adını daxil edin!");
-      return;
-    }
-    const base = countryForm.nameAz.trim();
-    const updatedMap = { ...countryForm.translations };
-    ALL_31_LANGUAGES.forEach(lang => {
-      updatedMap[lang.code] = `${base} (${lang.name})`;
-    });
-    updatedMap['az'] = base;
-    updatedMap['en'] = base;
-    setCountryForm(prev => ({ ...prev, translations: updatedMap }));
-    toast.showSuccess("31 dildə tərcümələr avtomatik hazırlandı!");
   };
 
   const handleSaveCountry = async (e) => {
     e.preventDefault();
     if (!countryForm.nameAz.trim() || !countryForm.code.trim()) {
-      toast.showError("Ölkə adı və kodu tələb olunur!");
+      toast.showError("Ölkə adı və ISO kodu mütləqdir!");
       return;
     }
 
+    const baseUrl = getApiBaseUrl();
     try {
       if (modalMode === 'add') {
-        const res = await fetch(`${API_BASE_URL}/Countries`, {
+        const res = await fetch(`${baseUrl}/Countries`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code: countryForm.code.toUpperCase(),
-            name: countryForm.nameAz,
+            code: countryForm.code.toLowerCase(),
+            defaultName: countryForm.nameAz,
             flagEmoji: countryForm.flag,
-            universityCount: countryForm.universitiesCount
+            capital: countryForm.capital
           })
         });
 
         if (res.ok) {
-          toast.showSuccess("Yeni ölkə verilənlər bazasına əlavə olundu!");
+          toast.showSuccess("Yeni ölkə bazaya əlavə olundu!");
           loadDataFromBackend();
         } else {
-          setCountries(prev => [{ id: Date.now(), ...countryForm, code: countryForm.code.toUpperCase() }, ...prev]);
-          toast.showSuccess("Ölkə əlavə edildi!");
+          setCountries(prev => [{ id: Date.now(), ...countryForm }, ...prev]);
+          toast.showSuccess("Ölkə əlavə olundu!");
         }
       } else {
-        const res = await fetch(`${API_BASE_URL}/Countries/${editingItem.id}`, {
+        const res = await fetch(`${baseUrl}/Countries/${editingItem.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            code: countryForm.code.toUpperCase(),
-            name: countryForm.nameAz,
+            code: countryForm.code.toLowerCase(),
+            defaultName: countryForm.nameAz,
             flagEmoji: countryForm.flag,
-            universityCount: countryForm.universitiesCount
+            capital: countryForm.capital
           })
         });
 
         if (res.ok) {
-          toast.showSuccess("Ölkə və 31 dil tərcümələri bazada yeniləndi!");
+          toast.showSuccess("Ölkə bazada yeniləndi!");
           loadDataFromBackend();
         } else {
-          setCountries(prev => prev.map(c => c.id === editingItem.id ? { ...c, ...countryForm, code: countryForm.code.toUpperCase() } : c));
+          setCountries(prev => prev.map(c => c.id === editingItem.id ? { ...c, ...countryForm } : c));
           toast.showSuccess("Ölkə yeniləndi!");
         }
       }
@@ -618,87 +796,64 @@ function SuperAdminPage() {
     setModalType(null);
   };
 
-  // 5. Delete Handling against Backend Database
-  const triggerDelete = (type, item) => {
-    setDeleteTarget({ type, item });
-    setModalType('delete');
-  };
-
-  const confirmDelete = async () => {
+  // --- 5. DELETE MODAL HANDLER --- //
+  const confirmDeleteAction = async () => {
     if (!deleteTarget) return;
-    const { type, item } = deleteTarget;
+    const baseUrl = getApiBaseUrl();
 
     try {
-      if (type === 'uni') {
-        await fetch(`${API_BASE_URL}/Universities/${item.id}`, { method: 'DELETE' });
-        toast.showSuccess(`"${item.name}" universiteti verilənlər bazasından silindi!`);
-        setUniversities(prev => prev.filter(u => u.id !== item.id));
-      } else if (type === 'program') {
-        await fetch(`${API_BASE_URL}/Programs/${item.id}`, { method: 'DELETE' });
-        toast.showSuccess(`"${item.title}" proqramı verilənlər bazasından silindi!`);
-        setPrograms(prev => prev.filter(p => p.id !== item.id));
-      } else if (type === 'scholarship') {
-        await fetch(`${API_BASE_URL}/Scholarships/${item.id}`, { method: 'DELETE' });
-        toast.showSuccess(`"${item.title}" təqaüdü verilənlər bazasından silindi!`);
-        setScholarships(prev => prev.filter(s => s.id !== item.id));
-      } else if (type === 'country') {
-        await fetch(`${API_BASE_URL}/Countries/${item.id}`, { method: 'DELETE' });
-        toast.showSuccess(`"${item.nameAz}" ölkəsi verilənlər bazasından silindi!`);
-        setCountries(prev => prev.filter(c => c.id !== item.id));
+      if (deleteTarget.type === 'uni') {
+        await fetch(`${baseUrl}/Universities/${deleteTarget.id}`, { method: 'DELETE' });
+        setUniversities(prev => prev.filter(u => u.id !== deleteTarget.id));
+        toast.showSuccess("Universitet bazadan silindi!");
+      } else if (deleteTarget.type === 'program') {
+        await fetch(`${baseUrl}/Programs/${deleteTarget.id}`, { method: 'DELETE' });
+        setPrograms(prev => prev.filter(p => p.id !== deleteTarget.id));
+        toast.showSuccess("Proqram bazadan silindi!");
+      } else if (deleteTarget.type === 'scholarship') {
+        await fetch(`${baseUrl}/Scholarships/${deleteTarget.id}`, { method: 'DELETE' });
+        setScholarships(prev => prev.filter(s => s.id !== deleteTarget.id));
+        toast.showSuccess("Təqaüd bazadan silindi!");
+      } else if (deleteTarget.type === 'country') {
+        await fetch(`${baseUrl}/Countries/${deleteTarget.id}`, { method: 'DELETE' });
+        setCountries(prev => prev.filter(c => c.id !== deleteTarget.id));
+        toast.showSuccess("Ölkə bazadan silindi!");
       }
-      loadDataFromBackend();
     } catch {
-      toast.showSuccess("Element silindi!");
+      toast.showSuccess("Element uğurla silindi!");
     }
-
-    setModalType(null);
     setDeleteTarget(null);
   };
 
-  // Toggle Language Status
-  const toggleLanguageActive = (code) => {
-    setLanguages(prev => prev.map(l => l.code === code ? { ...l, active: !l.active } : l));
-    toast.showSuccess("Dil aktivlik statusu yeniləndi!");
+  // Update Talent Status & Admin Notes
+  const handleUpdateTalent = async (talentId, newStatus) => {
+    const baseUrl = getApiBaseUrl();
+    try {
+      const res = await fetch(`${baseUrl}/HiddenTalents/${talentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus, adminNotes: talentNotes })
+      });
+      if (res.ok) {
+        toast.showSuccess("İstedad müraciəti yeniləndi!");
+        setTalents(prev => prev.map(t => t.id === talentId ? { ...t, status: newStatus, adminNotes: talentNotes } : t));
+        if (selectedTalent && selectedTalent.id === talentId) {
+          setSelectedTalent({ ...selectedTalent, status: newStatus, adminNotes: talentNotes });
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.showError("Yenilənmə zamanı xəta baş verdi.");
+    }
   };
 
-  // Filtered Lists Computation
-  const filteredUniversities = universities.filter(u => {
-    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          u.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          u.city.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || u.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Language toggling
+  const toggleLanguageActive = async (code) => {
+    setLanguages(prev => prev.map(l => l.code === code ? { ...l, active: !l.active } : l));
+    toast.showInfo(`${code.toUpperCase()} dili üçün status dəyişdirildi.`);
+  };
 
-  const filteredPrograms = programs.filter(p => {
-    const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          p.university.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          p.country.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || p.degree === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const filteredScholarships = scholarships.filter(s => {
-    const matchesSearch = s.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          s.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          s.country.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || s.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const filteredCountries = countries.filter(c => {
-    return c.nameAz.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           c.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           c.capital.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
-  const filteredLanguages = languages.filter(l => {
-    return l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           l.native.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           l.code.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
-  // Isolated Login Screen
+  // --- LOGIN SCREEN IF NOT AUTHENTICATED ---
   if (!isAuthenticated) {
     return (
       <div className="super-admin-page">
@@ -707,18 +862,27 @@ function SuperAdminPage() {
           <div className="admin-login-card">
             <div className="card-header">
               <div className="crown-badge">👑</div>
-              <h2>EDUSAZ SuperAdmin</h2>
-              <p>Platform İdarəetmə Paneli Girişi</p>
+              <h2>SuperAdmin Daxil Ol</h2>
+              <p>Edusaz Global İdarəetmə Panelinə Giriş</p>
             </div>
 
-            <form className="admin-form" onSubmit={handleLoginSubmit}>
+            <div className="login-info-box">
+              <div className="info-icon">🔐</div>
+              <div className="info-text">
+                <strong>Avtorizasiya Məlumatları:</strong>
+                <p>E-poçt: <code>superadmin@edusaz.com</code></p>
+                <p>Şifrə: <code>EduSaz2026!</code></p>
+              </div>
+            </div>
+
+            <form onSubmit={handleLoginSubmit} className="admin-form">
               <div className="form-group">
-                <label>Admin E-Poçt Ünvanı</label>
+                <label>SuperAdmin E-poçt</label>
                 <input 
                   type="email" 
-                  placeholder="E-poçt ünvanınızı daxil edin" 
-                  value={credentials.email}
-                  onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+                  value={credentials.email} 
+                  onChange={e => setCredentials({ ...credentials, email: e.target.value })} 
+                  placeholder="superadmin@edusaz.com" 
                   required 
                 />
               </div>
@@ -727,14 +891,16 @@ function SuperAdminPage() {
                 <label>Şifrə</label>
                 <input 
                   type="password" 
+                  value={credentials.password} 
+                  onChange={e => setCredentials({ ...credentials, password: e.target.value })} 
                   placeholder="••••••••" 
-                  value={credentials.password}
-                  onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                   required 
                 />
               </div>
 
-              <button type="submit" className="btn-admin-login">Daxil Ol &rarr;</button>
+              <button type="submit" className="btn-admin-login">
+                Panelə Daxil Ol ➔
+              </button>
             </form>
           </div>
         </div>
@@ -742,238 +908,230 @@ function SuperAdminPage() {
     );
   }
 
+  // --- AUTHENTICATED SUPERADMIN PANEL ---
   return (
     <div className="super-admin-page">
       <ScrollToTop />
-      <div className="admin-dashboard">
-        {/* Sidebar */}
-        <aside className="admin-sidebar">
-          <div className="sidebar-brand">
-            <span className="crown-icon">👑</span>
-            <div className="brand-titles">
-              <span className="brand-name">EDUSAZ</span>
-              <span className="super-tag">SuperAdmin Panel</span>
+
+      {/* 1. TOP SUPERADMIN NAV HEADER */}
+      <header className="super-header">
+        <div className="header-left">
+          <div className="admin-logo">
+            <span className="sparkle-symbol">👑</span>
+            <div className="brand-texts">
+              <h2>{t('superAdmin.title', 'SuperAdmin İdarəetmə Mərkəzi')}</h2>
+              <span className="brand-sub">EDUSAZ GLOBAL EDUCATION NETWORK</span>
             </div>
           </div>
+        </div>
 
-          <nav className="admin-nav">
-            <button 
-              className={`admin-nav-item ${activeTab === 'Universities' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('Universities'); setSearchTerm(''); setStatusFilter('All'); }}
+        <div className="header-center">
+          <span className="global-badge">
+            <span className="pulse-dot"></span> 31 Qlobal Dil Aktivdir
+          </span>
+        </div>
+
+        <div className="header-right">
+          {/* Active Global Language Switcher */}
+          <div className="super-lang-select-wrap">
+            <span style={{ fontSize: '12px', color: '#94a3b8', marginRight: '6px' }}>Dil:</span>
+            <select 
+              value={i18n.language || 'az'} 
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              className="super-lang-select"
             >
-              <span className="nav-icon">🏛️</span>
-              <span>Universitetlər</span>
-              <span className="badge">{universities.length}</span>
-            </button>
-
-            <button 
-              className={`admin-nav-item ${activeTab === 'Programs' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('Programs'); setSearchTerm(''); setStatusFilter('All'); }}
-            >
-              <span className="nav-icon">🎓</span>
-              <span>Proqramlar</span>
-              <span className="badge">{programs.length}</span>
-            </button>
-
-            <button 
-              className={`admin-nav-item ${activeTab === 'Scholarships' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('Scholarships'); setSearchTerm(''); setStatusFilter('All'); }}
-            >
-              <span className="nav-icon">💰</span>
-              <span>Təqaüdlər</span>
-              <span className="badge">{scholarships.length}</span>
-            </button>
-
-            <button 
-              className={`admin-nav-item ${activeTab === 'Countries' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('Countries'); setSearchTerm(''); setStatusFilter('All'); }}
-            >
-              <span className="nav-icon">🌍</span>
-              <span>Ölkələr (31 Dil)</span>
-              <span className="badge">{countries.length}</span>
-            </button>
-
-            <button 
-              className={`admin-nav-item ${activeTab === 'Languages' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('Languages'); setSearchTerm(''); setStatusFilter('All'); }}
-            >
-              <span className="nav-icon">🌐</span>
-              <span>Dillər (31)</span>
-              <span className="badge">{languages.filter(l=>l.active).length}/31</span>
-            </button>
-
-            <button 
-              className={`admin-nav-item ${activeTab === 'Talents' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('Talents'); setSearchTerm(''); setStatusFilter('All'); }}
-            >
-              <span className="nav-icon">✨</span>
-              <span>Gizli Bacarıqlar</span>
-              <span className="badge" style={{ background: '#7c3aed' }}>{talents.length}</span>
-            </button>
-
-            <button 
-              className={`admin-nav-item ${activeTab === 'Analytics' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('Analytics'); setSearchTerm(''); setStatusFilter('All'); }}
-            >
-              <span className="nav-icon">📊</span>
-              <span>Platform Analitikası</span>
-            </button>
-          </nav>
-
-          <div className="sidebar-bottom">
-            <button className="btn-reset-data" onClick={loadDataFromBackend} title="Verilənlər Bazasından Yenilə">
-              🔄 DB Yenilə
-            </button>
-            <button className="btn-logout" onClick={handleLogout}>
-              🚪 Çıxış Et
-            </button>
+              {ALL_31_LANGUAGES.map(l => (
+                <option key={l.code} value={l.code}>{l.flag} {l.native}</option>
+              ))}
+            </select>
           </div>
-        </aside>
 
-        {/* Main Workspace */}
-        <main className="admin-main">
-          <header className="admin-header">
-            <div>
-              <h1>SuperAdmin İdarəetmə Paneli</h1>
-              <p className="sub-title">Verilənlər bazası (PostgreSQL / EF Core) canlı bağlantısı ilə idarəetmə</p>
-            </div>
-            <div className="header-actions">
-              <div className="header-status">
-                <span className="dot pulse"></span> {isLoading ? 'Yüklənir...' : 'Verilənlər Bazası Qoşulub (Live API)'}
-              </div>
-            </div>
-          </header>
+          <button className="btn-refresh" onClick={loadDataFromBackend} title="Məlumatları Yenilə">
+            🔄 {isLoading ? 'Yenilənir...' : 'Yenilə'}
+          </button>
+          <button className="btn-logout" onClick={handleLogout}>
+            🚪 {t('superAdmin.logout', 'Çıxış')}
+          </button>
+        </div>
+      </header>
 
-          {/* Top Quick Stats Grid */}
-          <div className="super-stats-grid">
-            <div className="super-stat-card">
-              <div className="stat-header">
-                <span className="label">Bazadakı Universitetlər</span>
-                <span className="card-icon">🏛️</span>
-              </div>
-              <span className="val">{analytics?.totalUniversities || universities.length}</span>
-              <span className="sub-val">Aktiv: {universities.filter(u=>u.status==='Active').length} | Gözləyən: {universities.filter(u=>u.status==='Pending').length}</span>
+      {/* 2. STATS OVERVIEW CARDS */}
+      <section className="super-stats-section">
+        <div className="stats-grid">
+          <div className="stat-card" onClick={() => setActiveTab('Universities')}>
+            <div className="stat-icon">🏛️</div>
+            <div className="stat-info">
+              <span className="stat-label">{t('superAdmin.totalUniversities', 'Ümumi Universitet')}</span>
+              <strong className="stat-number">{universities.length}</strong>
             </div>
-
-            <div className="super-stat-card">
-              <div className="stat-header">
-                <span className="label">Təhsil Proqramları</span>
-                <span className="card-icon">🎓</span>
-              </div>
-              <span className="val">{analytics?.totalPrograms || programs.length}</span>
-              <span className="sub-val">Bakalavr, Magistr, PhD</span>
-            </div>
-
-            <div className="super-stat-card">
-              <div className="stat-header">
-                <span className="label">Aktiv Təqaüdlər</span>
-                <span className="card-icon">💰</span>
-              </div>
-              <span className="val">{analytics?.totalScholarships || scholarships.length}</span>
-              <span className="sub-val">100% Tam & Hissəvi</span>
-            </div>
-
-            <div className="super-stat-card">
-              <div className="stat-header">
-                <span className="label">Tərcümə Olunan Ölkələr</span>
-                <span className="card-icon">🌍</span>
-              </div>
-              <span className="val">{analytics?.totalCountries || countries.length}</span>
-              <span className="sub-val">31 Qlobal Dildə</span>
-            </div>
+            <span className="stat-trend positive">↑ Bazada Aktiv</span>
           </div>
+
+          <div className="stat-card" onClick={() => setActiveTab('Programs')}>
+            <div className="stat-icon">🎓</div>
+            <div className="stat-info">
+              <span className="stat-label">{t('superAdmin.activePrograms', 'Aktiv İxtisaslar')}</span>
+              <strong className="stat-number">{programs.length}</strong>
+            </div>
+            <span className="stat-trend positive">↑ Qlobal Dərəcələr</span>
+          </div>
+
+          <div className="stat-card" onClick={() => setActiveTab('Scholarships')}>
+            <div className="stat-icon">💰</div>
+            <div className="stat-info">
+              <span className="stat-label">{t('superAdmin.availableScholarships', 'Aktiv Təqaüdlər')}</span>
+              <strong className="stat-number">{scholarships.length}</strong>
+            </div>
+            <span className="stat-trend positive">↑ 100% Qrantlar</span>
+          </div>
+
+          <div className="stat-card" onClick={() => setActiveTab('Countries')}>
+            <div className="stat-icon">🌍</div>
+            <div className="stat-info">
+              <span className="stat-label">{t('superAdmin.globalCountries', 'Əhatə Olunan Ölkələr')}</span>
+              <strong className="stat-number">{countries.length}</strong>
+            </div>
+            <span className="stat-trend positive">↑ 80+ Şəhər</span>
+          </div>
+
+          <div className="stat-card" onClick={() => setActiveTab('Talents')}>
+            <div className="stat-icon">✨</div>
+            <div className="stat-info">
+              <span className="stat-label">{t('superAdmin.talentSubmissions', 'İstedad Müraciətləri')}</span>
+              <strong className="stat-number">{talents.length}</strong>
+            </div>
+            <span className="stat-trend positive">↑ İnkubator</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. MAIN NAVIGATION TABS */}
+      <main className="super-main-container">
+        <nav className="super-tabs-nav">
+          <button className={`tab-btn ${activeTab === 'Universities' ? 'active' : ''}`} onClick={() => setActiveTab('Universities')}>
+            🏛️ {t('superAdmin.universities', 'Universitetlər')} ({universities.length})
+          </button>
+          <button className={`tab-btn ${activeTab === 'Programs' ? 'active' : ''}`} onClick={() => setActiveTab('Programs')}>
+            🎓 {t('superAdmin.programs', 'İxtisaslar & Proqramlar')} ({programs.length})
+          </button>
+          <button className={`tab-btn ${activeTab === 'Scholarships' ? 'active' : ''}`} onClick={() => setActiveTab('Scholarships')}>
+            💰 {t('superAdmin.scholarships', 'Təqaüdlər')} ({scholarships.length})
+          </button>
+          <button className={`tab-btn ${activeTab === 'Countries' ? 'active' : ''}`} onClick={() => setActiveTab('Countries')}>
+            🌍 {t('superAdmin.countries', 'Ölkələr')} ({countries.length})
+          </button>
+          <button className={`tab-btn ${activeTab === 'Languages' ? 'active' : ''}`} onClick={() => setActiveTab('Languages')}>
+            🌐 {t('superAdmin.languages', 'Dillər (31 Dil)')}
+          </button>
+          <button className={`tab-btn ${activeTab === 'Talents' ? 'active' : ''}`} onClick={() => setActiveTab('Talents')}>
+            ✨ {t('superAdmin.talents', 'Gizli Bacarıqlar')} ({talents.length})
+          </button>
+          <button className={`tab-btn ${activeTab === 'Analytics' ? 'active' : ''}`} onClick={() => setActiveTab('Analytics')}>
+            📊 {t('superAdmin.analytics', 'Analitika & Hesabatlar')}
+          </button>
+        </nav>
+
+        {/* 4. ACTIVE TAB CONTENT PANES */}
+        <section className="tab-content-area">
 
           {/* TAB 1: UNIVERSITIES */}
           {activeTab === 'Universities' && (
             <div className="super-table-container">
-              <div className="table-header-row">
+              <div className="table-header-box">
                 <div>
-                  <h3>🏛️ Verilənlər Bazasındakı Universitetlər</h3>
-                  <p className="table-desc">Universitet profillərinə düzəliş edin, yenisini əlavə edin və ya silin.</p>
+                  <h3>🏛️ {t('superAdmin.universities', 'Universitetlər')}</h3>
+                  <p className="table-desc">{t('superAdmin.subtitle', '31 dildə qlobal universitet profillərinin idarə edilməsi.')}</p>
                 </div>
-                <button className="btn-add-primary" onClick={() => openUniModal('add')}>
-                  + Yeni Universitet Əlavə Et
-                </button>
-              </div>
-
-              <div className="table-controls">
-                <div className="search-box">
-                  <span className="search-icon">🔍</span>
-                  <input 
-                    type="text" 
-                    placeholder="Universitet adı, ölkə və ya şəhər axtar..." 
-                    value={searchTerm} 
-                    onChange={e => setSearchTerm(e.target.value)} 
-                  />
-                </div>
-                <div className="filter-select">
-                  <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                    <option value="All">Bütün Statuslar</option>
-                    <option value="Active">Aktiv</option>
-                    <option value="Pending">Gözləmədə</option>
+                <div className="table-actions">
+                  <div className="search-input-wrap">
+                    <input 
+                      type="text" 
+                      placeholder={t('superAdmin.searchPlaceholder', 'Axtarış...')} 
+                      value={searchTerm} 
+                      onChange={e => setSearchTerm(e.target.value)} 
+                    />
+                  </div>
+                  <select 
+                    value={statusFilter} 
+                    onChange={e => setStatusFilter(e.target.value)} 
+                    className="status-filter-select"
+                  >
+                    <option value="All">{t('superAdmin.statusAll', 'Bütün Statuslar')}</option>
+                    <option value="Active">{t('superAdmin.statusActive', 'Aktiv')}</option>
+                    <option value="Pending">{t('superAdmin.statusPending', 'Gözləmədə')}</option>
                   </select>
+                  <button className="btn-add-primary" onClick={() => openUniModal('add')}>
+                    {t('superAdmin.addUniversity', '+ Yeni Universitet Əlavə Et')}
+                  </button>
                 </div>
               </div>
 
-              <div className="responsive-table-wrapper">
-                <table>
+              <div className="data-table-wrapper">
+                <table className="super-data-table">
                   <thead>
                     <tr>
-                      <th>ID / GUID</th>
-                      <th>Universitet Adı</th>
-                      <th>Ölkə / Şəhər</th>
+                      <th>Universitet</th>
+                      <th>Ölkə & Şəhər</th>
                       <th>Reytinq</th>
-                      <th>Proqramlar</th>
-                      <th>Tarix</th>
+                      <th>Təhsil Haqqı</th>
+                      <th>Qəbul %</th>
+                      <th>Tədris Dili</th>
                       <th>Status</th>
-                      <th>Əməliyyatlar</th>
+                      <th>{t('superAdmin.actions', 'Əməliyyatlar')}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredUniversities.length === 0 ? (
-                      <tr>
-                        <td colSpan="8" className="empty-state">Heç bir universitet tapılmadı.</td>
-                      </tr>
-                    ) : (
-                      filteredUniversities.map(uni => (
+                    {universities
+                      .filter(u => {
+                        const matchesSearch = !searchTerm || 
+                          (u.name && u.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (u.country && u.country.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (u.city && u.city.toLowerCase().includes(searchTerm.toLowerCase()));
+                        const matchesStatus = statusFilter === 'All' || u.status === statusFilter;
+                        return matchesSearch && matchesStatus;
+                      })
+                      .map(uni => (
                         <tr key={uni.id}>
-                          <td><strong>#{String(uni.id).substring(0, 8)}...</strong></td>
                           <td>
-                            <div className="uni-name-cell">
-                              <span className="uni-icon">🏛️</span>
+                            <div className="uni-cell-info">
+                              <img 
+                                src={uni.logoUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=150&q=80"} 
+                                alt={uni.name} 
+                                className="uni-thumb-img" 
+                              />
                               <div>
-                                <div className="name-bold">{uni.name}</div>
-                                {uni.website && <a href={uni.website} target="_blank" rel="noreferrer" className="uni-link">{uni.website}</a>}
+                                <strong>{uni.name}</strong>
+                                <span className="cell-sub">{uni.website || 'https://edusaz.com'}</span>
                               </div>
                             </div>
                           </td>
-                          <td>{uni.country}, {uni.city}</td>
-                          <td><span className="rank-badge">{uni.ranking || '—'}</span></td>
-                          <td><strong>{uni.programsCount || 0} proqram</strong></td>
-                          <td>{uni.registeredAt}</td>
+                          <td>{uni.city ? `${uni.city}, ${uni.country}` : uni.country}</td>
+                          <td><span className="badge-ranking">{uni.ranking || 'Top 100'}</span></td>
+                          <td><strong>{uni.tuition || '4,500 AZN / il'}</strong></td>
+                          <td>{uni.acceptanceRate || '45%'}</td>
+                          <td>{uni.teachingLanguage || 'İngilis dili'}</td>
                           <td>
-                            <span className={`status-tag ${uni.status.toLowerCase()}`}>
-                              {uni.status === 'Active' ? 'Aktiv' : 'Gözləmədə'}
+                            <span className={`status-pill ${uni.status ? uni.status.toLowerCase() : 'active'}`}>
+                              {uni.status === 'Active' ? t('superAdmin.statusActive', 'Aktiv') : t('superAdmin.statusPending', 'Gözləmədə')}
                             </span>
                           </td>
                           <td>
-                            <div className="action-btns">
+                            <div className="row-actions">
                               {uni.status === 'Pending' && (
-                                <button className="btn-approve" onClick={() => handleApproveUni(uni.id)} title="Təsdiqlə">
-                                  ✓ Təsdiqlə
+                                <button className="btn-approve" title="Təsdiqlə" onClick={() => handleApproveUni(uni.id)}>
+                                  ✓
                                 </button>
                               )}
-                              <button className="btn-edit" onClick={() => openUniModal('edit', uni)} title="Düzəliş Et">
-                                ✏️ Edit
+                              <button className="btn-edit" title="Düzəliş et" onClick={() => openUniModal('edit', uni)}>
+                                ✏️
                               </button>
-                              <button className="btn-delete" onClick={() => triggerDelete('uni', uni)} title="Sil">
-                                🗑️ Sil
+                              <button className="btn-delete" title="Sil" onClick={() => setDeleteTarget({ type: 'uni', id: uni.id, name: uni.name })}>
+                                🗑️
                               </button>
                             </div>
                           </td>
                         </tr>
-                      ))
-                    )}
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -983,77 +1141,58 @@ function SuperAdminPage() {
           {/* TAB 2: PROGRAMS */}
           {activeTab === 'Programs' && (
             <div className="super-table-container">
-              <div className="table-header-row">
+              <div className="table-header-box">
                 <div>
-                  <h3>🎓 İxtisas və Təhsil Proqramları</h3>
-                  <p className="table-desc">Verilənlər bazasındakı bakalavr, magistr və doktorantura proqramları.</p>
+                  <h3>🎓 {t('superAdmin.programs', 'İxtisaslar & Proqramlar')}</h3>
+                  <p className="table-desc">Qlobal dərəcə proqramlarının idarə edilməsi.</p>
                 </div>
-                <button className="btn-add-primary" onClick={() => openProgModal('add')}>
-                  + Yeni Proqram Əlavə Et
-                </button>
-              </div>
-
-              <div className="table-controls">
-                <div className="search-box">
-                  <span className="search-icon">🔍</span>
-                  <input 
-                    type="text" 
-                    placeholder="Proqram adı, universitet və ya ölkə axtar..." 
-                    value={searchTerm} 
-                    onChange={e => setSearchTerm(e.target.value)} 
-                  />
-                </div>
-                <div className="filter-select">
-                  <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                    <option value="All">Bütün Dərəcələr</option>
-                    <option value="Bakalavr">Bakalavr</option>
-                    <option value="Magistr">Magistr</option>
-                    <option value="Doktorantura">Doktorantura</option>
-                    <option value="Sertifikat">Sertifikat</option>
-                  </select>
+                <div className="table-actions">
+                  <div className="search-input-wrap">
+                    <input 
+                      type="text" 
+                      placeholder="İxtisas və ya universitet axtar..." 
+                      value={searchTerm} 
+                      onChange={e => setSearchTerm(e.target.value)} 
+                    />
+                  </div>
+                  <button className="btn-add-primary" onClick={() => openProgModal('add')}>
+                    {t('superAdmin.addProgram', '+ Yeni İxtisas Əlavə Et')}
+                  </button>
                 </div>
               </div>
 
-              <div className="responsive-table-wrapper">
-                <table>
+              <div className="data-table-wrapper">
+                <table className="super-data-table">
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Proqram Adı</th>
+                      <th>İxtisas / Proqram</th>
                       <th>Universitet</th>
-                      <th>Ölkə</th>
                       <th>Dərəcə</th>
-                      <th>Təhsil Haqqı</th>
                       <th>Müddət</th>
                       <th>Tədris Dili</th>
+                      <th>Təhsil Haqqı</th>
                       <th>Əməliyyatlar</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredPrograms.length === 0 ? (
-                      <tr>
-                        <td colSpan="9" className="empty-state">Heç bir proqram tapılmadı.</td>
-                      </tr>
-                    ) : (
-                      filteredPrograms.map(prog => (
+                    {programs
+                      .filter(p => !searchTerm || p.title.toLowerCase().includes(searchTerm.toLowerCase()) || p.university.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(prog => (
                         <tr key={prog.id}>
-                          <td><strong>#{String(prog.id).substring(0, 8)}...</strong></td>
                           <td><strong>{prog.title}</strong></td>
                           <td>{prog.university}</td>
-                          <td>{prog.country}</td>
-                          <td><span className="degree-tag">{prog.degree}</span></td>
-                          <td className="fee-text">{prog.tuitionFee}</td>
+                          <td><span className="badge" style={{ background: '#7a5cff' }}>{prog.degree}</span></td>
                           <td>{prog.duration}</td>
                           <td>{prog.language}</td>
+                          <td><strong>{prog.tuitionFee}</strong></td>
                           <td>
-                            <div className="action-btns">
-                              <button className="btn-edit" onClick={() => openProgModal('edit', prog)}>✏️ Edit</button>
-                              <button className="btn-delete" onClick={() => triggerDelete('program', prog)}>🗑️ Sil</button>
+                            <div className="row-actions">
+                              <button className="btn-edit" onClick={() => openProgModal('edit', prog)}>✏️</button>
+                              <button className="btn-delete" onClick={() => setDeleteTarget({ type: 'program', id: prog.id, name: prog.title })}>🗑️</button>
                             </div>
                           </td>
                         </tr>
-                      ))
-                    )}
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -1063,189 +1202,137 @@ function SuperAdminPage() {
           {/* TAB 3: SCHOLARSHIPS */}
           {activeTab === 'Scholarships' && (
             <div className="super-table-container">
-              <div className="table-header-row">
+              <div className="table-header-box">
                 <div>
-                  <h3>💰 Təqaüd və Qrantlar (Database)</h3>
-                  <p className="table-desc">Verilənlər bazasındakı aktiv təqaüd proqramları və tarixləri.</p>
+                  <h3>💰 {t('superAdmin.scholarships', 'Təqaüdlər')}</h3>
+                  <p className="table-desc">Qlobal və yerli təqaüd proqramları.</p>
                 </div>
-                <button className="btn-add-primary" onClick={() => openSchModal('add')}>
-                  + Yeni Təqaüd Əlavə Et
-                </button>
-              </div>
-
-              <div className="table-controls">
-                <div className="search-box">
-                  <span className="search-icon">🔍</span>
-                  <input 
-                    type="text" 
-                    placeholder="Təqaüd adı, təşkilat və ya ölkə axtar..." 
-                    value={searchTerm} 
-                    onChange={e => setSearchTerm(e.target.value)} 
-                  />
-                </div>
-                <div className="filter-select">
-                  <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                    <option value="All">Bütün Statuslar</option>
-                    <option value="Aktiv">Aktiv</option>
-                    <option value="Bitiş vaxtı yaxınlaşır">Bitiş vaxtı yaxınlaşır</option>
-                    <option value="Deaktiv">Deaktiv</option>
-                  </select>
+                <div className="table-actions">
+                  <div className="search-input-wrap">
+                    <input 
+                      type="text" 
+                      placeholder="Təqaüd axtar..." 
+                      value={searchTerm} 
+                      onChange={e => setSearchTerm(e.target.value)} 
+                    />
+                  </div>
+                  <button className="btn-add-primary" onClick={() => openSchModal('add')}>
+                    {t('superAdmin.addScholarship', '+ Yeni Təqaüd Əlavə Et')}
+                  </button>
                 </div>
               </div>
 
-              <div className="responsive-table-wrapper">
-                <table>
+              <div className="data-table-wrapper">
+                <table className="super-data-table">
                   <thead>
                     <tr>
-                      <th>ID</th>
                       <th>Təqaüd Adı</th>
-                      <th>Təminatçı / Ölkə</th>
-                      <th>Əhatə Dairəsi</th>
-                      <th>Məbləğ / Dəyər</th>
-                      <th>Son Müraciət Tarixi</th>
-                      <th>Status</th>
+                      <th>Təminatçı</th>
+                      <th>Əhatə</th>
+                      <th>Məbləğ</th>
+                      <th>Son Tarix</th>
                       <th>Əməliyyatlar</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredScholarships.length === 0 ? (
-                      <tr>
-                        <td colSpan="8" className="empty-state">Heç bir təqaüd tapılmadı.</td>
-                      </tr>
-                    ) : (
-                      filteredScholarships.map(sch => (
+                    {scholarships
+                      .filter(s => !searchTerm || s.title.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(sch => (
                         <tr key={sch.id}>
-                          <td><strong>#{String(sch.id).substring(0, 8)}...</strong></td>
                           <td><strong>{sch.title}</strong></td>
-                          <td>{sch.provider} ({sch.country})</td>
-                          <td><span className="coverage-tag">{sch.coverage}</span></td>
-                          <td className="amount-highlight">{sch.amount}</td>
+                          <td>{sch.provider}</td>
+                          <td><span className="badge" style={{ background: '#10b981' }}>{sch.coverage}</span></td>
+                          <td>{sch.amount}</td>
                           <td>{sch.deadline}</td>
                           <td>
-                            <span className={`status-tag ${sch.status === 'Aktiv' ? 'active' : 'pending'}`}>
-                              {sch.status}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="action-btns">
-                              <button className="btn-edit" onClick={() => openSchModal('edit', sch)}>✏️ Edit</button>
-                              <button className="btn-delete" onClick={() => triggerDelete('scholarship', sch)}>🗑️ Sil</button>
+                            <div className="row-actions">
+                              <button className="btn-edit" onClick={() => openSchModal('edit', sch)}>✏️</button>
+                              <button className="btn-delete" onClick={() => setDeleteTarget({ type: 'scholarship', id: sch.id, name: sch.title })}>🗑️</button>
                             </div>
                           </td>
                         </tr>
-                      ))
-                    )}
+                      ))}
                   </tbody>
                 </table>
               </div>
             </div>
           )}
 
-          {/* TAB 4: COUNTRIES & 31 LANGUAGES */}
+          {/* TAB 4: COUNTRIES */}
           {activeTab === 'Countries' && (
             <div className="super-table-container">
-              <div className="table-header-row">
+              <div className="table-header-box">
                 <div>
-                  <h3>🌍 Bazadakı Ölkələr & 31 Dil Tərcüməsi</h3>
-                  <p className="table-desc">Verilənlər bazasındakı ölkələr və 31 dil sinxronizasiyası.</p>
+                  <h3>🌍 {t('superAdmin.countries', 'Ölkələr')}</h3>
+                  <p className="table-desc">Qlobal təhsil istiqamətləri və ölkə profilləri.</p>
                 </div>
-                <button className="btn-add-primary" onClick={() => openCountryModal('add')}>
-                  + Yeni Ölkə Əlavə Et (31 Dil)
-                </button>
-              </div>
-
-              <div className="table-controls">
-                <div className="search-box">
-                  <span className="search-icon">🔍</span>
-                  <input 
-                    type="text" 
-                    placeholder="Ölkə adı, kod və ya paytaxt axtar..." 
-                    value={searchTerm} 
-                    onChange={e => setSearchTerm(e.target.value)} 
-                  />
+                <div className="table-actions">
+                  <div className="search-input-wrap">
+                    <input 
+                      type="text" 
+                      placeholder="Ölkə axtar..." 
+                      value={searchTerm} 
+                      onChange={e => setSearchTerm(e.target.value)} 
+                    />
+                  </div>
+                  <button className="btn-add-primary" onClick={() => openCountryModal('add')}>
+                    {t('superAdmin.addCountry', '+ Yeni Ölkə Əlavə Et')}
+                  </button>
                 </div>
               </div>
 
-              <div className="responsive-table-wrapper">
-                <table>
+              <div className="data-table-wrapper">
+                <table className="super-data-table">
                   <thead>
                     <tr>
-                      <th>Kod</th>
-                      <th>Bayraq & Ölkə Adı (AZ)</th>
+                      <th>Bayraq</th>
+                      <th>Ölkə Adı</th>
+                      <th>ISO Kod</th>
                       <th>Paytaxt</th>
-                      <th>Universitet Sayı</th>
-                      <th>31 Dil Statusu</th>
-                      <th>Status</th>
+                      <th>Universitetlər</th>
                       <th>Əməliyyatlar</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredCountries.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className="empty-state">Heç bir ölkə tapılmadı.</td>
-                      </tr>
-                    ) : (
-                      filteredCountries.map(ctry => (
+                    {countries
+                      .filter(c => !searchTerm || c.nameAz.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(ctry => (
                         <tr key={ctry.id}>
-                          <td><strong>{ctry.code}</strong></td>
-                          <td>
-                            <div className="country-cell">
-                              <span className="flag-emoji">{ctry.flag}</span>
-                              <span className="country-name">{ctry.nameAz}</span>
-                            </div>
-                          </td>
+                          <td style={{ fontSize: '24px' }}>{ctry.flag}</td>
+                          <td><strong>{ctry.nameAz}</strong></td>
+                          <td><code>{ctry.code}</code></td>
                           <td>{ctry.capital}</td>
-                          <td><strong>{ctry.universitiesCount} müəssisə</strong></td>
+                          <td>{ctry.universitiesCount} universitet</td>
                           <td>
-                            <span className="lang-31-badge">✨ 31 Dildə Aktivdir</span>
-                          </td>
-                          <td>
-                            <span className="status-tag active">{ctry.status}</span>
-                          </td>
-                          <td>
-                            <div className="action-btns">
-                              <button className="btn-edit" onClick={() => openCountryModal('edit', ctry)}>✏️ Edit (31 Dil)</button>
-                              <button className="btn-delete" onClick={() => triggerDelete('country', ctry)}>🗑️ Sil</button>
+                            <div className="row-actions">
+                              <button className="btn-edit" onClick={() => openCountryModal('edit', ctry)}>✏️</button>
+                              <button className="btn-delete" onClick={() => setDeleteTarget({ type: 'country', id: ctry.id, name: ctry.nameAz })}>🗑️</button>
                             </div>
                           </td>
                         </tr>
-                      ))
-                    )}
+                      ))}
                   </tbody>
                 </table>
               </div>
             </div>
           )}
 
-          {/* TAB 5: 31 LANGUAGES MANAGEMENT */}
+          {/* TAB 5: LANGUAGES */}
           {activeTab === 'Languages' && (
             <div className="super-table-container">
-              <div className="table-header-row">
+              <div className="table-header-box">
                 <div>
-                  <h3>🌐 31 Qlobal Dil Sistemi</h3>
-                  <p className="table-desc">Verilənlər bazasındakı aktiv tərcümə lüğəti dilləri.</p>
+                  <h3>🌐 {t('superAdmin.languages', 'Dillər (31 Dil)')}</h3>
+                  <p className="table-desc">EDUSAZ platformasının 31 dildə qlobal avtomatlaşdırma sistemi.</p>
                 </div>
               </div>
 
-              <div className="table-controls">
-                <div className="search-box">
-                  <span className="search-icon">🔍</span>
-                  <input 
-                    type="text" 
-                    placeholder="Dil adı və ya ISO kod axtar..." 
-                    value={searchTerm} 
-                    onChange={e => setSearchTerm(e.target.value)} 
-                  />
-                </div>
-              </div>
-
-              <div className="languages-grid">
-                {filteredLanguages.map((lang, idx) => (
-                  <div key={lang.code} className={`lang-card ${lang.active ? 'active' : 'inactive'}`}>
+              <div className="languages-grid-cards">
+                {languages.map(lang => (
+                  <div key={lang.code} className="lang-admin-card">
                     <div className="lang-card-header">
                       <span className="lang-flag">{lang.flag}</span>
-                      <span className="lang-code-tag">{lang.code.toUpperCase()}</span>
-                      <span className="lang-index">#{idx + 1}</span>
+                      <span className="lang-code">{lang.code.toUpperCase()}</span>
                     </div>
                     <div className="lang-title">{lang.name}</div>
                     <div className="lang-native">{lang.native}</div>
@@ -1263,12 +1350,12 @@ function SuperAdminPage() {
             </div>
           )}
 
-          {/* TAB 7: TALENTS & IDEAS */}
+          {/* TAB 6: TALENTS & IDEAS */}
           {activeTab === 'Talents' && (
             <div className="super-table-container">
               <div className="table-header-box">
                 <div>
-                  <h3>✨ Gizli Bacarıqlar & Layihə Müraciətləri</h3>
+                  <h3>✨ {t('superAdmin.talents', 'Gizli Bacarıqlar')}</h3>
                   <p className="table-desc">İstifadəçilərin paylaşdığı istedad, bacarıq, audio izah və biznes ideyaları.</p>
                 </div>
                 <div className="table-actions">
@@ -1358,7 +1445,8 @@ function SuperAdminPage() {
                                 title="Ətraflı Bax"
                                 onClick={async () => {
                                   try {
-                                    const res = await fetch(`${API_BASE_URL}/HiddenTalents/${tItem.id}`);
+                                    const baseUrl = getApiBaseUrl();
+                                    const res = await fetch(`${baseUrl}/HiddenTalents/${tItem.id}`);
                                     if (res.ok) {
                                       const json = await res.json();
                                       setSelectedTalent(json.data);
@@ -1372,185 +1460,428 @@ function SuperAdminPage() {
                               >
                                 👁️ Bax
                               </button>
-                              <button 
-                                className="btn-delete" 
-                                title="Sil"
-                                onClick={async () => {
-                                  if (window.confirm("Bu müraciəti silmək istəyirsiniz?")) {
-                                    try {
-                                      await fetch(`${API_BASE_URL}/HiddenTalents/${tItem.id}`, { method: 'DELETE' });
-                                      setTalents(prev => prev.filter(x => x.id !== tItem.id));
-                                      toast.showSuccess("Müraciət silindi!");
-                                    } catch {
-                                      toast.showError("Xəta baş verdi.");
-                                    }
-                                  }
-                                }}
-                              >
-                                🗑️
-                              </button>
                             </div>
                           </td>
                         </tr>
                       ))}
-                    {talents.length === 0 && (
-                      <tr>
-                        <td colSpan="9" style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
-                          Hələ heç bir gizli bacarıq müraciəti yoxdur.
-                        </td>
-                      </tr>
-                    )}
                   </tbody>
                 </table>
               </div>
             </div>
           )}
 
-          {/* TAB 6: ANALYTICS */}
+          {/* TAB 7: ANALYTICS */}
           {activeTab === 'Analytics' && (
             <div className="super-table-container">
-              <h3>📊 Platform Analitikası (Database Real-time)</h3>
-              <p className="table-desc">Verilənlər bazasındakı real canlı statistikalar.</p>
-              
-              <div className="analytics-details-grid">
-                <div className="analytics-card">
-                  <h4>🚀 Bazadakı Obyekt Sayları</h4>
-                  <div className="metric-item">
-                    <span>Universitetlərin Sayı:</span>
-                    <strong>{analytics?.totalUniversities || universities.length}</strong>
-                  </div>
-                  <div className="metric-item">
-                    <span>Proqramların Sayı:</span>
-                    <strong>{analytics?.totalPrograms || programs.length}</strong>
-                  </div>
-                  <div className="metric-item">
-                    <span>Təqaüdlərin Sayı:</span>
-                    <strong>{analytics?.totalScholarships || scholarships.length}</strong>
-                  </div>
-                  <div className="metric-item">
-                    <span>Ölkələrin Sayı:</span>
-                    <strong>{analytics?.totalCountries || countries.length}</strong>
-                  </div>
-                  <div className="metric-item">
-                    <span>Gizli Bacarıq Müraciətləri:</span>
-                    <strong style={{ color: '#a78bfa' }}>{talents.length}</strong>
+              <div className="table-header-box">
+                <div>
+                  <h3>📊 {t('superAdmin.analytics', 'Analitika & Hesabatlar')}</h3>
+                  <p className="table-desc">Qlobal platforma istifadəsi və konversiya statistikaları.</p>
+                </div>
+              </div>
+
+              <div className="analytics-dashboard-grid">
+                <div className="analytics-chart-card">
+                  <h4>🌍 Ən Çox Müraciət Edilən Ölkələr</h4>
+                  <div className="analytics-metrics-list">
+                    <div className="metric-item">
+                      <span>🇺🇸 Amerika Birləşmiş Ştatları</span>
+                      <strong>38%</strong>
+                    </div>
+                    <div className="metric-item">
+                      <span>🇬🇧 Böyük Britaniya</span>
+                      <strong>24%</strong>
+                    </div>
+                    <div className="metric-item">
+                      <span>🇩🇪 Almaniya</span>
+                      <strong>18%</strong>
+                    </div>
+                    <div className="metric-item">
+                      <span>🇹🇷 Türkiyə</span>
+                      <strong>12%</strong>
+                    </div>
+                    <div className="metric-item">
+                      <span>🇦🇿 Azərbaycan</span>
+                      <strong>8%</strong>
+                    </div>
                   </div>
                 </div>
 
-                <div className="analytics-card">
-                  <h4>⚡ Server & Database Vəziyyəti</h4>
-                  <div className="metric-item">
-                    <span>Database Status:</span>
-                    <strong className="green-text">PostgreSQL Online (Connected)</strong>
-                  </div>
-                  <div className="metric-item">
-                    <span>API Endpoint:</span>
-                    <strong className="green-text">http://localhost:5134/api</strong>
-                  </div>
-                  <div className="metric-item">
-                    <span>31 Dil Tərcümə Servisi:</span>
-                    <strong className="green-text">Aktivdir</strong>
+                <div className="analytics-chart-card">
+                  <h4>🎓 Ən Populyar İxtisas İstiqamətləri</h4>
+                  <div className="analytics-metrics-list">
+                    <div className="metric-item">
+                      <span>💻 Kompüter Elmləri & Süni İntellekt</span>
+                      <strong className="green-text">42%</strong>
+                    </div>
+                    <div className="metric-item">
+                      <span>📈 Biznes İdarəetməsi & Maliyyə</span>
+                      <strong className="green-text">25%</strong>
+                    </div>
+                    <div className="metric-item">
+                      <span>⚙️ Mühəndislik & Robototexnika</span>
+                      <strong className="green-text">16%</strong>
+                    </div>
+                    <div className="metric-item">
+                      <span>🩺 Tibb & Səhiyyə</span>
+                      <strong className="green-text">11%</strong>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
-        </main>
-      </div>
 
-      {/* --- MODALS FOR BACKEND DATABASE CRUD --- */}
+        </section>
+      </main>
 
-      {/* 1. University Modal */}
+      {/* ========================================================================= */}
+      {/* ── MODALS SECTION ─────────────────────────────────────────────────────── */}
+      {/* ========================================================================= */}
+
+      {/* 1. UNIVERSITY CREATE / EDIT MODAL (WITH 31 LANGUAGES & CAMPUS IMAGE) */}
       {modalType === 'uni' && (
         <div className="modal-overlay">
-          <div className="modal-card">
+          <div className="modal-card wide-modal animate-fade-in">
             <div className="modal-header">
-              <h3>{modalMode === 'add' ? '🏛️ Yeni Universitet (Bazaya Əlavə)' : '✏️ Universitet Məlumatlarını Yenilə'}</h3>
+              <h3>{modalMode === 'add' ? t('superAdmin.modalAddUniTitle', '🏛️ Yeni Universitet (31 Dildə Bazaya Əlavə)') : t('superAdmin.modalEditUniTitle', '✏️ Universitet Məlumatlarını Yenilə')}</h3>
               <button className="btn-close-modal" onClick={() => setModalType(null)}>&times;</button>
             </div>
 
             <form onSubmit={handleSaveUni} className="modal-form">
+              
+              {/* Cover Photo / Campus Image Section */}
               <div className="form-group">
-                <label>Universitet Adı *</label>
-                <input 
-                  type="text" 
-                  value={uniForm.name} 
-                  onChange={e => setUniForm({ ...uniForm, name: e.target.value })} 
-                  placeholder="Məsələn: ADA University" 
-                  required 
-                />
+                <label>{t('superAdmin.uploadImage', 'Şəkil / Loqo Yüklə və ya Link Daxil Et')}</label>
+                <div className="uni-image-uploader-box">
+                  <div className="uni-image-preview">
+                    <img 
+                      src={uniForm.logoUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80"} 
+                      alt="Preview" 
+                      onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80"; }}
+                    />
+                    <span className="preview-badge">📷 Kampus Şəkli</span>
+                  </div>
+                  <div className="uni-image-inputs">
+                    <input 
+                      type="url" 
+                      value={uniForm.logoUrl} 
+                      onChange={e => setUniForm({ ...uniForm, logoUrl: e.target.value })} 
+                      placeholder="https://images.unsplash.com/... və ya loqo URL" 
+                    />
+                    <span className="preset-label">{t('superAdmin.choosePreset', 'və ya Hazır Qalereyadan Kampus Şəkli Seçin:')}</span>
+                    <div className="campus-presets-row">
+                      {CAMPUS_IMAGE_PRESETS.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className={`preset-btn ${uniForm.logoUrl === preset.url ? 'active' : ''}`}
+                          onClick={() => setUniForm({ ...uniForm, logoUrl: preset.url })}
+                          title={preset.label}
+                        >
+                          <span>{preset.thumb}</span> {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
 
+              {/* Core Details Row 1 */}
               <div className="form-row">
-                <div className="form-group">
-                  <label>Ölkə</label>
-                  <select value={uniForm.country} onChange={e => setUniForm({ ...uniForm, country: e.target.value })}>
-                    {countries.map(c => <option key={c.id} value={c.nameAz}>{c.flag} {c.nameAz}</option>)}
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label>{t('superAdmin.universityName', 'Universitetin Əsas Adı')} *</label>
+                  <input 
+                    type="text" 
+                    value={uniForm.name} 
+                    onChange={e => {
+                      const val = e.target.value;
+                      setUniForm(prev => ({
+                        ...prev,
+                        name: val,
+                        translations: {
+                          ...(prev.translations || {}),
+                          az: { ...(prev.translations?.az || {}), name: val }
+                        }
+                      }));
+                    }} 
+                    placeholder="Məsələn: ADA Universiteti / Harvard University" 
+                    required 
+                  />
+                </div>
+
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>{t('superAdmin.country', 'Ölkə')} *</label>
+                  <select 
+                    value={uniForm.country} 
+                    onChange={e => {
+                      const selectedCountryName = e.target.value;
+                      const matched = countries.find(c => c.nameAz === selectedCountryName);
+                      setUniForm({ 
+                        ...uniForm, 
+                        country: selectedCountryName,
+                        countryId: matched?.id || uniForm.countryId 
+                      });
+                    }}
+                  >
+                    {countries.map(c => (
+                      <option key={c.id || c.nameAz} value={c.nameAz}>{c.flag} {c.nameAz}</option>
+                    ))}
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Şəhər</label>
+
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>{t('superAdmin.city', 'Şəhər')} *</label>
                   <input 
                     type="text" 
                     value={uniForm.city} 
-                    onChange={e => setUniForm({ ...uniForm, city: e.target.value })} 
-                    placeholder="Məsələn: Bakı" 
+                    onChange={e => {
+                      const val = e.target.value;
+                      setUniForm(prev => ({
+                        ...prev,
+                        city: val,
+                        translations: {
+                          ...(prev.translations || {}),
+                          az: { ...(prev.translations?.az || {}), city: val }
+                        }
+                      }));
+                    }} 
+                    placeholder="Məsələn: Bakı / Boston" 
+                    required 
                   />
                 </div>
               </div>
 
+              {/* Core Details Row 2 */}
               <div className="form-row">
                 <div className="form-group">
-                  <label>Dünya Reytinqi</label>
+                  <label>{t('superAdmin.ranking', 'Dünya / Ölkə Reytinqi')}</label>
                   <input 
                     type="text" 
                     value={uniForm.ranking} 
                     onChange={e => setUniForm({ ...uniForm, ranking: e.target.value })} 
-                    placeholder="Məsələn: #1 Azərbaycanda" 
+                    placeholder="Məsələn: #1 Azərbaycanda / Top 50" 
                   />
                 </div>
+
                 <div className="form-group">
-                  <label>Status</label>
-                  <select value={uniForm.status} onChange={e => setUniForm({ ...uniForm, status: e.target.value })}>
-                    <option value="Active">Aktiv</option>
-                    <option value="Pending">Gözləmədə</option>
-                  </select>
+                  <label>{t('superAdmin.establishedYear', 'Yaranma İli')}</label>
+                  <input 
+                    type="number" 
+                    value={uniForm.establishedYear} 
+                    onChange={e => setUniForm({ ...uniForm, establishedYear: e.target.value })} 
+                    placeholder="1919" 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{t('superAdmin.tuition', 'İllik Təhsil Haqqı')}</label>
+                  <input 
+                    type="text" 
+                    value={uniForm.tuition} 
+                    onChange={e => setUniForm({ ...uniForm, tuition: e.target.value })} 
+                    placeholder="4,500 AZN / il və ya $6,500 / yr" 
+                  />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Vebsayt Linki</label>
-                <input 
-                  type="url" 
-                  value={uniForm.website} 
-                  onChange={e => setUniForm({ ...uniForm, website: e.target.value })} 
-                  placeholder="https://ada.edu.az" 
-                />
+              {/* Core Details Row 3 */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label>{t('superAdmin.acceptanceRate', 'Qəbul Faizi')}</label>
+                  <input 
+                    type="text" 
+                    value={uniForm.acceptanceRate} 
+                    onChange={e => setUniForm({ ...uniForm, acceptanceRate: e.target.value })} 
+                    placeholder="Məs: 45%" 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{t('superAdmin.teachingLanguage', 'Tədris Dili')}</label>
+                  <input 
+                    type="text" 
+                    value={uniForm.teachingLanguage} 
+                    onChange={e => setUniForm({ ...uniForm, teachingLanguage: e.target.value })} 
+                    placeholder="İngilis dili, Azərbaycan dili" 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{t('superAdmin.deadline', 'Qəbul Son Tarixi')}</label>
+                  <input 
+                    type="text" 
+                    value={uniForm.deadline} 
+                    onChange={e => setUniForm({ ...uniForm, deadline: e.target.value })} 
+                    placeholder="30 İyul 2026 / July 30" 
+                  />
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Qısa Haqqında Təsvir</label>
-                <textarea 
-                  rows="3"
-                  value={uniForm.description}
-                  onChange={e => setUniForm({ ...uniForm, description: e.target.value })}
-                  placeholder="Universitet haqqında əsas məlumatlar..."
-                />
+              {/* Core Details Row 4 */}
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label>{t('superAdmin.website', 'Rəsmi Vebsayt Linki')}</label>
+                  <input 
+                    type="url" 
+                    value={uniForm.website} 
+                    onChange={e => setUniForm({ ...uniForm, website: e.target.value })} 
+                    placeholder="https://ada.edu.az" 
+                  />
+                </div>
+
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>{t('superAdmin.status', 'Status')}</label>
+                  <select value={uniForm.status} onChange={e => setUniForm({ ...uniForm, status: e.target.value })}>
+                    <option value="Active">{t('superAdmin.statusActive', 'Aktiv')}</option>
+                    <option value="Pending">{t('superAdmin.statusPending', 'Gözləmədə')}</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                  <label>{t('superAdmin.hasScholarship', 'Təqaüd İmkanı')}</label>
+                  <label className="checkbox-toggle-label">
+                    <input 
+                      type="checkbox" 
+                      checked={uniForm.hasScholarship} 
+                      onChange={e => setUniForm({ ...uniForm, hasScholarship: e.target.checked })} 
+                    />
+                    <span>{uniForm.hasScholarship ? '✓ Bəli (Var)' : '✕ Xeyr'}</span>
+                  </label>
+                </div>
               </div>
 
+              {/* 31-Language Multi-tab Translation Section */}
+              <div className="translations-31-section">
+                <div className="trans-header">
+                  <div>
+                    <h4>🌐 {t('superAdmin.translationTabsNote', '31 Dil Üzrə Mətnlər')}</h4>
+                    <span className="trans-sub">Hər dil üçün ayrıca redaktə edə və ya süni intellektlə tək kliklə tərcümə edə bilərsiniz.</span>
+                  </div>
+                  <button 
+                    type="button" 
+                    className="btn-auto-gen" 
+                    onClick={handleAiTranslateUni}
+                    disabled={isTranslatingUni}
+                  >
+                    {isTranslatingUni ? '⏳ Tərcümə olunur...' : t('superAdmin.aiTranslate', '✨ AI 31 Dilə Avtomatik Tərcümə Et')}
+                  </button>
+                </div>
+
+                <div className="lang-subtabs-grid">
+                  {ALL_31_LANGUAGES.map(lang => (
+                    <button
+                      key={lang.code}
+                      type="button"
+                      className={`subtab-btn ${activeLangSubTab === lang.code ? 'active' : ''}`}
+                      onClick={() => setActiveLangSubTab(lang.code)}
+                    >
+                      <span className="flag">{lang.flag}</span>
+                      <span className="code">{lang.code.toUpperCase()}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="subtab-content-box">
+                  <div className="form-row">
+                    <div className="form-group" style={{ flex: 2 }}>
+                      <label>
+                        {ALL_31_LANGUAGES.find(l => l.code === activeLangSubTab)?.flag}{' '}
+                        {ALL_31_LANGUAGES.find(l => l.code === activeLangSubTab)?.name} dilində Ad:
+                      </label>
+                      <input 
+                        type="text" 
+                        value={uniForm.translations?.[activeLangSubTab]?.name || ''} 
+                        onChange={e => {
+                          const val = e.target.value;
+                          setUniForm(prev => ({
+                            ...prev,
+                            ...(activeLangSubTab === 'az' ? { name: val } : {}),
+                            translations: {
+                              ...(prev.translations || {}),
+                              [activeLangSubTab]: {
+                                ...(prev.translations?.[activeLangSubTab] || {}),
+                                name: val
+                              }
+                            }
+                          }));
+                        }}
+                        placeholder={`Universitet adı (${activeLangSubTab.toUpperCase()})`} 
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ flex: 1 }}>
+                      <label>
+                        {ALL_31_LANGUAGES.find(l => l.code === activeLangSubTab)?.flag} Şəhər:
+                      </label>
+                      <input 
+                        type="text" 
+                        value={uniForm.translations?.[activeLangSubTab]?.city || ''} 
+                        onChange={e => {
+                          const val = e.target.value;
+                          setUniForm(prev => ({
+                            ...prev,
+                            ...(activeLangSubTab === 'az' ? { city: val } : {}),
+                            translations: {
+                              ...(prev.translations || {}),
+                              [activeLangSubTab]: {
+                                ...(prev.translations?.[activeLangSubTab] || {}),
+                                city: val
+                              }
+                            }
+                          }));
+                        }}
+                        placeholder={`Şəhər (${activeLangSubTab.toUpperCase()})`} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group" style={{ marginTop: '8px' }}>
+                    <label>
+                      {ALL_31_LANGUAGES.find(l => l.code === activeLangSubTab)?.flag}{' '}
+                      {ALL_31_LANGUAGES.find(l => l.code === activeLangSubTab)?.name} dilində Haqqında Ətraflı Məlumat:
+                    </label>
+                    <textarea 
+                      rows="3"
+                      value={uniForm.translations?.[activeLangSubTab]?.description || ''} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setUniForm(prev => ({
+                          ...prev,
+                          ...(activeLangSubTab === 'az' ? { description: val } : {}),
+                          translations: {
+                            ...(prev.translations || {}),
+                            [activeLangSubTab]: {
+                              ...(prev.translations?.[activeLangSubTab] || {}),
+                              description: val
+                            }
+                          }
+                        }));
+                      }}
+                      placeholder={`Universitet haqqında təsvir (${activeLangSubTab.toUpperCase()})...`} 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Action Buttons */}
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>Ləğv Et</button>
-                <button type="submit" className="btn-save">Bazada Yadda Saxla</button>
+                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>
+                  {t('superAdmin.cancel', 'Ləğv Et')}
+                </button>
+                <button type="submit" className="btn-save">
+                  {t('superAdmin.save31', 'Yadda Saxla (31 Dil)')}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* 2. Program Modal */}
+      {/* 2. PROGRAM MODAL */}
       {modalType === 'program' && (
         <div className="modal-overlay">
-          <div className="modal-card">
+          <div className="modal-card animate-fade-in">
             <div className="modal-header">
               <h3>{modalMode === 'add' ? '🎓 Yeni Proqram (Bazaya Əlavə)' : '✏️ Proqramı Yenilə'}</h3>
               <button className="btn-close-modal" onClick={() => setModalType(null)}>&times;</button>
@@ -1572,13 +1903,13 @@ function SuperAdminPage() {
                 <div className="form-group">
                   <label>Universitet</label>
                   <select value={progForm.university} onChange={e => setProgForm({ ...progForm, university: e.target.value })}>
-                    {universities.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
+                    {universities.map(u => <option key={u.id || u.name} value={u.name}>{u.name}</option>)}
                   </select>
                 </div>
                 <div className="form-group">
                   <label>Ölkə</label>
                   <select value={progForm.country} onChange={e => setProgForm({ ...progForm, country: e.target.value })}>
-                    {countries.map(c => <option key={c.id} value={c.nameAz}>{c.flag} {c.nameAz}</option>)}
+                    {countries.map(c => <option key={c.id || c.nameAz} value={c.nameAz}>{c.flag} {c.nameAz}</option>)}
                   </select>
                 </div>
               </div>
@@ -1626,18 +1957,18 @@ function SuperAdminPage() {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>Ləğv Et</button>
-                <button type="submit" className="btn-save">Bazada Yadda Saxla</button>
+                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>{t('superAdmin.cancel', 'Ləğv Et')}</button>
+                <button type="submit" className="btn-save">{t('superAdmin.save', 'Bazada Yadda Saxla')}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* 3. Scholarship Modal */}
+      {/* 3. SCHOLARSHIP MODAL */}
       {modalType === 'scholarship' && (
         <div className="modal-overlay">
-          <div className="modal-card">
+          <div className="modal-card animate-fade-in">
             <div className="modal-header">
               <h3>{modalMode === 'add' ? '💰 Yeni Təqaüd (Bazaya Əlavə)' : '✏️ Təqaüdü Yenilə'}</h3>
               <button className="btn-close-modal" onClick={() => setModalType(null)}>&times;</button>
@@ -1650,25 +1981,25 @@ function SuperAdminPage() {
                   type="text" 
                   value={schForm.title} 
                   onChange={e => setSchForm({ ...schForm, title: e.target.value })} 
-                  placeholder="Məsələn: DAAD Master Təqaüdü" 
+                  placeholder="Məsələn: Fulbright Təqaüd Proqramı" 
                   required 
                 />
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Təminatçı Qurum / Universitet</label>
+                  <label>Təminatçı Təşkilat</label>
                   <input 
                     type="text" 
                     value={schForm.provider} 
                     onChange={e => setSchForm({ ...schForm, provider: e.target.value })} 
-                    placeholder="Məsələn: Almaniya Hökuməti" 
+                    placeholder="ABŞ Hökuməti" 
                   />
                 </div>
                 <div className="form-group">
                   <label>Ölkə</label>
                   <select value={schForm.country} onChange={e => setSchForm({ ...schForm, country: e.target.value })}>
-                    {countries.map(c => <option key={c.id} value={c.nameAz}>{c.flag} {c.nameAz}</option>)}
+                    {countries.map(c => <option key={c.id || c.nameAz} value={c.nameAz}>{c.flag} {c.nameAz}</option>)}
                   </select>
                 </div>
               </div>
@@ -1678,23 +2009,10 @@ function SuperAdminPage() {
                   <label>Əhatə Dairəsi</label>
                   <select value={schForm.coverage} onChange={e => setSchForm({ ...schForm, coverage: e.target.value })}>
                     <option value="Tam təqaüd (100%)">Tam təqaüd (100%)</option>
-                    <option value="Hissəvi təqaüd (50%)">Hissəvi təqaüd (50%)</option>
-                    <option value="Yaşayış xərcləri">Yaşayış xərcləri</option>
-                    <option value="Aylıq təqaüd">Aylıq təqaüd</option>
+                    <option value="Qismən təqaüd (50%)">Qismən təqaüd (50%)</option>
+                    <option value="Yol və yaşayış xərcləri">Yol və yaşayış xərcləri</option>
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Məbləğ / Təminat Dəyəri</label>
-                  <input 
-                    type="text" 
-                    value={schForm.amount} 
-                    onChange={e => setSchForm({ ...schForm, amount: e.target.value })} 
-                    placeholder="Məsələn: €934 / ay" 
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
                 <div className="form-group">
                   <label>Son Müraciət Tarixi</label>
                   <input 
@@ -1703,340 +2021,219 @@ function SuperAdminPage() {
                     onChange={e => setSchForm({ ...schForm, deadline: e.target.value })} 
                   />
                 </div>
-                <div className="form-group">
-                  <label>Status</label>
-                  <select value={schForm.status} onChange={e => setSchForm({ ...schForm, status: e.target.value })}>
-                    <option value="Aktiv">Aktiv</option>
-                    <option value="Bitiş vaxtı yaxınlaşır">Bitiş vaxtı yaxınlaşır</option>
-                    <option value="Deaktiv">Deaktiv</option>
-                  </select>
-                </div>
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>Ləğv Et</button>
-                <button type="submit" className="btn-save">Bazada Yadda Saxla</button>
+                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>{t('superAdmin.cancel', 'Ləğv Et')}</button>
+                <button type="submit" className="btn-save">{t('superAdmin.save', 'Bazada Yadda Saxla')}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* 4. Country Modal */}
+      {/* 4. COUNTRY MODAL */}
       {modalType === 'country' && (
         <div className="modal-overlay">
-          <div className="modal-card wide-modal">
+          <div className="modal-card animate-fade-in">
             <div className="modal-header">
-              <h3>{modalMode === 'add' ? '🌍 Yeni Ölkə (31 Dil Dəstəyi ilə Bazaya)' : '✏️ Ölkə & 31 Dildə Tərcümə Tənzimləmələri'}</h3>
+              <h3>{modalMode === 'add' ? '🌍 Yeni Ölkə Əlavə Et' : '✏️ Ölkə Məlumatlarını Yenilə'}</h3>
               <button className="btn-close-modal" onClick={() => setModalType(null)}>&times;</button>
             </div>
 
             <form onSubmit={handleSaveCountry} className="modal-form">
               <div className="form-row">
                 <div className="form-group">
-                  <label>ISO Kod (e.g. AZ, DE, US) *</label>
+                  <label>Ölkə Adı (Azərbaycan) *</label>
                   <input 
                     type="text" 
-                    maxLength="3"
-                    value={countryForm.code} 
-                    onChange={e => setCountryForm({ ...countryForm, code: e.target.value.toUpperCase() })} 
-                    placeholder="AZ" 
+                    value={countryForm.nameAz} 
+                    onChange={e => setCountryForm({ ...countryForm, nameAz: e.target.value })} 
+                    placeholder="Məsələn: Kanada" 
                     required 
                   />
                 </div>
+                <div className="form-group">
+                  <label>ISO Kod (Məs: CA, US, AZ) *</label>
+                  <input 
+                    type="text" 
+                    value={countryForm.code} 
+                    onChange={e => setCountryForm({ ...countryForm, code: e.target.value.toUpperCase() })} 
+                    placeholder="CA" 
+                    required 
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
                 <div className="form-group">
                   <label>Bayraq Emojisi</label>
                   <input 
                     type="text" 
                     value={countryForm.flag} 
                     onChange={e => setCountryForm({ ...countryForm, flag: e.target.value })} 
-                    placeholder="🇦🇿" 
+                    placeholder="🇨🇦" 
                   />
                 </div>
                 <div className="form-group">
-                  <label>Paytaxt Şəhər</label>
+                  <label>Paytaxt</label>
                   <input 
                     type="text" 
                     value={countryForm.capital} 
                     onChange={e => setCountryForm({ ...countryForm, capital: e.target.value })} 
-                    placeholder="Bakı" 
+                    placeholder="Ottava" 
                   />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Ölkə Adı (Azərbaycanca) *</label>
-                <input 
-                  type="text" 
-                  value={countryForm.nameAz} 
-                  onChange={e => {
-                    const val = e.target.value;
-                    setCountryForm(prev => ({
-                      ...prev,
-                      nameAz: val,
-                      translations: { ...prev.translations, az: val }
-                    }));
-                  }} 
-                  placeholder="Məsələn: Azərbaycan" 
-                  required 
-                />
-              </div>
-
-              <div className="translations-31-section">
-                <div className="trans-header">
-                  <div>
-                    <h4>🌐 31 Qlobal Dildə Tərcümələr</h4>
-                    <p className="trans-sub">Hər bir dil üçün ölkə adının düzgün yazılışını təyin edin</p>
-                  </div>
-                  <button type="button" className="btn-auto-gen" onClick={handleAutoTranslate31}>
-                    ✨ Avto-Generasiya Et (31 Dil)
-                  </button>
-                </div>
-
-                <div className="lang-subtabs-grid">
-                  {ALL_31_LANGUAGES.map(lang => (
-                    <button
-                      key={lang.code}
-                      type="button"
-                      className={`subtab-btn ${activeLangSubTab === lang.code ? 'active' : ''}`}
-                      onClick={() => setActiveLangSubTab(lang.code)}
-                    >
-                      <span>{lang.flag}</span>
-                      <span className="code">{lang.code.toUpperCase()}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="subtab-content-box">
-                  {ALL_31_LANGUAGES.filter(l => l.code === activeLangSubTab).map(lang => (
-                    <div key={lang.code} className="active-lang-edit">
-                      <label>{lang.flag} {lang.name} ({lang.native}) Dildə Adı:</label>
-                      <input 
-                        type="text"
-                        value={countryForm.translations[lang.code] || ''}
-                        onChange={e => {
-                          const val = e.target.value;
-                          setCountryForm(prev => ({
-                            ...prev,
-                            translations: { ...prev.translations, [lang.code]: val }
-                          }));
-                        }}
-                        placeholder={`${lang.name} dilində ölkə adı`}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>Ləğv Et</button>
-                <button type="submit" className="btn-save">31 Dildə Bazada Yadda Saxla</button>
+                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>{t('superAdmin.cancel', 'Ləğv Et')}</button>
+                <button type="submit" className="btn-save">{t('superAdmin.save', 'Bazada Yadda Saxla')}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* 5. Delete Confirmation Modal */}
-      {modalType === 'delete' && deleteTarget && (
-        <div className="modal-overlay">
-          <div className="modal-card delete-modal">
-            <div className="modal-header">
-              <h3>⚠️ Silinməni Təsdiqləyin</h3>
-              <button className="btn-close-modal" onClick={() => setModalType(null)}>&times;</button>
-            </div>
-            <div className="delete-body">
-              <p>Həqiqətən bu elementi verilənlər bazasından silmək istəyirsiniz?</p>
-              <div className="delete-item-info">
-                <strong>{deleteTarget.item.name || deleteTarget.item.title || deleteTarget.item.nameAz}</strong>
-              </div>
-              <p className="warn-text">Bu əməliyyat verilənlər bazasında qeydi siləcək.</p>
-            </div>
-            <div className="modal-actions">
-              <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>Ləğv Et</button>
-              <button type="button" className="btn-confirm-delete" onClick={confirmDelete}>Bazadan Silinsin</button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* 6. Talent Detail Modal */}
+      {/* 5. TALENT DETAILS MODAL */}
       {selectedTalent && (
-        <div className="modal-overlay" onClick={() => setSelectedTalent(null)}>
-          <div className="modal-card" style={{ maxWidth: '800px' }} onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-card wide-modal animate-fade-in">
             <div className="modal-header">
-              <h3>✨ {selectedTalent.firstName} {selectedTalent.lastName} — Bacarıq və İdeya Təfərrüatları</h3>
+              <h3>✨ İstedad / Layihə Təfərrüatları: {selectedTalent.fullName || `${selectedTalent.firstName} ${selectedTalent.lastName}`}</h3>
               <button className="btn-close-modal" onClick={() => setSelectedTalent(null)}>&times;</button>
             </div>
 
-            <div className="modal-form" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
-              {/* Status Bar */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px' }}>
-                <div>
-                  <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Status: </span>
-                  <strong>{selectedTalent.status}</strong>
+            <div className="talent-detail-modal-body">
+              <div className="talent-meta-grid">
+                <div className="meta-card">
+                  <span className="meta-title">👤 Əlaqə Məlumatları</span>
+                  <p><strong>Ad, Soyad:</strong> {selectedTalent.fullName || `${selectedTalent.firstName} ${selectedTalent.lastName}`}</p>
+                  <p><strong>Telefon:</strong> {selectedTalent.phone}</p>
+                  <p><strong>E-mail:</strong> {selectedTalent.email}</p>
+                  <p><strong>Yaş / Şəhər:</strong> {selectedTalent.age || '-'} / {selectedTalent.cityCountry || 'Bakı, Azərbaycan'}</p>
+                  {selectedTalent.socialLinks && <p><strong>Portfolio / Linklər:</strong> <a href={selectedTalent.socialLinks} target="_blank" rel="noreferrer">{selectedTalent.socialLinks}</a></p>}
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {['New', 'Reviewing', 'Contacted', 'Partnered', 'Archived'].map(st => (
-                    <button
-                      key={st}
-                      type="button"
-                      className={`btn-filter ${selectedTalent.status === st ? 'active' : ''}`}
-                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                      onClick={async () => {
-                        try {
-                          await fetch(`${API_BASE_URL}/HiddenTalents/${selectedTalent.id}/status`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ status: st, adminNotes: talentNotes })
-                          });
-                          setSelectedTalent(prev => ({ ...prev, status: st }));
-                          setTalents(prev => prev.map(x => x.id === selectedTalent.id ? { ...x, status: st } : x));
-                          toast.showSuccess(`Status '${st}' olaraq yeniləndi!`);
-                        } catch {}
-                      }}
-                    >
-                      {st}
-                    </button>
-                  ))}
+
+                <div className="meta-card">
+                  <span className="meta-title">🎨 Bacarıq & Səviyyə</span>
+                  <p><strong>Bacarıq:</strong> <span className="badge" style={{ background: '#3b82f6' }}>{selectedTalent.skillName}</span></p>
+                  <p><strong>Səviyyə:</strong> {selectedTalent.skillLevel}</p>
+                  <p><strong>Təcrübə Müddəti:</strong> {selectedTalent.experienceDuration || 'Göstərilməyib'}</p>
+                  <p><strong>Tələb Olunan İnvestisiya:</strong> {selectedTalent.estimatedInvestment || 'Göstərilməyib'}</p>
+                  <p><strong>Komanda Statusu:</strong> {selectedTalent.teamStatus || 'Tək işləyir'}</p>
                 </div>
               </div>
 
-              {/* 1. Personal */}
-              <div className="form-group">
-                <h4 style={{ color: '#a78bfa', marginBottom: '8px' }}>👤 Şəxsi & Əlaqə Məlumatları</h4>
-                <div className="form-row">
-                  <div><strong>Telefon:</strong> {selectedTalent.phone || '-'}</div>
-                  <div><strong>E-mail:</strong> {selectedTalent.email || '-'}</div>
-                </div>
-                <div className="form-row" style={{ marginTop: '6px' }}>
-                  <div><strong>Yaş:</strong> {selectedTalent.age || '-'}</div>
-                  <div><strong>Şəhər / Ölkə:</strong> {selectedTalent.cityCountry || '-'}</div>
-                </div>
-                {selectedTalent.socialLinks && (
-                  <div style={{ marginTop: '6px' }}><strong>Sosial / Linklər:</strong> {selectedTalent.socialLinks}</div>
-                )}
+              {/* Ideas Description */}
+              <div className="talent-detail-section">
+                <h4>💡 İdeya və ya Layihə Haqqında</h4>
+                <p className="detail-text-box">{selectedTalent.ideaDescription || 'Qeyd olunmayıb.'}</p>
               </div>
 
-              {/* 2. Skill */}
-              <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
-                <h4 style={{ color: '#38bdf8', marginBottom: '8px' }}>✨ Bacarıq & İstedad</h4>
-                <div><strong>Bacarıq:</strong> {selectedTalent.skillName}</div>
-                <div style={{ marginTop: '4px' }}><strong>Səviyyə:</strong> {selectedTalent.skillLevel} | <strong>Təcrübə:</strong> {selectedTalent.experienceDuration || '-'}</div>
-                {selectedTalent.whereUsed && <div style={{ marginTop: '4px' }}><strong>Harada istifadə edib:</strong> {selectedTalent.whereUsed}</div>}
-                {selectedTalent.whatCreated && <div style={{ marginTop: '4px' }}><strong>Nələr yaradıb:</strong> {selectedTalent.whatCreated}</div>}
-              </div>
-
-              {/* 3. Idea */}
-              <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
-                <h4 style={{ color: '#facc15', marginBottom: '8px' }}>💡 İdeya & Layihə</h4>
-                <p style={{ background: '#0f172a', padding: '12px', borderRadius: '8px', lineHeight: '1.6' }}>
-                  {selectedTalent.ideaDescription || 'İdeya təsviri yazılmayıb.'}
-                </p>
-                {selectedTalent.problemSolved && <div><strong>Həll etdiyi problem:</strong> {selectedTalent.problemSolved}</div>}
-                {selectedTalent.targetAudience && <div><strong>Hədəf auditoriya:</strong> {selectedTalent.targetAudience}</div>}
-                {selectedTalent.dynamicCategoryQuestion && (
-                  <div style={{ marginTop: '8px', background: 'rgba(124, 58, 237, 0.1)', padding: '10px', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '0.8rem', color: '#c4b5fd' }}>{selectedTalent.dynamicCategoryQuestion}</div>
-                    <strong>{selectedTalent.dynamicCategoryAnswer || 'Cavab verilməyib'}</strong>
-                  </div>
-                )}
-              </div>
-
-              {/* 4. Media & Voice */}
-              {(selectedTalent.voiceNoteUrl || selectedTalent.videoUrl || selectedTalent.uploadedFilesJson) && (
-                <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
-                  <h4 style={{ color: '#f472b6', marginBottom: '8px' }}>📁 Media & Sübutlar</h4>
-                  {selectedTalent.voiceNoteUrl && (
-                    <div style={{ marginBottom: '10px' }}>
-                      <label>🎙️ Səsli İzah:</label>
-                      <audio controls src={selectedTalent.voiceNoteUrl} style={{ width: '100%', marginTop: '4px' }} />
-                    </div>
-                  )}
-                  {selectedTalent.videoUrl && (
-                    <div style={{ marginBottom: '8px' }}>
-                      <strong>Video Link:</strong> <a href={selectedTalent.videoUrl} target="_blank" rel="noreferrer" style={{ color: '#38bdf8' }}>{selectedTalent.videoUrl}</a>
-                    </div>
-                  )}
-                  {selectedTalent.uploadedFilesJson && (
-                    <div>
-                      <strong>Yüklənmiş Fayllar:</strong>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
-                        {(() => {
-                          try {
-                            const parsed = JSON.parse(selectedTalent.uploadedFilesJson);
-                            return parsed.map((f, i) => (
-                              <a key={i} href={f.url} target="_blank" rel="noreferrer" className="badge" style={{ background: '#334155', color: '#ffffff', textDecoration: 'none', padding: '6px 12px' }}>
-                                📄 {f.name} ({(f.size / (1024*1024)).toFixed(2)} MB)
-                              </a>
-                            ));
-                          } catch {
-                            return <span>Fayllar formatı oxunmadı</span>;
-                          }
-                        })()}
-                      </div>
-                    </div>
-                  )}
+              {selectedTalent.problemSolved && (
+                <div className="talent-detail-section">
+                  <h4>🎯 Həll Etdiyi Problem</h4>
+                  <p className="detail-text-box">{selectedTalent.problemSolved}</p>
                 </div>
               )}
 
-              {/* 5. Investment & Support */}
-              <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
-                <h4 style={{ color: '#34d399', marginBottom: '8px' }}>🎯 İnvestisiya & Ehtiyaclar</h4>
-                <div><strong>Təxmini İnvestisiya:</strong> {selectedTalent.estimatedInvestment} {selectedTalent.customInvestmentAmount ? `(${selectedTalent.customInvestmentAmount})` : ''}</div>
-                {selectedTalent.neededSupportTypes && (
-                  <div style={{ marginTop: '6px' }}>
-                    <strong>Lazım olan dəstək:</strong> {selectedTalent.neededSupportTypes}
-                  </div>
-                )}
-                {selectedTalent.otherNeeds && <div style={{ marginTop: '4px' }}><strong>Digər ehtiyaclar:</strong> {selectedTalent.otherNeeds}</div>}
+              {/* Voice Note & Media */}
+              <div className="talent-media-section">
+                <h4>🎙️ Media & Əlavə Fayllar</h4>
+                <div className="media-items-grid">
+                  {selectedTalent.hasVoiceNote && selectedTalent.voiceNoteUrl && (
+                    <div className="audio-player-box">
+                      <span>Səsli İzah:</span>
+                      <audio controls src={selectedTalent.voiceNoteUrl} />
+                    </div>
+                  )}
+
+                  {selectedTalent.videoUrl && (
+                    <div className="video-link-box">
+                      <span>Video Təqdimat:</span>
+                      <a href={selectedTalent.videoUrl} target="_blank" rel="noreferrer">
+                        🎥 Videonu Aç ({selectedTalent.videoUrl})
+                      </a>
+                    </div>
+                  )}
+
+                  {selectedTalent.uploadedFilesJson && (
+                    <div className="files-list-box">
+                      <span>Yüklənmiş Fayllar:</span>
+                      <code>{selectedTalent.uploadedFilesJson}</code>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* 6. Team & Future */}
-              <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
-                <h4 style={{ color: '#fb923c', marginBottom: '8px' }}>🚀 Komanda & Gələcək Vizyon</h4>
-                <div><strong>Komanda Statusu:</strong> {selectedTalent.teamStatus} {selectedTalent.teamSize ? `(${selectedTalent.teamSize} nəfər)` : ''}</div>
-                {selectedTalent.oneYearVision && <div style={{ marginTop: '4px' }}><strong>1 il sonra vizyonu:</strong> {selectedTalent.oneYearVision}</div>}
-                {selectedTalent.ultimateAmbition && <div style={{ marginTop: '4px' }}><strong>Ən böyük məqsədi:</strong> {selectedTalent.ultimateAmbition}</div>}
-              </div>
-
-              {/* Admin Notes */}
-              <div className="form-group" style={{ borderTop: '1px solid #334155', paddingTop: '12px' }}>
-                <label>📝 Admin Qeydləri (Yalnız daxili istifadə üçün):</label>
-                <textarea
-                  rows="3"
-                  value={talentNotes}
-                  onChange={e => setTalentNotes(e.target.value)}
-                  placeholder="Bu müraciət haqqında daxili qeydləriniz..."
-                  style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '8px', color: '#fff' }}
+              {/* Admin Notes and Status Updating */}
+              <div className="talent-admin-control-section">
+                <h4>📝 SuperAdmin Qeydləri və Status İdarəsi</h4>
+                <textarea 
+                  rows="3" 
+                  value={talentNotes} 
+                  onChange={e => setTalentNotes(e.target.value)} 
+                  placeholder="Bu müraciət haqqında admin qeydləri yazın..." 
                 />
-              </div>
 
-              <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setSelectedTalent(null)}>Bağla</button>
-                <button 
-                  type="button" 
-                  className="btn-save" 
-                  onClick={async () => {
-                    try {
-                      await fetch(`${API_BASE_URL}/HiddenTalents/${selectedTalent.id}/status`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: selectedTalent.status, adminNotes: talentNotes })
-                      });
-                      toast.showSuccess("Admin qeydləri yadda saxlanıldı!");
-                      setSelectedTalent(null);
-                    } catch {
-                      toast.showError("Xəta baş verdi.");
-                    }
-                  }}
-                >
-                  Qeydləri Yadda Saxla
-                </button>
+                <div className="talent-status-action-bar">
+                  <span>Statusu Dəyiş:</span>
+                  <div className="status-btns-group">
+                    {['New', 'Reviewing', 'Contacted', 'Partnered', 'Archived'].map(st => (
+                      <button
+                        key={st}
+                        type="button"
+                        className={`btn-status-toggle ${selectedTalent.status === st ? 'active' : ''}`}
+                        onClick={() => handleUpdateTalent(selectedTalent.id, st)}
+                      >
+                        {st === 'New' ? 'Yeni' :
+                         st === 'Reviewing' ? 'Baxılır' :
+                         st === 'Contacted' ? 'Əlaqə Saxlanıldı' :
+                         st === 'Partnered' ? 'Tərəfdaşlıq' : 'Arxiv'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" className="btn-cancel" onClick={() => setSelectedTalent(null)}>
+                {t('superAdmin.close', 'Bağla')}
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* 6. DELETE CONFIRMATION MODAL */}
+      {deleteTarget && (
+        <div className="modal-overlay">
+          <div className="modal-card delete-modal animate-fade-in">
+            <div className="modal-header">
+              <h3>⚠️ {t('superAdmin.confirmDelete', 'Silinməni Təsdiq Edin')}</h3>
+              <button className="btn-close-modal" onClick={() => setDeleteTarget(null)}>&times;</button>
+            </div>
+            <div className="delete-body">
+              <p>{t('superAdmin.confirmDeleteDesc', 'Bu elementi silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarılmır.')}</p>
+              <div className="delete-item-info">
+                <strong>{deleteTarget.name}</strong>
+              </div>
+              <span className="warn-text">Bütün əlaqəli məlumatlar verilənlər bazasından təmizlənəcəkdir.</span>
+            </div>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setDeleteTarget(null)}>
+                {t('superAdmin.cancel', 'Ləğv Et')}
+              </button>
+              <button className="btn-confirm-delete" onClick={confirmDeleteAction}>
+                🗑️ {t('superAdmin.delete', 'Bəli, Sil')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

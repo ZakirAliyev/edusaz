@@ -33,6 +33,12 @@ public class AuthService : IAuthService
 
     public async Task<bool> RegisterAsync(RegisterDto registerDto)
     {
+        var existing = await _userManager.FindByEmailAsync(registerDto.Email);
+        if (existing != null)
+        {
+            return false;
+        }
+
         var user = new User
         {
             UserName = registerDto.Email,
@@ -43,7 +49,8 @@ public class AuthService : IAuthService
             Gpa = 3.6,
             EnglishScore = "IELTS 6.5",
             DegreeLevel = "Bakalavr",
-            DesiredField = "Kompüter Elmləri / İT"
+            DesiredField = "Kompüter Elmləri / İT",
+            CreatedAt = DateTime.UtcNow
         };
 
         var result = await _userManager.CreateAsync(user, registerDto.Password);

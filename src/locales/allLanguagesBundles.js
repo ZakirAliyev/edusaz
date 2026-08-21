@@ -10,6 +10,7 @@ import it from './it/common.json';
 import ar from './ar/common.json';
 import zh from './zh/common.json';
 import { talentsTranslations } from './talentsTranslations';
+import { superAdminTranslations } from './superAdminTranslations';
 
 const portalBaseAz = az.portal || {};
 
@@ -450,6 +451,9 @@ export function buildAllResourceBundles() {
     const tDict = talentsTranslations[code]
       || talentsTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en']
       || talentsTranslations.en;
+    const sDict = superAdminTranslations[code]
+      || superAdminTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en']
+      || superAdminTranslations.en;
 
     resources[code] = {
       translation: {
@@ -466,6 +470,10 @@ export function buildAllResourceBundles() {
         },
         instructor: {
           ...iDict
+        },
+        superAdmin: {
+          ...(superAdminTranslations.en || {}),
+          ...sDict
         },
         talents: {
           ...(talentsTranslations.en || {}),

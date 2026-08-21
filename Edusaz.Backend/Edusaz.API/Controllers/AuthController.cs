@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Edusaz.Application.Abstracts.Services;
 using Edusaz.Application.Dtos;
 using Edusaz.Application.Wrappers;
+using Edusaz.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Edusaz.API.Controllers;
@@ -11,18 +12,31 @@ namespace Edusaz.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly Microsoft.AspNetCore.Identity.UserManager<User> _userManager;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, Microsoft.AspNetCore.Identity.UserManager<User> userManager)
     {
         _authService = authService;
+        _userManager = userManager;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse("E-poçt və şifrə daxil edilməlidir."));
+        }
+
+        var existing = await _userManager.FindByEmailAsync(dto.Email);
+        if (existing != null)
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse("Bu e-poçt ünvanı ilə artıq qeydiyyatdan keçilib. Zəhmət olmasa daxil olun."));
+        }
+
         var success = await _authService.RegisterAsync(dto);
-        if (success) return Ok(ApiResponse<string>.SuccessResponse("User registered successfully."));
-        return BadRequest(ApiResponse<string>.ErrorResponse("Registration failed."));
+        if (success) return Ok(ApiResponse<string>.SuccessResponse("Qeydiyyat uğurla tamamlandı."));
+        return BadRequest(ApiResponse<string>.ErrorResponse("Qeydiyyat zamanı xəta baş verdi. Zəhmət olmasa məlumatlarınızı yoxlayın."));
     }
 
     [HttpPost("login")]
