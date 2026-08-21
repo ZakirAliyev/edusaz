@@ -34,6 +34,8 @@ public class ProgramTranslationDto
 public class CreateProgramDto
 {
     public Guid UniversityId { get; set; }
+    public string? Title { get; set; }
+    public string? Description { get; set; }
     public string TitleAz { get; set; } = string.Empty;
     public string DescriptionAz { get; set; } = string.Empty;
     public string TitleEn { get; set; } = string.Empty;
@@ -43,8 +45,12 @@ public class CreateProgramDto
     public string TitleTr { get; set; } = string.Empty;
     public string DescriptionTr { get; set; } = string.Empty;
     public string Level { get; set; } = string.Empty;
+    public string? DegreeLevel { get; set; }
     public string Duration { get; set; } = string.Empty;
     public string TuitionFee { get; set; } = string.Empty;
+    public string? LanguageOfInstruction { get; set; }
+    public string? TeachingLanguage { get; set; }
     public string FieldOfStudy { get; set; } = string.Empty;
     public string EntryRequirements { get; set; } = string.Empty;
+    public Dictionary<string, ProgramTranslationDto>? Translations { get; set; }
 }

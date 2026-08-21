@@ -794,6 +794,22 @@
           }
         }
 
+        /* Combined Fee, Currency & Period Inputs */
+        .fee-inputs-combined-row {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+
+          input[type="number"] {
+            flex: 2;
+          }
+
+          select {
+            flex: 1.2;
+            min-width: 120px;
+          }
+        }
+
         /* University Single Image Upload (Computer Upload Only) */
         .uni-single-upload-box {
           margin-top: 4px;

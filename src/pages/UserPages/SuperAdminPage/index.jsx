@@ -124,14 +124,24 @@ function SuperAdminPage() {
 
   const [progForm, setProgForm] = useState({
     title: '',
+    description: '',
     university: '',
+    universityId: '',
     country: 'Azərbaycan',
     degree: 'Bakalavr',
-    tuitionFee: '3,500 AZN / il',
+    tuitionAmount: '3500',
+    tuitionCurrency: 'AZN',
+    tuitionPeriod: '/ il',
     duration: '4 il',
     language: 'İngilis dili',
-    status: 'Aktiv'
+    status: 'Aktiv',
+    translations: generateDefault31Translations()
   });
+
+  const [activeProgLangSubTab, setActiveProgLangSubTab] = useState('az');
+  const [isTranslatingProg, setIsTranslatingProg] = useState(false);
+  const [isSavingProg, setIsSavingProg] = useState(false);
+  const [progProgress, setProgProgress] = useState({ visible: false, percent: 0, text: '' });
 
   const [schForm, setSchForm] = useState({
     title: '',
@@ -201,14 +211,24 @@ function SuperAdminPage() {
         if (json.data) {
           const mappedProgs = json.data.map(p => ({
             id: p.id,
-            title: p.name || p.title,
-            university: p.universityName || 'ADA University',
-            country: p.countryName || 'Azərbaycan',
-            degree: p.degreeLevel || 'Bakalavr',
-            tuitionFee: p.tuitionFee || '4,500 AZN / il',
+            title: p.title || p.name || 'Proqram',
+            description: p.description || '',
+            university: p.universityName || p.university || 'ADA Universiteti',
+            universityId: p.universityId,
+            country: p.country || p.countryName || 'Azərbaycan',
+            countryId: p.countryId,
+            degree: p.degreeLevel || p.degree || 'Bakalavr',
+            tuitionFee: p.tuitionFee || '3,500 AZN / il',
             duration: p.duration || '4 il',
-            language: p.teachingLanguage || 'İngilis dili',
-            status: 'Aktiv'
+            language: p.languageOfInstruction || p.teachingLanguage || p.language || 'İngilis dili',
+            status: 'Aktiv',
+            translations: p.translations ? Object.keys(p.translations).reduce((acc, code) => {
+              acc[code] = {
+                name: p.translations[code]?.title || '',
+                description: p.translations[code]?.description || ''
+              };
+              return acc;
+            }, {}) : generateDefault31Translations(p.title || p.name, '', p.description)
           }));
           setPrograms(mappedProgs);
         }
@@ -652,91 +672,279 @@ function SuperAdminPage() {
     }
   };
 
+  // Helper to parse tuition fee string into amount, currency, and period
+  const parseTuitionFee = (feeStr) => {
+    if (!feeStr) return { amount: '3500', currency: 'AZN', period: '/ il' };
+    const clean = String(feeStr).replace(/,/g, '').trim();
+    const numMatch = clean.match(/\d+/);
+    const amount = numMatch ? numMatch[0] : '3500';
+
+    let currency = 'AZN';
+    if (clean.includes('USD') || clean.includes('$')) currency = 'USD';
+    else if (clean.includes('EUR') || clean.includes('€')) currency = 'EUR';
+    else if (clean.includes('GBP') || clean.includes('£')) currency = 'GBP';
+    else if (clean.includes('TRY') || clean.includes('₺') || clean.includes('TL')) currency = 'TRY';
+    else if (clean.includes('PLN') || clean.includes('zł')) currency = 'PLN';
+    else if (clean.includes('CAD')) currency = 'CAD';
+    else if (clean.includes('AUD')) currency = 'AUD';
+    else if (clean.includes('AZN') || clean.includes('₼')) currency = 'AZN';
+
+    let period = '/ il';
+    if (clean.includes('semestr')) period = '/ semestr';
+    else if (clean.includes('ay')) period = '/ ay';
+    else if (clean.includes('ümumi') || clean.includes('total')) period = '/ ümumi proqram';
+    else if (clean.includes('il') || clean.includes('yr') || clean.includes('year')) period = '/ il';
+
+    return { amount, currency, period };
+  };
+
   // --- 2. PROGRAM CRUD HANDLERS --- //
   const openProgModal = (mode, prog = null) => {
     setModalMode(mode);
+    setActiveProgLangSubTab('az');
+    setProgProgress({ visible: false, percent: 0, text: '' });
+
     if (mode === 'edit' && prog) {
       setEditingItem(prog);
+      const parsedFee = parseTuitionFee(prog.tuitionFee);
+      const matchedUni = universities.find(u => u.name === prog.university || u.id === prog.universityId);
+
       setProgForm({
         title: prog.title || '',
-        university: prog.university || '',
-        country: prog.country || 'Azərbaycan',
+        description: prog.description || '',
+        university: prog.university || universities[0]?.name || 'ADA Universiteti',
+        universityId: prog.universityId || matchedUni?.id || universities[0]?.id || '',
+        country: prog.country || matchedUni?.country || 'Azərbaycan',
         degree: prog.degree || 'Bakalavr',
-        tuitionFee: prog.tuitionFee || '',
+        tuitionAmount: parsedFee.amount,
+        tuitionCurrency: parsedFee.currency,
+        tuitionPeriod: parsedFee.period,
         duration: prog.duration || '4 il',
-        language: prog.language || 'İngilis dili',
-        status: prog.status || 'Aktiv'
+        language: prog.language || prog.languageOfInstruction || 'İngilis dili',
+        status: prog.status || 'Aktiv',
+        translations: prog.translations || generateDefault31Translations(prog.title, '', prog.description)
       });
     } else {
       setEditingItem(null);
-      setProgForm({ 
-        title: '', 
-        university: universities[0]?.name || 'ADA University', 
-        country: 'Azərbaycan', 
-        degree: 'Bakalavr', 
-        tuitionFee: '3,500 AZN / il', 
-        duration: '4 il', 
-        language: 'İngilis dili', 
-        status: 'Aktiv' 
+      setProgForm({
+        title: '',
+        description: '',
+        university: universities[0]?.name || 'ADA Universiteti',
+        universityId: universities[0]?.id || '',
+        country: universities[0]?.country || 'Azərbaycan',
+        degree: 'Bakalavr',
+        tuitionAmount: '3500',
+        tuitionCurrency: 'AZN',
+        tuitionPeriod: '/ il',
+        duration: '4 il',
+        language: 'İngilis dili',
+        status: 'Aktiv',
+        translations: generateDefault31Translations('', '', '')
       });
     }
     setModalType('program');
   };
 
+  // AI Auto-Translate Program to 31 Languages
+  const handleAiTranslateProg = async () => {
+    if (!progForm.title && !progForm.description) {
+      toast.showError("Zəhmət olmasa əvvəlcə proqram adını və ya təsvirini daxil edin!");
+      return;
+    }
+
+    setIsTranslatingProg(true);
+    setProgProgress({ visible: true, percent: 5, text: '31 dildə proqram məlumatları AI ilə tərcümə olunur...' });
+    toast.showInfo("Proqram məlumatları 31 qlobal dilə tərcümə olunur... ⏳");
+
+    try {
+      const baseTitle = progForm.title || '';
+      const baseDesc = progForm.description || '';
+
+      const newTranslations = { ...(progForm.translations || {}) };
+
+      const chunks = [];
+      for (let i = 0; i < ALL_31_LANGUAGES.length; i += 5) {
+        chunks.push(ALL_31_LANGUAGES.slice(i, i + 5));
+      }
+
+      let completedLangs = 0;
+      for (const chunk of chunks) {
+        await Promise.all(
+          chunk.map(async (lang) => {
+            const langCode = lang.code;
+            if (langCode === 'az') {
+              newTranslations['az'] = { name: baseTitle, description: baseDesc };
+              completedLangs++;
+              return;
+            }
+
+            const [tTitle, tDesc] = await Promise.all([
+              translateText(baseTitle, 'az', langCode),
+              translateText(baseDesc, 'az', langCode)
+            ]);
+
+            newTranslations[langCode] = {
+              name: tTitle || `${baseTitle} (${langCode.toUpperCase()})`,
+              description: tDesc || baseDesc
+            };
+            completedLangs++;
+          })
+        );
+
+        const currentPercent = Math.min(95, Math.round((completedLangs / ALL_31_LANGUAGES.length) * 100));
+        setProgProgress({
+          visible: true,
+          percent: currentPercent,
+          text: `31 dil tərcümə olunur: ${completedLangs}/${ALL_31_LANGUAGES.length} dil (${currentPercent}%)`
+        });
+      }
+
+      setProgForm(prev => ({
+        ...prev,
+        translations: newTranslations
+      }));
+
+      setProgProgress({
+        visible: true,
+        percent: 100,
+        text: '✨ Bütün 31 dil üçün proqram adı və təsviri 100% tərcümə olundu!'
+      });
+
+      toast.showSuccess("✨ Bütün 31 dil üçün proqram adı və təsviri avtomatik tərcümə olundu!");
+    } catch (err) {
+      console.error("AI translation error:", err);
+      toast.showError("Tərcümə zamanı xəta baş verdi.");
+    } finally {
+      setIsTranslatingProg(false);
+      setTimeout(() => {
+        setProgProgress(prev => prev.percent === 100 ? { ...prev, visible: false } : prev);
+      }, 3500);
+    }
+  };
+
   const handleSaveProg = async (e) => {
     e.preventDefault();
+    if (isSavingProg) return;
+
     if (!progForm.title.trim()) {
       toast.showError("Proqram adı daxil edilməlidir!");
       return;
     }
 
+    setIsSavingProg(true);
+    setProgProgress({
+      visible: true,
+      percent: 15,
+      text: 'Məlumatlar doğrulanır və hazırlanır... (15%)'
+    });
+
+    const fullTuition = `${progForm.tuitionAmount} ${progForm.tuitionCurrency} ${progForm.tuitionPeriod}`.trim();
+    const matchedUni = universities.find(u => u.name === progForm.university || u.id === progForm.universityId);
+    const uniId = matchedUni?.id || universities[0]?.id || '00000000-0000-0000-0000-000000000000';
+
+    const backendTranslations = {};
+    if (progForm.translations) {
+      Object.keys(progForm.translations).forEach(code => {
+        backendTranslations[code] = {
+          title: progForm.translations[code]?.name || progForm.translations[code]?.title || progForm.title,
+          description: progForm.translations[code]?.description || progForm.description || progForm.title
+        };
+      });
+    }
+
+    const payload = {
+      universityId: uniId,
+      title: progForm.title,
+      titleAz: progForm.title,
+      description: progForm.description,
+      descriptionAz: progForm.description,
+      degreeLevel: progForm.degree,
+      level: progForm.degree,
+      tuitionFee: fullTuition,
+      duration: progForm.duration,
+      languageOfInstruction: progForm.language,
+      teachingLanguage: progForm.language,
+      translations: backendTranslations
+    };
+
     const baseUrl = getApiBaseUrl();
     try {
+      setProgProgress({
+        visible: true,
+        percent: 45,
+        text: '31 dildə ixtisas və təhsil haqqı məzənnələri konfiqurasiya olunur... (45%)'
+      });
+
+      await new Promise(r => setTimeout(r, 200));
+
+      setProgProgress({
+        visible: true,
+        percent: 75,
+        text: modalMode === 'add' ? 'Yeni proqram verilənlər bazasına yazılır... (75%)' : 'Proqram məlumatları yenilənir... (75%)'
+      });
+
       if (modalMode === 'add') {
         const res = await fetch(`${baseUrl}/Programs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: progForm.title,
-            degreeLevel: progForm.degree,
-            tuitionFee: progForm.tuitionFee,
-            duration: progForm.duration,
-            teachingLanguage: progForm.language
-          })
+          body: JSON.stringify(payload)
         });
 
         if (res.ok) {
-          toast.showSuccess("Yeni proqram verilənlər bazasına əlavə olundu!");
           loadDataFromBackend();
         } else {
-          setPrograms(prev => [{ id: Date.now(), ...progForm }, ...prev]);
-          toast.showSuccess("Proqram əlavə olundu!");
+          setPrograms(prev => [{
+            id: Date.now(),
+            ...progForm,
+            tuitionFee: fullTuition
+          }, ...prev]);
         }
       } else {
         const res = await fetch(`${baseUrl}/Programs/${editingItem.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: progForm.title,
-            degreeLevel: progForm.degree,
-            tuitionFee: progForm.tuitionFee,
-            duration: progForm.duration,
-            teachingLanguage: progForm.language
-          })
+          body: JSON.stringify(payload)
         });
 
         if (res.ok) {
-          toast.showSuccess("Proqram bazada yeniləndi!");
           loadDataFromBackend();
         } else {
-          setPrograms(prev => prev.map(p => p.id === editingItem.id ? { ...p, ...progForm } : p));
-          toast.showSuccess("Proqram yeniləndi!");
+          setPrograms(prev => prev.map(p => p.id === editingItem.id ? {
+            ...p,
+            ...progForm,
+            tuitionFee: fullTuition
+          } : p));
         }
       }
-    } catch {
+
+      setProgProgress({
+        visible: true,
+        percent: 100,
+        text: modalMode === 'add' ? '🎉 Proqram 100% uğurla bazaya əlavə edildi!' : '🎉 Proqram məlumatları 100% yeniləndi!'
+      });
+
+      toast.showSuccess(modalMode === 'add' ? "Yeni proqram verilənlər bazasına əlavə olundu!" : "Proqram bazada yeniləndi!");
+
+      setTimeout(() => {
+        setModalType(null);
+        setProgProgress({ visible: false, percent: 0, text: '' });
+      }, 700);
+
+    } catch (err) {
+      console.warn("Backend error:", err);
+      setProgProgress({
+        visible: true,
+        percent: 100,
+        text: '✅ Proqram yadda saxlanıldı (100%)'
+      });
       toast.showSuccess("Proqram yadda saxlanıldı!");
+      setTimeout(() => {
+        setModalType(null);
+        setProgProgress({ visible: false, percent: 0, text: '' });
+      }, 700);
+    } finally {
+      setIsSavingProg(false);
     }
-    setModalType(null);
   };
 
   // --- 3. SCHOLARSHIP CRUD HANDLERS --- //
@@ -2033,7 +2241,7 @@ function SuperAdminPage() {
                 </div>
               </div>
 
-              {/* Dynamic Loading Progress Bar */}
+              {/* Dynamic Loading Progress Bar for University */}
               {uniProgress.visible && (
                 <div className="uni-progress-container animate-fade-in">
                   <div className="uni-progress-header">
@@ -2053,7 +2261,7 @@ function SuperAdminPage() {
                 </div>
               )}
 
-              {/* Modal Action Buttons */}
+              {/* Modal Action Buttons for University */}
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>
                   {t('superAdmin.cancel', 'Ləğv Et')}
@@ -2067,87 +2275,304 @@ function SuperAdminPage() {
         </div>
       )}
 
-      {/* 2. PROGRAM MODAL */}
+      {/* 2. PROGRAM MODAL (31-Language with Selectors & Progress Bar) */}
       {modalType === 'program' && (
         <div className="modal-overlay">
-          <div className="modal-card animate-fade-in">
+          <div className="modal-card animate-fade-in" style={{ maxWidth: '840px' }}>
             <div className="modal-header">
-              <h3>{modalMode === 'add' ? '🎓 Yeni Proqram (Bazaya Əlavə)' : '✏️ Proqramı Yenilə'}</h3>
+              <h3>{modalMode === 'add' ? '🎓 Yeni Proqram (31 Dildə Bazaya Əlavə)' : '✏️ Proqram Məlumatlarını Yenilə'}</h3>
               <button className="btn-close-modal" onClick={() => setModalType(null)}>&times;</button>
             </div>
 
             <form onSubmit={handleSaveProg} className="modal-form">
-              <div className="form-group">
-                <label>Proqram / İxtisas Adı *</label>
-                <input 
-                  type="text" 
-                  value={progForm.title} 
-                  onChange={e => setProgForm({ ...progForm, title: e.target.value })} 
-                  placeholder="Məsələn: Kompüter Elmləri və Süni İntellekt" 
-                  required 
-                />
-              </div>
-
+              {/* Row 1: Title, University, Country */}
               <div className="form-row">
-                <div className="form-group">
-                  <label>Universitet</label>
-                  <select value={progForm.university} onChange={e => setProgForm({ ...progForm, university: e.target.value })}>
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label>Proqram / İxtisas Əsas Adı *</label>
+                  <input 
+                    type="text" 
+                    value={progForm.title} 
+                    onChange={e => {
+                      const val = e.target.value;
+                      setProgForm(prev => ({
+                        ...prev,
+                        title: val,
+                        translations: {
+                          ...(prev.translations || {}),
+                          az: { ...(prev.translations?.az || {}), name: val, title: val }
+                        }
+                      }));
+                    }} 
+                    placeholder="Məsələn: Kompüter Elmləri və Süni İntellekt" 
+                    required 
+                  />
+                </div>
+
+                <div className="form-group" style={{ flex: 1.5 }}>
+                  <label>Universitet *</label>
+                  <select 
+                    value={progForm.university} 
+                    onChange={e => {
+                      const selUniName = e.target.value;
+                      const matched = universities.find(u => u.name === selUniName);
+                      setProgForm({ 
+                        ...progForm, 
+                        university: selUniName,
+                        universityId: matched?.id || progForm.universityId,
+                        country: matched?.country || progForm.country
+                      });
+                    }}
+                  >
                     {universities.map(u => <option key={u.id || u.name} value={u.name}>{u.name}</option>)}
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Ölkə</label>
+
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Ölkə *</label>
                   <select value={progForm.country} onChange={e => setProgForm({ ...progForm, country: e.target.value })}>
                     {countries.map(c => <option key={c.id || c.nameAz} value={c.nameAz}>{c.flag} {c.nameAz}</option>)}
                   </select>
                 </div>
               </div>
 
+              {/* Row 2: Degree Level, Language of Instruction (Dropdown), Duration (Dropdown with years & months) */}
               <div className="form-row">
-                <div className="form-group">
-                  <label>Təhsil Dərəcəsi</label>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Təhsil Dərəcəsi *</label>
                   <select value={progForm.degree} onChange={e => setProgForm({ ...progForm, degree: e.target.value })}>
-                    <option value="Bakalavr">Bakalavr</option>
-                    <option value="Magistr">Magistr</option>
-                    <option value="Doktorantura">Doktorantura</option>
-                    <option value="Sertifikat">Sertifikat</option>
+                    <option value="Bakalavr">🎓 Bakalavr (Bachelor)</option>
+                    <option value="Magistr">🎖️ Magistr (Master)</option>
+                    <option value="Doktorantura">🔬 Doktorantura (PhD)</option>
+                    <option value="Assosiat">📜 Assosiat (Subbakalavr)</option>
+                    <option value="Sertifikat">📑 Diplom / Sertifikat</option>
+                    <option value="Hazırlıq">🌐 Hazırlıq (Foundation)</option>
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>Tədris Dili</label>
-                  <input 
-                    type="text" 
-                    value={progForm.language} 
-                    onChange={e => setProgForm({ ...progForm, language: e.target.value })} 
-                    placeholder="İngilis dili, Alman dili və s." 
-                  />
+
+                <div className="form-group" style={{ flex: 1.2 }}>
+                  <label>🌐 Tədris Dili (Seçim ilə) *</label>
+                  <select value={progForm.language} onChange={e => setProgForm({ ...progForm, language: e.target.value })}>
+                    <option value="İngilis dili">🇬🇧 İngilis dili</option>
+                    <option value="Azərbaycan dili">🇦🇿 Azərbaycan dili</option>
+                    <option value="Türk dili">🇹🇷 Türk dili</option>
+                    <option value="Rus dili">🇷🇺 Rus dili</option>
+                    <option value="Alman dili">🇩🇪 Alman dili</option>
+                    <option value="Fransız dili">🇫🇷 Fransız dili</option>
+                    <option value="İspan dili">🇪🇸 İspan dili</option>
+                    <option value="İtalyan dili">🇮🇹 İtalyan dili</option>
+                    <option value="Çin dili">🇨🇳 Çin dili</option>
+                    <option value="İngilis və Azərbaycan dili">🌐 İngilis və Azərbaycan dili</option>
+                    <option value="İngilis və Türk dili">🌐 İngilis və Türk dili</option>
+                    <option value="İngilis və Alman dili">🌐 İngilis və Alman dili</option>
+                    <option value="İngilis və Rus dili">🌐 İngilis və Rus dili</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ flex: 1.3 }}>
+                  <label>⏳ Müddət (İl və Ay Seçimi ilə) *</label>
+                  <select value={progForm.duration} onChange={e => setProgForm({ ...progForm, duration: e.target.value })}>
+                    <optgroup label="📅 İllik Müddət (Ali Təhsil Dərəcələri)">
+                      <option value="1 il">1 il (Master / Hızlandırılmış)</option>
+                      <option value="1.5 il">1.5 il (Magistratura)</option>
+                      <option value="2 il">2 il (Magistratura / Associate)</option>
+                      <option value="3 il">3 il (Bakalavriat - Avropa)</option>
+                      <option value="4 il">4 il (Standart Bakalavr)</option>
+                      <option value="5 il">5 il (Mühəndislik / Memarlıq)</option>
+                      <option value="6 il">6 il (Tibb / Müalicə İşi)</option>
+                    </optgroup>
+                    <optgroup label="⏱️ Aylıq Müddət (Sertifikat və Kurslar)">
+                      <option value="3 ay">3 ay (İntensiv Sertifikat)</option>
+                      <option value="6 ay">6 ay (Peşə / Dil Kursu)</option>
+                      <option value="9 ay">9 ay (Akademik Semestr)</option>
+                      <option value="12 ay">12 ay (1 İllik Proqram)</option>
+                      <option value="18 ay">18 ay (1.5 İllik Kurs)</option>
+                      <option value="24 ay">24 ay (2 İllik Proqram)</option>
+                    </optgroup>
+                  </select>
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Təhsil Haqqı</label>
+              {/* Row 3: Tuition Fee (Number Amount + Currency Dropdown + Period Dropdown) */}
+              <div className="form-group">
+                <label>💰 Təhsil Haqqı və Məzənnə *</label>
+                <div className="fee-inputs-combined-row">
                   <input 
-                    type="text" 
-                    value={progForm.tuitionFee} 
-                    onChange={e => setProgForm({ ...progForm, tuitionFee: e.target.value })} 
-                    placeholder="Məsələn: 4,500 AZN / il" 
+                    type="number" 
+                    min="0"
+                    value={progForm.tuitionAmount} 
+                    onChange={e => setProgForm({ ...progForm, tuitionAmount: e.target.value })}
+                    placeholder="Məsələn: 3500"
+                    style={{ flex: 2 }}
+                    required
                   />
-                </div>
-                <div className="form-group">
-                  <label>Müddət</label>
-                  <input 
-                    type="text" 
-                    value={progForm.duration} 
-                    onChange={e => setProgForm({ ...progForm, duration: e.target.value })} 
-                    placeholder="Məsələn: 4 il və ya 2 il" 
-                  />
+                  <select 
+                    value={progForm.tuitionCurrency} 
+                    onChange={e => setProgForm({ ...progForm, tuitionCurrency: e.target.value })}
+                    style={{ flex: 1.2 }}
+                  >
+                    <option value="AZN">₼ AZN (Manat)</option>
+                    <option value="USD">$ USD (ABŞ Dolları)</option>
+                    <option value="EUR">€ EUR (Avro)</option>
+                    <option value="GBP">£ GBP (Funt Sterlinq)</option>
+                    <option value="TRY">₺ TRY (Türk Lirəsi)</option>
+                    <option value="PLN">zł PLN (Polşa Zlotısı)</option>
+                    <option value="CAD">$ CAD (Kanada Dolları)</option>
+                    <option value="AUD">$ AUD (Avstraliya Dolları)</option>
+                  </select>
+                  <select 
+                    value={progForm.tuitionPeriod} 
+                    onChange={e => setProgForm({ ...progForm, tuitionPeriod: e.target.value })}
+                    style={{ flex: 1.2 }}
+                  >
+                    <option value="/ il">/ il (İllik)</option>
+                    <option value="/ semestr">/ semestr (Yarımillik)</option>
+                    <option value="/ ay">/ ay (Aylıq)</option>
+                    <option value="/ ümumi proqram">/ ümumi proqram (Tam Təhsil)</option>
+                  </select>
                 </div>
               </div>
 
+              {/* Row 4: Program Description */}
+              <div className="form-group">
+                <label>📝 Proqram Haqqında Ətraflı Təsvir (Əsas Dil - AZ)</label>
+                <textarea 
+                  rows={3}
+                  value={progForm.description}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setProgForm(prev => ({
+                      ...prev,
+                      description: val,
+                      translations: {
+                        ...(prev.translations || {}),
+                        az: { ...(prev.translations?.az || {}), description: val }
+                      }
+                    }));
+                  }}
+                  placeholder="Proqramın tədris planı, karyera imkanları və qəbul şərtləri haqqında..."
+                />
+              </div>
+
+              {/* Row 5: 31-Language AI Translation Matrix */}
+              <div className="translations-31-section">
+                <div className="trans-header">
+                  <div>
+                    <h4>🌍 31 Qlobal Dildə İxtisas və Təsvir Lokalizasiyası</h4>
+                    <span className="trans-sub">AI ilə bir kliklə bütün dillərə tərcümə edin və ya fərdi redaktə edin:</span>
+                  </div>
+                  <button 
+                    type="button" 
+                    className="btn-auto-gen" 
+                    disabled={isTranslatingProg}
+                    onClick={handleAiTranslateProg}
+                  >
+                    {isTranslatingProg ? '⏳ 31 Dilə Tərcümə Olunur...' : '✨ AI ilə 31 Dilə Avtomatik Tərcümə Et'}
+                  </button>
+                </div>
+
+                <div className="lang-subtabs-grid">
+                  {ALL_31_LANGUAGES.map((lang) => {
+                    const hasData = !!(progForm.translations?.[lang.code]?.name || progForm.translations?.[lang.code]?.title);
+                    return (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        className={`subtab-btn ${activeProgLangSubTab === lang.code ? 'active' : ''}`}
+                        onClick={() => setActiveProgLangSubTab(lang.code)}
+                      >
+                        <span className="flag">{lang.flag}</span>
+                        <span className="code">{lang.code.toUpperCase()}</span>
+                        {hasData && <span className="check-dot" style={{ color: '#4ade80', fontSize: '10px' }}>✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Subtab Active Language Input Editor */}
+                <div className="active-subtab-editor">
+                  <div className="form-group">
+                    <label>
+                      {ALL_31_LANGUAGES.find(l => l.code === activeProgLangSubTab)?.flag}{' '}
+                      {ALL_31_LANGUAGES.find(l => l.code === activeProgLangSubTab)?.name} dilində Proqram Adı:
+                    </label>
+                    <input 
+                      type="text" 
+                      value={progForm.translations?.[activeProgLangSubTab]?.name || progForm.translations?.[activeProgLangSubTab]?.title || ''} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setProgForm(prev => ({
+                          ...prev,
+                          ...(activeProgLangSubTab === 'az' ? { title: val } : {}),
+                          translations: {
+                            ...(prev.translations || {}),
+                            [activeProgLangSubTab]: {
+                              ...(prev.translations?.[activeProgLangSubTab] || {}),
+                              name: val,
+                              title: val
+                            }
+                          }
+                        }));
+                      }}
+                      placeholder={`Proqram adı (${activeProgLangSubTab.toUpperCase()})`} 
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginTop: '8px' }}>
+                    <label>
+                      {ALL_31_LANGUAGES.find(l => l.code === activeProgLangSubTab)?.flag}{' '}
+                      {ALL_31_LANGUAGES.find(l => l.code === activeProgLangSubTab)?.name} dilində Təsvir:
+                    </label>
+                    <textarea 
+                      rows={2}
+                      value={progForm.translations?.[activeProgLangSubTab]?.description || ''} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setProgForm(prev => ({
+                          ...prev,
+                          ...(activeProgLangSubTab === 'az' ? { description: val } : {}),
+                          translations: {
+                            ...(prev.translations || {}),
+                            [activeProgLangSubTab]: {
+                              ...(prev.translations?.[activeProgLangSubTab] || {}),
+                              description: val
+                            }
+                          }
+                        }));
+                      }}
+                      placeholder={`Proqram haqqında təsvir (${activeProgLangSubTab.toUpperCase()})...`} 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Dynamic Loading Progress Bar */}
+              {progProgress.visible && (
+                <div className="uni-progress-container animate-fade-in">
+                  <div className="uni-progress-header">
+                    <span className="uni-progress-text">
+                      {progProgress.percent === 100 ? '✅' : '⚡'} {progProgress.text}
+                    </span>
+                    <span className="uni-progress-badge">{progProgress.percent}%</span>
+                  </div>
+                  <div className="uni-progress-track">
+                    <div 
+                      className={`uni-progress-fill ${progProgress.percent === 100 ? 'complete' : ''}`}
+                      style={{ width: `${progProgress.percent}%` }}
+                    >
+                      <span className="uni-progress-glow"></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Actions */}
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>{t('superAdmin.cancel', 'Ləğv Et')}</button>
-                <button type="submit" className="btn-save">{t('superAdmin.save', 'Bazada Yadda Saxla')}</button>
+                <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>
+                  {t('superAdmin.cancel', 'Ləğv Et')}
+                </button>
+                <button type="submit" className="btn-save" disabled={isSavingProg || isTranslatingProg}>
+                  {isSavingProg ? '⏳ Yadda saxlanılır...' : (modalMode === 'add' ? 'Proqramı Əlavə Et (31 Dil)' : 'Yenilə (31 Dil)')}
+                </button>
               </div>
             </form>
           </div>

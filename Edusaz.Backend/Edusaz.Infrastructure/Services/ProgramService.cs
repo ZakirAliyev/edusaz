@@ -101,63 +101,72 @@ public class ProgramService : IProgramService
             }
         }
 
-        var enLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "en");
-        var azLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "az");
-        var trLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "tr");
-        var ruLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "ru");
+        var allLanguages = await _context.Languages.ToListAsync();
 
         var program = new Program
         {
             Id = Guid.NewGuid(),
             UniversityId = dto.UniversityId,
-            DegreeLevel = dto.Level ?? "Bachelor",
-            Duration = dto.Duration ?? "4 Years",
-            TuitionFee = dto.TuitionFee ?? "$5,000/yr",
-            FieldOfStudy = dto.FieldOfStudy ?? "General",
-            EntryRequirements = dto.EntryRequirements ?? "High School Diploma",
+            DegreeLevel = dto.DegreeLevel ?? dto.Level ?? "Bakalavr",
+            Duration = dto.Duration ?? "4 il",
+            TuitionFee = dto.TuitionFee ?? "3,500 AZN / il",
+            LanguageOfInstruction = dto.LanguageOfInstruction ?? dto.TeachingLanguage ?? "İngilis dili",
+            FieldOfStudy = dto.FieldOfStudy ?? "Ümumi",
+            EntryRequirements = dto.EntryRequirements ?? "Tam orta təhsil attestatı",
             Translations = new List<ProgramTranslation>()
         };
 
-        if (azLang != null && !string.IsNullOrEmpty(dto.TitleAz))
+        var titleAz = !string.IsNullOrEmpty(dto.TitleAz) ? dto.TitleAz : (!string.IsNullOrEmpty(dto.Title) ? dto.Title : "Yeni Proqram");
+        var descAz = !string.IsNullOrEmpty(dto.DescriptionAz) ? dto.DescriptionAz : (!string.IsNullOrEmpty(dto.Description) ? dto.Description : titleAz);
+
+        if (dto.Translations != null && dto.Translations.Count > 0)
+        {
+            foreach (var kvp in dto.Translations)
+            {
+                var langMatch = allLanguages.FirstOrDefault(l => string.Equals(l.Code, kvp.Key, StringComparison.OrdinalIgnoreCase));
+                if (langMatch != null && !string.IsNullOrEmpty(kvp.Value.Title))
+                {
+                    program.Translations.Add(new ProgramTranslation
+                    {
+                        Id = Guid.NewGuid(),
+                        LanguageId = langMatch.Id,
+                        Title = kvp.Value.Title,
+                        Description = string.IsNullOrEmpty(kvp.Value.Description) ? kvp.Value.Title : kvp.Value.Description
+                    });
+                }
+            }
+        }
+
+        // Ensure AZ is present
+        var azLang = allLanguages.FirstOrDefault(x => x.Code == "az");
+        if (azLang != null && !program.Translations.Any(t => t.LanguageId == azLang.Id))
         {
             program.Translations.Add(new ProgramTranslation
             {
-                Id = Guid.NewGuid(), LanguageId = azLang.Id,
-                Title = dto.TitleAz, Description = dto.DescriptionAz ?? dto.TitleAz
+                Id = Guid.NewGuid(),
+                LanguageId = azLang.Id,
+                Title = titleAz,
+                Description = descAz
             });
         }
 
-        if (enLang != null && !string.IsNullOrEmpty(dto.TitleEn))
+        // Ensure EN is present
+        var enLang = allLanguages.FirstOrDefault(x => x.Code == "en");
+        if (enLang != null && !program.Translations.Any(t => t.LanguageId == enLang.Id))
         {
             program.Translations.Add(new ProgramTranslation
             {
-                Id = Guid.NewGuid(), LanguageId = enLang.Id,
-                Title = dto.TitleEn, Description = dto.DescriptionEn ?? dto.TitleEn
-            });
-        }
-
-        if (trLang != null && !string.IsNullOrEmpty(dto.TitleTr))
-        {
-            program.Translations.Add(new ProgramTranslation
-            {
-                Id = Guid.NewGuid(), LanguageId = trLang.Id,
-                Title = dto.TitleTr, Description = dto.DescriptionTr ?? dto.TitleTr
-            });
-        }
-
-        if (ruLang != null && !string.IsNullOrEmpty(dto.TitleRu))
-        {
-            program.Translations.Add(new ProgramTranslation
-            {
-                Id = Guid.NewGuid(), LanguageId = ruLang.Id,
-                Title = dto.TitleRu, Description = dto.DescriptionRu ?? dto.TitleRu
+                Id = Guid.NewGuid(),
+                LanguageId = enLang.Id,
+                Title = !string.IsNullOrEmpty(dto.TitleEn) ? dto.TitleEn : titleAz,
+                Description = !string.IsNullOrEmpty(dto.DescriptionEn) ? dto.DescriptionEn : descAz
             });
         }
 
         await _context.Programs.AddAsync(program);
         await _context.SaveChangesAsync();
 
-        return (await GetProgramByIdAsync(program.Id, "en"))!;
+        return (await GetProgramByIdAsync(program.Id, "az"))!;
     }
 
     public async Task<bool> DeleteProgramAsync(Guid id)
@@ -179,25 +188,74 @@ public class ProgramService : IProgramService
         if (program == null)
             throw new Exception("Program not found");
 
-        if (!string.IsNullOrEmpty(dto.Level)) program.DegreeLevel = dto.Level;
+        if (dto.UniversityId != Guid.Empty) program.UniversityId = dto.UniversityId;
+        if (!string.IsNullOrEmpty(dto.DegreeLevel)) program.DegreeLevel = dto.DegreeLevel;
+        else if (!string.IsNullOrEmpty(dto.Level)) program.DegreeLevel = dto.Level;
+
         if (!string.IsNullOrEmpty(dto.Duration)) program.Duration = dto.Duration;
         if (!string.IsNullOrEmpty(dto.TuitionFee)) program.TuitionFee = dto.TuitionFee;
+        if (!string.IsNullOrEmpty(dto.LanguageOfInstruction)) program.LanguageOfInstruction = dto.LanguageOfInstruction;
+        else if (!string.IsNullOrEmpty(dto.TeachingLanguage)) program.LanguageOfInstruction = dto.TeachingLanguage;
+
         if (!string.IsNullOrEmpty(dto.FieldOfStudy)) program.FieldOfStudy = dto.FieldOfStudy;
         if (!string.IsNullOrEmpty(dto.EntryRequirements)) program.EntryRequirements = dto.EntryRequirements;
 
-        var azLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "az");
-        if (azLang != null && !string.IsNullOrEmpty(dto.TitleAz))
+        var allLanguages = await _context.Languages.ToListAsync();
+
+        if (dto.Translations != null && dto.Translations.Count > 0)
         {
-            var azTr = program.Translations.FirstOrDefault(t => t.LanguageId == azLang.Id);
-            if (azTr != null)
+            foreach (var kvp in dto.Translations)
             {
-                azTr.Title = dto.TitleAz;
-                azTr.Description = dto.DescriptionAz ?? dto.TitleAz;
+                var langMatch = allLanguages.FirstOrDefault(l => string.Equals(l.Code, kvp.Key, StringComparison.OrdinalIgnoreCase));
+                if (langMatch != null && !string.IsNullOrEmpty(kvp.Value.Title))
+                {
+                    var existingTr = program.Translations.FirstOrDefault(t => t.LanguageId == langMatch.Id);
+                    if (existingTr != null)
+                    {
+                        existingTr.Title = kvp.Value.Title;
+                        existingTr.Description = string.IsNullOrEmpty(kvp.Value.Description) ? kvp.Value.Title : kvp.Value.Description;
+                    }
+                    else
+                    {
+                        program.Translations.Add(new ProgramTranslation
+                        {
+                            Id = Guid.NewGuid(),
+                            LanguageId = langMatch.Id,
+                            Title = kvp.Value.Title,
+                            Description = string.IsNullOrEmpty(kvp.Value.Description) ? kvp.Value.Title : kvp.Value.Description
+                        });
+                    }
+                }
+            }
+        }
+        else if (!string.IsNullOrEmpty(dto.TitleAz) || !string.IsNullOrEmpty(dto.Title))
+        {
+            var title = !string.IsNullOrEmpty(dto.TitleAz) ? dto.TitleAz : dto.Title!;
+            var desc = !string.IsNullOrEmpty(dto.DescriptionAz) ? dto.DescriptionAz : (dto.Description ?? title);
+            var azLang = allLanguages.FirstOrDefault(x => x.Code == "az");
+            if (azLang != null)
+            {
+                var azTr = program.Translations.FirstOrDefault(t => t.LanguageId == azLang.Id);
+                if (azTr != null)
+                {
+                    azTr.Title = title;
+                    azTr.Description = desc;
+                }
+                else
+                {
+                    program.Translations.Add(new ProgramTranslation
+                    {
+                        Id = Guid.NewGuid(),
+                        LanguageId = azLang.Id,
+                        Title = title,
+                        Description = desc
+                    });
+                }
             }
         }
 
         await _context.SaveChangesAsync();
-        return (await GetProgramByIdAsync(program.Id, "en"))!;
+        return (await GetProgramByIdAsync(program.Id, "az"))!;
     }
 
     private static ProgramDto MapToDto(Program p, Guid? langId, string langCode)
