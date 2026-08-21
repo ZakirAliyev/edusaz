@@ -19,6 +19,10 @@ public class UserProfileDto
     public List<UserActivityDto> Activities { get; set; } = new();
     public string Role { get; set; } = "Student";
     public string? ProfileImageUrl { get; set; }
+    public Guid? UniversityId { get; set; }
+    public string? UniversityName { get; set; }
+    public string Status { get; set; } = "Active";
+    public DateTime? CreatedAt { get; set; }
 }
 
 public class UserActivityDto

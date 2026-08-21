@@ -31,13 +31,16 @@ public class AdminCreateUserDto
     public string Password { get; set; } = string.Empty;
     public string Role { get; set; } = "Student";
     public Guid? UniversityId { get; set; }
+    public string? Status { get; set; } = "Active";
 }
 
 public class AdminUpdateUserDto
 {
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
+    public string? Email { get; set; }
     public string? Role { get; set; }
     public Guid? UniversityId { get; set; }
     public string? Password { get; set; }
+    public string? Status { get; set; }
 }

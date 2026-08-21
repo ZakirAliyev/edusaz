@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using Edusaz.Infrastructure.Contexts;
+
 namespace Edusaz.API.Controllers;
 
 [ApiController]
@@ -19,12 +21,18 @@ public class AuthController : ControllerBase
     private readonly IAuthService _authService;
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<Role> _roleManager;
+    private readonly EdusazDbContext _context;
 
-    public AuthController(IAuthService authService, UserManager<User> userManager, RoleManager<Role> roleManager)
+    public AuthController(
+        IAuthService authService, 
+        UserManager<User> userManager, 
+        RoleManager<Role> roleManager,
+        EdusazDbContext context)
     {
         _authService = authService;
         _userManager = userManager;
         _roleManager = roleManager;
+        _context = context;
     }
 
     [HttpPost("register")]
@@ -82,8 +90,12 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> GetUsers([FromQuery] string? role)
     {
         var usersQuery = _userManager.Users.Where(u => !u.IsDeleted).AsQueryable();
+        var usersList = await usersQuery.OrderByDescending(u => u.CreatedAt).ToListAsync();
+        
+        var universities = await _context.Universities
+            .Include(u => u.Translations)
+            .ToDictionaryAsync(u => u.Id, u => u.Translations.FirstOrDefault()?.Name ?? "Universitet");
 
-        var usersList = await usersQuery.ToListAsync();
         var result = new System.Collections.Generic.List<UserProfileDto>();
 
         foreach (var u in usersList)
@@ -91,18 +103,28 @@ public class AuthController : ControllerBase
             var roles = await _userManager.GetRolesAsync(u);
             var mainRole = roles.FirstOrDefault() ?? "Student";
 
-            if (role != null && mainRole != role)
+            if (role != null && !string.Equals(mainRole, role, StringComparison.OrdinalIgnoreCase))
                 continue;
+
+            string? uniName = null;
+            if (u.UniversityId.HasValue && universities.TryGetValue(u.UniversityId.Value, out var uName))
+            {
+                uniName = uName;
+            }
 
             result.Add(new UserProfileDto
             {
                 Id = u.Id,
                 FirstName = u.FirstName,
                 LastName = u.LastName,
-                Email = u.Email,
+                Email = u.Email ?? "",
                 Role = mainRole,
                 Phone = u.PhoneNumber,
-                Country = u.Country ?? ""
+                Country = u.Country ?? "",
+                UniversityId = u.UniversityId,
+                UniversityName = uniName,
+                Status = "Active",
+                CreatedAt = u.CreatedAt
             });
         }
 
@@ -113,30 +135,53 @@ public class AuthController : ControllerBase
     [HttpPost("admin-create")]
     public async Task<IActionResult> AdminCreateUser([FromBody] AdminCreateUserDto dto)
     {
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+            return BadRequest(ApiResponse<string>.ErrorResponse("Email və şifrə mütləq daxil edilməlidir."));
+
         var existing = await _userManager.FindByEmailAsync(dto.Email);
         if (existing != null)
-            return BadRequest(ApiResponse<string>.ErrorResponse("User with this email already exists."));
+            return BadRequest(ApiResponse<string>.ErrorResponse("Bu email ünvanı ilə artıq istifadəçi qeydiyyatdan keçib."));
 
         var user = new User
         {
             UserName = dto.Email,
             Email = dto.Email,
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
+            FirstName = string.IsNullOrWhiteSpace(dto.FirstName) ? dto.Email.Split('@')[0] : dto.FirstName,
+            LastName = dto.LastName ?? "",
             UniversityId = dto.UniversityId,
             CreatedAt = DateTime.UtcNow
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
         if (!result.Succeeded)
-            return BadRequest(ApiResponse<string>.ErrorResponse("Failed to create user."));
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            return BadRequest(ApiResponse<string>.ErrorResponse($"İstifadəçi yaradılarkən xəta: {errors}"));
+        }
 
-        if (!await _roleManager.RoleExistsAsync(dto.Role))
-            await _roleManager.CreateAsync(new Role { Name = dto.Role });
+        var assignedRole = string.IsNullOrWhiteSpace(dto.Role) ? "Student" : dto.Role;
+        if (!await _roleManager.RoleExistsAsync(assignedRole))
+            await _roleManager.CreateAsync(new Role { Name = assignedRole });
 
-        await _userManager.AddToRoleAsync(user, dto.Role);
+        await _userManager.AddToRoleAsync(user, assignedRole);
 
-        return Ok(ApiResponse<string>.SuccessResponse("User created successfully"));
+        // If Teacher or Course Center, create Instructor profile entity
+        if (assignedRole.Equals("Teacher", StringComparison.OrdinalIgnoreCase) || 
+            assignedRole.Equals("CourseCenter", StringComparison.OrdinalIgnoreCase))
+        {
+            var instructor = new Instructor
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.Id,
+                DisplayName = $"{user.FirstName} {user.LastName}".Trim(),
+                Bio = assignedRole.Equals("CourseCenter", StringComparison.OrdinalIgnoreCase) ? "Tədris Mərkəzi" : "Təlimçi / Müəllim",
+                IsApproved = true
+            };
+            _context.Instructors.Add(instructor);
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok(ApiResponse<string>.SuccessResponse("Hesab uğurla yaradıldı!"));
     }
 
     [Authorize(Roles = "SuperAdmin")]
@@ -145,10 +190,15 @@ public class AuthController : ControllerBase
     {
         var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
         if (user == null)
-            return NotFound(ApiResponse<string>.ErrorResponse("User not found"));
+            return NotFound(ApiResponse<string>.ErrorResponse("İstifadəçi tapılmadı"));
 
         if (!string.IsNullOrEmpty(dto.FirstName)) user.FirstName = dto.FirstName;
         if (!string.IsNullOrEmpty(dto.LastName)) user.LastName = dto.LastName;
+        if (!string.IsNullOrEmpty(dto.Email) && dto.Email != user.Email)
+        {
+            user.Email = dto.Email;
+            user.UserName = dto.Email;
+        }
         if (dto.UniversityId.HasValue) user.UniversityId = dto.UniversityId;
 
         if (!string.IsNullOrEmpty(dto.Password))
@@ -170,7 +220,7 @@ public class AuthController : ControllerBase
             await _userManager.AddToRoleAsync(user, dto.Role);
         }
 
-        return Ok(ApiResponse<string>.SuccessResponse("User updated successfully"));
+        return Ok(ApiResponse<string>.SuccessResponse("Məlumatlar uğurla yeniləndi"));
     }
 
     [Authorize(Roles = "SuperAdmin")]
@@ -179,11 +229,11 @@ public class AuthController : ControllerBase
     {
         var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
         if (user == null)
-            return NotFound(ApiResponse<string>.ErrorResponse("User not found"));
+            return NotFound(ApiResponse<string>.ErrorResponse("İstifadəçi tapılmadı"));
 
         user.IsDeleted = true;
         await _userManager.UpdateAsync(user);
 
-        return Ok(ApiResponse<string>.SuccessResponse("User deleted successfully"));
+        return Ok(ApiResponse<string>.SuccessResponse("Hesab uğurla silindi"));
     }
 }

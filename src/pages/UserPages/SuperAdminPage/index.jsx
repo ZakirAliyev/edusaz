@@ -515,8 +515,11 @@ function SuperAdminPage() {
     navigate('/');
   };
 
-  const handleOpenUserModal = (user = null) => {
-    if (user) {
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const openUserModal = (mode, user = null) => {
+    setConfirmPassword('');
+    if (mode === 'edit' && user) {
       setEditingUser(user);
       setUserFormData({
         firstName: user.firstName || '',
@@ -524,7 +527,8 @@ function SuperAdminPage() {
         email: user.email || '',
         password: '',
         role: user.role || 'Student',
-        universityId: user.universityId || ''
+        universityId: user.universityId || '',
+        status: user.status || 'Active'
       });
     } else {
       setEditingUser(null);
@@ -533,8 +537,9 @@ function SuperAdminPage() {
         lastName: '',
         email: '',
         password: '',
-        role: 'Student',
-        universityId: ''
+        role: 'UniversityAdmin',
+        universityId: universities?.[0]?.id || '',
+        status: 'Active'
       });
     }
     setShowUserModal(true);
@@ -542,38 +547,58 @@ function SuperAdminPage() {
 
   const handleUserSubmit = async (e) => {
     e.preventDefault();
+    if (!editingUser && (!userFormData.email || !userFormData.password)) {
+      toast.showError('Email və şifrə mütləq daxil edilməlidir!');
+      return;
+    }
+    if (!editingUser && userFormData.password !== confirmPassword) {
+      toast.showError('Daxil edilən şifrələr uyğun gəlmir!');
+      return;
+    }
+    if (!editingUser && userFormData.password.length < 4) {
+      toast.showError('Şifrə ən azı 4 simvol olmalıdır!');
+      return;
+    }
+    if (userFormData.role === 'UniversityAdmin' && !userFormData.universityId) {
+      toast.showError('Zəhmət olmasa aid olduğu universiteti seçin!');
+      return;
+    }
+
     try {
       if (editingUser) {
         await adminUpdateUser({ id: editingUser.id, ...userFormData }).unwrap();
-        toast.showSuccess('İstifadəçi uğurla yeniləndi');
+        toast.showSuccess('İstifadəçi hesabı uğurla yeniləndi! ✅');
       } else {
         await adminCreateUser(userFormData).unwrap();
-        toast.showSuccess('İstifadəçi uğurla yaradıldı');
+        toast.showSuccess('Yeni hesab uğurla yaradıldı! 🎉');
       }
       setShowUserModal(false);
       refetchUsers();
     } catch (err) {
-      toast.showError(err?.data?.message || 'Xəta baş verdi');
+      toast.showError(err?.data?.message || err?.message || 'Xəta baş verdi');
     }
   };
 
   const handleDeleteUser = async (id) => {
-    if (window.confirm('Bu istifadəçini silmək istədiyinizə əminsiniz?')) {
+    if (window.confirm('Bu hesabı silmək istədiyinizə əminsiniz?')) {
       try {
         await adminDeleteUser(id).unwrap();
-        toast.showSuccess('İstifadəçi silindi');
+        toast.showSuccess('Hesab uğurla silindi! 🗑️');
         refetchUsers();
       } catch (err) {
-        toast.showError('Xəta baş verdi');
+        toast.showError('Silinmə zamanı xəta baş verdi');
       }
     }
   };
 
-  const filteredUsers = (usersData?.data || []).filter(u => {
-    const matchesSearch = (u.firstName?.toLowerCase() || '').includes(userSearch.toLowerCase()) ||
+  const usersList = Array.isArray(usersData?.data) ? usersData.data : (Array.isArray(usersData) ? usersData : []);
+  const filteredUsers = usersList.filter(u => {
+    const matchesSearch = !userSearch ||
+                          (u.firstName?.toLowerCase() || '').includes(userSearch.toLowerCase()) ||
                           (u.lastName?.toLowerCase() || '').includes(userSearch.toLowerCase()) ||
-                          (u.email?.toLowerCase() || '').includes(userSearch.toLowerCase());
-    const matchesRole = userRoleFilter === 'All' || u.role === userRoleFilter;
+                          (u.email?.toLowerCase() || '').includes(userSearch.toLowerCase()) ||
+                          (u.universityName?.toLowerCase() || '').includes(userSearch.toLowerCase());
+    const matchesRole = userRoleFilter === 'All' || u.role?.toLowerCase() === userRoleFilter.toLowerCase();
     return matchesSearch && matchesRole;
   });
 
@@ -2142,6 +2167,177 @@ function SuperAdminPage() {
 
         {/* 4. ACTIVE TAB CONTENT PANES */}
         <section className="tab-content-area">
+
+          {/* TAB 0: USERS & ACCOUNTS */}
+          {activeTab === 'Users' && (
+            <div className="super-table-container">
+              <div className="table-header-box">
+                <div>
+                  <h3>👤 İstifadəçilər və Hesablar</h3>
+                  <p className="table-desc">
+                    SuperAdmin tərəfindən Teacher, Course Center, University Admin və Student hesablarının yaradılması və idarə edilməsi.
+                  </p>
+                </div>
+                <div className="table-actions">
+                  <div className="search-input-wrap">
+                    <input 
+                      type="text" 
+                      placeholder="Ad, soyad, email və ya universitet axtar..." 
+                      value={userSearch} 
+                      onChange={e => setUserSearch(e.target.value)} 
+                    />
+                  </div>
+                  <select 
+                    value={userRoleFilter} 
+                    onChange={e => setUserRoleFilter(e.target.value)} 
+                    className="status-filter-select"
+                  >
+                    <option value="All">Bütün Rollar</option>
+                    <option value="UniversityAdmin">🏛️ Universitet Admini</option>
+                    <option value="Teacher">👨‍🏫 Müəllim</option>
+                    <option value="CourseCenter">🏢 Tədris Mərkəzi</option>
+                    <option value="Student">🎓 Tələbə</option>
+                    <option value="SuperAdmin">🛡️ SuperAdmin</option>
+                  </select>
+                  <button className="btn-add-primary" onClick={() => openUserModal('add')}>
+                    + Yeni Hesab Yarat
+                  </button>
+                </div>
+              </div>
+
+              <div className="data-table-wrapper">
+                <table className="super-data-table">
+                  <thead>
+                    <tr>
+                      <th>İstifadəçi</th>
+                      <th>Email</th>
+                      <th>Rol</th>
+                      <th>Aid Olduğu Universitet</th>
+                      <th>Status</th>
+                      <th>Qeydiyyat Tarixi</th>
+                      <th>Əməliyyatlar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isUsersLoading ? (
+                      <tr>
+                        <td colSpan="7" style={{ textAlign: 'center', padding: '40px' }}>
+                          <span className="sa-spinner">⏳ İstifadəçilər yüklənir...</span>
+                        </td>
+                      </tr>
+                    ) : filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                          Axtarışa uyğun istifadəçi tapılmadı.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUsers.map(u => (
+                        <tr key={u.id}>
+                          <td>
+                            <div className="table-user-cell" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                background: u.role === 'SuperAdmin' ? '#ef4444' : u.role === 'UniversityAdmin' ? '#8b5cf6' : u.role === 'Teacher' ? '#10b981' : u.role === 'CourseCenter' ? '#f59e0b' : '#3b82f6',
+                                color: '#fff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: '700',
+                                fontSize: '14px'
+                              }}>
+                                {u.firstName?.[0]?.toUpperCase() || u.email?.[0]?.toUpperCase() || '👤'}
+                              </div>
+                              <div>
+                                <strong style={{ color: '#fff', display: 'block' }}>
+                                  {`${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email?.split('@')[0]}
+                                </strong>
+                                <span style={{ fontSize: '12px', color: '#94a3b8' }}>{u.country || ''}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ color: '#cbd5e1' }}>{u.email}</td>
+                          <td>
+                            <span style={{
+                              display: 'inline-block',
+                              padding: '4px 10px',
+                              borderRadius: '100px',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              background: u.role === 'SuperAdmin' ? 'rgba(239, 68, 68, 0.18)' :
+                                          u.role === 'UniversityAdmin' ? 'rgba(139, 92, 246, 0.18)' :
+                                          u.role === 'Teacher' ? 'rgba(16, 185, 129, 0.18)' :
+                                          u.role === 'CourseCenter' ? 'rgba(245, 158, 11, 0.18)' : 'rgba(59, 130, 246, 0.18)',
+                              color: u.role === 'SuperAdmin' ? '#f87171' :
+                                     u.role === 'UniversityAdmin' ? '#c4b5fd' :
+                                     u.role === 'Teacher' ? '#6ee7b7' :
+                                     u.role === 'CourseCenter' ? '#fcd34d' : '#93c5fd',
+                              border: `1px solid ${
+                                u.role === 'SuperAdmin' ? 'rgba(239, 68, 68, 0.3)' :
+                                u.role === 'UniversityAdmin' ? 'rgba(139, 92, 246, 0.3)' :
+                                u.role === 'Teacher' ? 'rgba(16, 185, 129, 0.3)' :
+                                u.role === 'CourseCenter' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(59, 130, 246, 0.3)'
+                              }`
+                            }}>
+                              {u.role === 'SuperAdmin' ? '🛡️ SuperAdmin' :
+                               u.role === 'UniversityAdmin' ? '🏛️ Universitet Admini' :
+                               u.role === 'Teacher' ? '👨‍🏫 Müəllim' :
+                               u.role === 'CourseCenter' ? '🏢 Tədris Mərkəzi' : '🎓 Tələbə'}
+                            </span>
+                          </td>
+                          <td style={{ color: '#cbd5e1' }}>
+                            {u.universityName ? (
+                              <span style={{ color: '#a78bfa', fontWeight: '600' }}>🏛️ {u.universityName}</span>
+                            ) : (
+                              <span style={{ color: '#64748b' }}>—</span>
+                            )}
+                          </td>
+                          <td>
+                            <span style={{
+                              display: 'inline-block',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              fontSize: '11px',
+                              fontWeight: '700',
+                              background: u.status === 'Active' || !u.status ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                              color: u.status === 'Active' || !u.status ? '#10b981' : '#ef4444'
+                            }}>
+                              {u.status === 'Active' || !u.status ? 'Aktiv' : 'Deaktiv'}
+                            </span>
+                          </td>
+                          <td style={{ color: '#94a3b8', fontSize: '13px' }}>
+                            {u.createdAt ? new Date(u.createdAt).toLocaleDateString('az-AZ') : '—'}
+                          </td>
+                          <td>
+                            <div className="table-action-btns">
+                              <button 
+                                className="btn-action-edit" 
+                                title="Redaktə Et"
+                                onClick={() => openUserModal('edit', u)}
+                              >
+                                ✏️
+                              </button>
+                              {u.role !== 'SuperAdmin' && (
+                                <button 
+                                  className="btn-action-delete" 
+                                  title="Sil"
+                                  onClick={() => handleDeleteUser(u.id)}
+                                >
+                                  🗑️
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {/* TAB 1: UNIVERSITIES */}
           {activeTab === 'Universities' && (
@@ -4655,6 +4851,142 @@ function SuperAdminPage() {
                 {t('superAdmin.close', 'Bağla')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5.5 USER ACCOUNT CREATE / EDIT MODAL */}
+      {showUserModal && (
+        <div className="modal-overlay" onClick={() => setShowUserModal(false)}>
+          <div className="modal-card user-modal animate-fade-in" style={{ maxWidth: '560px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingUser ? '👤 Hesabı Redaktə Et' : '👤 Yeni Hesab Yarat'}</h3>
+              <button className="btn-close-modal" onClick={() => setShowUserModal(false)}>&times;</button>
+            </div>
+
+            <form onSubmit={handleUserSubmit} className="modal-form">
+              <div className="form-grid" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                
+                {/* Account Type / Role */}
+                <div className="form-group">
+                  <label>Hesab Növü (Account Type) *</label>
+                  <select
+                    value={userFormData.role}
+                    onChange={e => setUserFormData({ ...userFormData, role: e.target.value })}
+                    required
+                    style={{ background: '#1e293b', color: '#fff', border: '1px solid #334155', borderRadius: '8px', padding: '10px 12px' }}
+                  >
+                    <option value="UniversityAdmin">🏛️ Universitet Admini (University Admin)</option>
+                    <option value="Teacher">👨‍🏫 Müəllim (Teacher / Instructor)</option>
+                    <option value="CourseCenter">🏢 Tədris Mərkəzi (Course Center)</option>
+                    <option value="Student">🎓 Adi İstifadəçi / Tələbə (User / Student)</option>
+                  </select>
+                </div>
+
+                {/* If University Admin, show University Selector */}
+                {userFormData.role === 'UniversityAdmin' && (
+                  <div className="form-group animate-fade-in">
+                    <label>Aid Olduğu Universitet *</label>
+                    <select
+                      value={userFormData.universityId}
+                      onChange={e => setUserFormData({ ...userFormData, universityId: e.target.value })}
+                      required
+                      style={{ background: '#1e293b', color: '#fff', border: '1px solid #334155', borderRadius: '8px', padding: '10px 12px' }}
+                    >
+                      <option value="">-- Universitet Seçin --</option>
+                      {universities.map(u => (
+                        <option key={u.id} value={u.id}>
+                          🏛️ {u.name} ({u.country})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Name Fields */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label>Ad</label>
+                    <input
+                      type="text"
+                      placeholder="Məs: Əli"
+                      value={userFormData.firstName}
+                      onChange={e => setUserFormData({ ...userFormData, firstName: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Soyad</label>
+                    <input
+                      type="text"
+                      placeholder="Məs: Əliyev"
+                      value={userFormData.lastName}
+                      onChange={e => setUserFormData({ ...userFormData, lastName: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="form-group">
+                  <label>Email Ünvanı *</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="istifadeci@edusaz.com"
+                    value={userFormData.email}
+                    onChange={e => setUserFormData({ ...userFormData, email: e.target.value })}
+                  />
+                </div>
+
+                {/* Password & Confirm Password */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label>{editingUser ? 'Yeni Şifrə (Dəyişmək istəmirsinizsə boş qoyun)' : 'Şifrə *'}</label>
+                    <input
+                      type="password"
+                      required={!editingUser}
+                      placeholder="••••••••"
+                      value={userFormData.password}
+                      onChange={e => setUserFormData({ ...userFormData, password: e.target.value })}
+                    />
+                  </div>
+                  {!editingUser && (
+                    <div className="form-group">
+                      <label>Şifrə Təkrarı *</label>
+                      <input
+                        type="password"
+                        required
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Status */}
+                <div className="form-group">
+                  <label>Hesab Statusu</label>
+                  <select
+                    value={userFormData.status || 'Active'}
+                    onChange={e => setUserFormData({ ...userFormData, status: e.target.value })}
+                    style={{ background: '#1e293b', color: '#fff', border: '1px solid #334155', borderRadius: '8px', padding: '10px 12px' }}
+                  >
+                    <option value="Active">🟢 Aktiv (Girişə icazə var)</option>
+                    <option value="Disabled">🔴 Deaktiv / Bloklanmış</option>
+                  </select>
+                </div>
+
+              </div>
+
+              <div className="modal-actions" style={{ marginTop: '24px' }}>
+                <button type="button" className="btn-cancel" onClick={() => setShowUserModal(false)}>
+                  Ləğv Et
+                </button>
+                <button type="submit" className="btn-save-primary">
+                  {editingUser ? '💾 Məlumatları Yenilə' : '✨ Hesabı Yarat'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
