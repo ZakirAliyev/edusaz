@@ -564,6 +564,89 @@ const coursesTranslations = {
   }
 };
 
+const commonTranslations = {
+  az: {
+    apply: "Müraciət Et",
+    back: "Geri",
+    about: "haqqında",
+    country: "Ölkə",
+    city: "Şəhər",
+    established: "Əsası qoyulub",
+    ranking: "Reytinq",
+    reviews: "Rəylər",
+    media: "Şəkil & Video",
+    loading: "Yüklənir...",
+    noDescription: "Məlumat mövcud deyil.",
+    programs: "Proqramlar",
+    scholarships: "Təqaüdlər",
+    overview: "Ümumi Baxış",
+    save: "Yadda saxla",
+    cancel: "Ləğv et",
+    close: "Bağla",
+    search: "Axtar"
+  },
+  en: {
+    apply: "Apply Now",
+    back: "Back",
+    about: "About",
+    country: "Country",
+    city: "City",
+    established: "Established",
+    ranking: "Ranking",
+    reviews: "Reviews",
+    media: "Photos & Videos",
+    loading: "Loading...",
+    noDescription: "No description available.",
+    programs: "Programs",
+    scholarships: "Scholarships",
+    overview: "Overview",
+    save: "Save",
+    cancel: "Cancel",
+    close: "Close",
+    search: "Search"
+  },
+  tr: {
+    apply: "Başvur",
+    back: "Geri",
+    about: "Hakkında",
+    country: "Ülke",
+    city: "Şehir",
+    established: "Kuruluş",
+    ranking: "Sıralama",
+    reviews: "Yorumlar",
+    media: "Fotoğraf & Video",
+    loading: "Yükleniyor...",
+    noDescription: "Açıklama bulunamadı.",
+    programs: "Programlar",
+    scholarships: "Burslar",
+    overview: "Genel Bakış",
+    save: "Kaydet",
+    cancel: "İptal",
+    close: "Kapat",
+    search: "Ara"
+  },
+  ru: {
+    apply: "Подать заявку",
+    back: "Назад",
+    about: "Об институте",
+    country: "Страна",
+    city: "Город",
+    established: "Основан",
+    ranking: "Рейтинг",
+    reviews: "Отзывы",
+    media: "Фото и Видео",
+    loading: "Загрузка...",
+    noDescription: "Описание отсутствует.",
+    programs: "Программы",
+    scholarships: "Стипендии",
+    overview: "Обзор",
+    save: "Сохранить",
+    cancel: "Отмена",
+    close: "Закрыть",
+    search: "Поиск"
+  }
+};
+
 export function buildAllResourceBundles() {
   const resources = {};
 
@@ -581,11 +664,27 @@ export function buildAllResourceBundles() {
     const sDict = superAdminTranslations[code]
       || superAdminTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en']
       || superAdminTranslations.en;
+    const cDict = commonTranslations[code]
+      || commonTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en']
+      || commonTranslations.en;
 
     resources[code] = {
       translation: {
         ...en,
         ...baseDict,
+        common: {
+          ...(commonTranslations.en || {}),
+          ...cDict
+        },
+        hero: {
+          ...(en.hero || {}),
+          ...(baseDict.hero || {}),
+          buttons: {
+            ...(en.hero?.buttons || {}),
+            ...(baseDict.hero?.buttons || {}),
+            apply: cDict.apply || "Apply Now"
+          }
+        },
         nav: {
           ...(en.nav || {}),
           ...(baseDict.nav || {}),

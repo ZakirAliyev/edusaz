@@ -9,6 +9,7 @@ import {
   useSubscribeNotificationMutation,
   useCreateStudentApplicationMutation
 } from '../../../services/apis/userApi';
+import { AutoTranslate } from '../../../hooks/useAutoTranslate';
 import './index.scss';
 
 const ScholarshipIcon = () => (
@@ -213,15 +214,15 @@ function ScholarshipsPage() {
               <span className="sp-modal-badge">
                 🎯 {analysisResult ? `${analysisResult.matchScore}% ${t('matchedUniversities.match', 'Uyğunluq')}` : t('profile.saving', 'Hesablanır...')}
               </span>
-              <h3 className="sp-modal-title">{selectedSch.name}</h3>
+              <h3 className="sp-modal-title"><AutoTranslate text={selectedSch.name} /></h3>
               <p className="sp-modal-subtitle">
-                {analysisResult ? analysisResult.summary : t('scholarshipsSection.evaluating', 'Backend üzərindən istifadəçinin akademik göstəriciləri təhlil edilir...')}
+                {analysisResult ? <AutoTranslate text={analysisResult.summary} /> : t('scholarshipsSection.evaluating', 'Backend üzərindən istifadəçinin akademik göstəriciləri təhlil edilir...')}
               </p>
             </div>
 
             {isEvaluating ? (
               <div style={{ padding: '30px', textAlign: 'center', color: '#7A5CFF', fontWeight: '600' }}>
-                {t('scholarshipsSection.evaluating', 'Süni İntellekt istifadəçi profilini analız edir...')}
+                {t('scholarshipsSection.evaluating', 'Süni İntellekt istifadəçi profilini analiz edir...')}
               </div>
             ) : (
               <div className="sp-modal-checklist">
@@ -234,7 +235,7 @@ function ScholarshipsPage() {
                     <span className="chk-icon"><CheckCircleIcon /></span>
                     <div className="chk-text">
                       <strong>{t('scholarshipsSection.criteria', 'Analiz Meyarı')} #{idx + 1}</strong>
-                      <span>{hl}</span>
+                      <span><AutoTranslate text={hl} /></span>
                     </div>
                   </div>
                 ))}
@@ -243,7 +244,7 @@ function ScholarshipsPage() {
 
             {analysisResult?.emailMessage && (
               <div style={{ background: '#f0fdf4', color: '#166534', padding: '12px 16px', borderRadius: '10px', fontSize: '0.8125rem', fontWeight: '600', marginBottom: '20px', border: '1px solid #bbf7d0' }}>
-                ✉️ {analysisResult.emailMessage}
+                ✉️ <AutoTranslate text={analysisResult.emailMessage} />
               </div>
             )}
 
@@ -260,7 +261,7 @@ function ScholarshipsPage() {
                 </button>
               ) : null}
               <button className="btn-secondary-modal" onClick={closeModal}>
-                {t('portal.cancel', 'Bağla')}
+                {t('common.close', 'Bağla')}
               </button>
             </div>
           </div>
@@ -279,7 +280,7 @@ function ScholarshipsPage() {
               <span className="sp-modal-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
                 🔔 {t('scholarshipsSection.notifyBadge', 'Xəbərdarlıq Xidməti')}
               </span>
-              <h3 className="sp-modal-title">{selectedSch.name}</h3>
+              <h3 className="sp-modal-title"><AutoTranslate text={selectedSch.name} /></h3>
               <p className="sp-modal-subtitle">
                 {t('scholarshipsSection.notifySub', 'Bu təqaüd proqramının növbəti müraciət mərhələsi açılan kimi dərhal xəbərdar olacaqsınız.')}
               </p>

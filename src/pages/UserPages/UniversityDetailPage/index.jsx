@@ -154,11 +154,11 @@ function UniversityDetailPage() {
   }
 
   const TABS = [
-    { key: 'overview', label: `📋 ${t('portal.overview') || 'Ümumi'}` },
-    { key: 'programs', label: `🎓 ${t('footer.quickLinks.programs') || 'Proqramlar'}` },
-    { key: 'scholarships', label: `🏆 ${t('hero.stats.scholarships') || 'Təqaüdlər'}` },
-    { key: 'reviews', label: `⭐ ${t('common.reviews') || 'Rəylər'} (${reviews.length})` },
-    { key: 'media', label: `📸 ${t('common.media') || 'Şəkil & Video'}` },
+    { key: 'overview', label: `📋 ${t('common.overview', 'Ümumi Baxış')}` },
+    { key: 'programs', label: `🎓 ${t('common.programs', 'Proqramlar')}` },
+    { key: 'scholarships', label: `🏆 ${t('common.scholarships', 'Təqaüd proqramı')}` },
+    { key: 'reviews', label: `⭐ ${t('common.reviews', 'Rəylər')} (${reviews.length})` },
+    { key: 'media', label: `📸 ${t('common.media', 'Şəkil & Video')}` },
   ];
 
   const images = uni.images || uni.mediaUrls || [];
@@ -200,19 +200,19 @@ function UniversityDetailPage() {
           <div className="udp-hero-stats">
             {uni.tuition && (
               <div className="udp-stat-chip">
-                <span className="udp-stat-label">💲 {t('matchedUniversities.labels.tuition') || 'Ödəniş'}</span>
+                <span className="udp-stat-label">💲 {t('matchedUniversities.labels.tuition', 'Təhsil Haqqı')}</span>
                 <span className="udp-stat-val">{uni.tuition}</span>
               </div>
             )}
             {uni.acceptanceRate && (
               <div className="udp-stat-chip">
-                <span className="udp-stat-label">📈 {t('matchedUniversities.labels.acceptance') || 'Qəbul'}</span>
+                <span className="udp-stat-label">📈 {t('matchedUniversities.labels.acceptance', 'Qəbul Faizi')}</span>
                 <span className="udp-stat-val">{uni.acceptanceRate}</span>
               </div>
             )}
             {uni.teachingLanguage && (
               <div className="udp-stat-chip">
-                <span className="udp-stat-label">🗣️ {t('matchedUniversities.labels.language') || 'Dil'}</span>
+                <span className="udp-stat-label">🗣️ {t('matchedUniversities.labels.language', 'Tədris Dili')}</span>
                 <span className="udp-stat-val">{uni.teachingLanguage}</span>
               </div>
             )}
@@ -221,9 +221,9 @@ function UniversityDetailPage() {
           {/* Actions */}
           <div className="udp-hero-actions">
             <button className="udp-btn-apply" onClick={() => handleApply()}>
-              {t('hero.buttons.apply') || 'Müraciət Et'} →
+              {t('common.apply', 'Müraciət Et')} →
             </button>
-            <Link to="/universities" className="udp-btn-back">← {t('common.back') || 'Geri'}</Link>
+            <Link to="/universities" className="udp-btn-back">← {t('common.back', 'Geri')}</Link>
           </div>
         </div>
       </section>
@@ -250,11 +250,11 @@ function UniversityDetailPage() {
         {activeTab === 'overview' && (
           <div className="udp-overview">
             <div className="udp-overview-main">
-              <h2><AutoTranslate text={uni.name} /> {t('common.about') || 'haqqında'}</h2>
+              <h2><AutoTranslate text={uni.name} /> {t('common.about', 'haqqında')}</h2>
               {uni.description ? (
                 <p><AutoTranslate text={uni.description} /></p>
               ) : (
-                <p className="udp-muted">{t('common.noDescription') || 'Məlumat mövcud deyil.'}</p>
+                <p className="udp-muted">{t('common.noDescription', 'Məlumat mövcud deyil.')}</p>
               )}
 
               {/* Key info */}
@@ -263,7 +263,7 @@ function UniversityDetailPage() {
                   <div className="udp-info-item">
                     <span className="udp-info-icon">🌍</span>
                     <div>
-                      <span className="udp-info-label">{t('common.country') || 'Ölkə'}</span>
+                      <span className="udp-info-label">{t('common.country', 'Ölkə')}</span>
                       <span className="udp-info-val"><AutoTranslate text={uni.country} /></span>
                     </div>
                   </div>
@@ -272,7 +272,7 @@ function UniversityDetailPage() {
                   <div className="udp-info-item">
                     <span className="udp-info-icon">🏙️</span>
                     <div>
-                      <span className="udp-info-label">{t('common.city') || 'Şəhər'}</span>
+                      <span className="udp-info-label">{t('common.city', 'Şəhər')}</span>
                       <span className="udp-info-val"><AutoTranslate text={uni.city} /></span>
                     </div>
                   </div>
@@ -281,7 +281,7 @@ function UniversityDetailPage() {
                   <div className="udp-info-item">
                     <span className="udp-info-icon">📅</span>
                     <div>
-                      <span className="udp-info-label">{t('matchedUniversities.est') || 'Qurulma'}</span>
+                      <span className="udp-info-label">{t('matchedUniversities.est', 'Əsası qoyulub')}</span>
                       <span className="udp-info-val">{uni.establishedYear}</span>
                     </div>
                   </div>
@@ -290,7 +290,7 @@ function UniversityDetailPage() {
                   <div className="udp-info-item">
                     <span className="udp-info-icon">🏅</span>
                     <div>
-                      <span className="udp-info-label">{t('common.ranking') || 'Reytinq'}</span>
+                      <span className="udp-info-label">{t('common.ranking', 'Reytinq')}</span>
                       <span className="udp-info-val">{uni.ranking}</span>
                     </div>
                   </div>
@@ -299,7 +299,7 @@ function UniversityDetailPage() {
                   <div className="udp-info-item">
                     <span className="udp-info-icon">💰</span>
                     <div>
-                      <span className="udp-info-label">{t('matchedUniversities.labels.tuition') || 'Ödəniş'}</span>
+                      <span className="udp-info-label">{t('matchedUniversities.labels.tuition', 'Təhsil Haqqı')}</span>
                       <span className="udp-info-val">{uni.tuition}</span>
                     </div>
                   </div>
@@ -308,7 +308,7 @@ function UniversityDetailPage() {
                   <div className="udp-info-item">
                     <span className="udp-info-icon">🗣️</span>
                     <div>
-                      <span className="udp-info-label">{t('matchedUniversities.labels.language') || 'Dil'}</span>
+                      <span className="udp-info-label">{t('matchedUniversities.labels.language', 'Tədris Dili')}</span>
                       <span className="udp-info-val">{uni.teachingLanguage}</span>
                     </div>
                   </div>
@@ -317,7 +317,7 @@ function UniversityDetailPage() {
                   <div className="udp-info-item">
                     <span className="udp-info-icon">📊</span>
                     <div>
-                      <span className="udp-info-label">{t('matchedUniversities.labels.acceptance') || 'Qəbul'}</span>
+                      <span className="udp-info-label">{t('matchedUniversities.labels.acceptance', 'Qəbul Faizi')}</span>
                       <span className="udp-info-val">{uni.acceptanceRate}</span>
                     </div>
                   </div>
@@ -326,7 +326,7 @@ function UniversityDetailPage() {
                   <div className="udp-info-item">
                     <span className="udp-info-icon">📌</span>
                     <div>
-                      <span className="udp-info-label">{t('scholarshipsSection.deadline') || 'Son Tarix'}</span>
+                      <span className="udp-info-label">{t('scholarshipsSection.deadline', 'Son Tarix')}</span>
                       <span className="udp-info-val">{uni.deadline}</span>
                     </div>
                   </div>
@@ -339,11 +339,11 @@ function UniversityDetailPage() {
         {/* PROGRAMS */}
         {activeTab === 'programs' && (
           <div className="udp-programs">
-            <h2>{t('footer.quickLinks.programs') || 'Proqramlar'}</h2>
+            <h2>{t('common.programs', 'Proqramlar')}</h2>
             {programs.length === 0 ? (
               <div className="udp-empty">
                 <span>📚</span>
-                <p>Bu universitet üçün proqram məlumatı mövcud deyil.</p>
+                <p>{t('common.noPrograms', 'Bu universitet üçün proqram məlumatı mövcud deyil.')}</p>
               </div>
             ) : (
               <div className="udp-program-list">
@@ -361,7 +361,7 @@ function UniversityDetailPage() {
                     <div className="udp-prog-side">
                       {prog.tuitionFee && <span className="udp-prog-fee">{prog.tuitionFee}</span>}
                       <button className="udp-prog-apply" onClick={() => handleApply(prog)}>
-                        {t('hero.buttons.apply') || 'Müraciət'}
+                        {t('common.apply', 'Müraciət Et')}
                       </button>
                     </div>
                   </div>
@@ -374,11 +374,11 @@ function UniversityDetailPage() {
         {/* SCHOLARSHIPS */}
         {activeTab === 'scholarships' && (
           <div className="udp-scholarships">
-            <h2>{t('hero.stats.scholarships') || 'Təqaüdlər'}</h2>
+            <h2>{t('common.scholarships', 'Təqaüdlər')}</h2>
             {scholarships.length === 0 ? (
               <div className="udp-empty">
                 <span>🏆</span>
-                <p>Bu universitet üçün təqaüd məlumatı mövcud deyil.</p>
+                <p>{t('common.noScholarships', 'Bu universitet üçün təqaüd məlumatı mövcud deyil.')}</p>
               </div>
             ) : (
               <div className="udp-scholar-grid">
@@ -390,7 +390,7 @@ function UniversityDetailPage() {
                       <p className="udp-scholar-desc"><AutoTranslate text={s.description} /></p>
                     )}
                     <button className="udp-scholar-apply" onClick={() => handleApply(s)}>
-                      {t('hero.buttons.apply') || 'Müraciət Et'}
+                      {t('common.apply', 'Müraciət Et')}
                     </button>
                   </div>
                 ))}
@@ -402,11 +402,11 @@ function UniversityDetailPage() {
         {/* REVIEWS */}
         {activeTab === 'reviews' && (
           <div className="udp-reviews">
-            <h2>⭐ {t('common.reviews') || 'Tələbə Rəyləri'}</h2>
+            <h2>⭐ {t('common.reviews', 'Tələbə Rəyləri')}</h2>
 
             {/* Review submission box */}
             <div className="udp-review-form-card">
-              <h3>Rəy Bildir</h3>
+              <h3>{t('common.writeReview', 'Rəy Bildir')}</h3>
               <form onSubmit={handleReviewSubmit}>
                 <div className="udp-rating-select">
                   <label>Qiymət:</label>
