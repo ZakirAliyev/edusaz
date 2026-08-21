@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Edusaz.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+674e3dac5ebff49325f333dff5097a7a3fb4e119")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+65ad93f2315200b193b4bbebf88e9ee08c8cf055")]
 [assembly: System.Reflection.AssemblyProductAttribute("Edusaz.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Edusaz.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

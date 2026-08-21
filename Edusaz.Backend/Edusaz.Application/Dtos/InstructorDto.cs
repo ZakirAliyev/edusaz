@@ -112,6 +112,7 @@ public class CourseDetailDto : CourseListDto
     public string Tags { get; set; } = string.Empty;
     public string SubCategory { get; set; } = string.Empty;
     public List<CourseSectionDto> Sections { get; set; } = new();
+    public Dictionary<string, CourseTranslationInputDto> Translations { get; set; } = new();
 }
 
 public class CreateCourseDto
@@ -124,21 +125,24 @@ public class CreateCourseDto
     public string Category { get; set; } = string.Empty;
     public string SubCategory { get; set; } = string.Empty;
     public string Tags { get; set; } = string.Empty;
-    public string Language { get; set; } = "en";
+    public string Language { get; set; } = "az";
     public string Level { get; set; } = "Beginner";
     public decimal Price { get; set; }
     public decimal DiscountPrice { get; set; }
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "AZN";
     public bool IsFree { get; set; }
     public string ThumbnailUrl { get; set; } = string.Empty;
     public string PreviewVideoUrl { get; set; } = string.Empty;
+    public string? InstructorName { get; set; }
+    public string? BaseLanguageCode { get; set; }
+    public bool IsPublished { get; set; } = true;
+    public List<CourseLectureDto>? VideoLectures { get; set; }
     public List<CourseSectionDto>? Sections { get; set; }
     public Dictionary<string, CourseTranslationInputDto>? Translations { get; set; }
 }
 
 public class UpdateCourseDto : CreateCourseDto
 {
-    public bool IsPublished { get; set; }
 }
 
 public class CourseTranslationInputDto

@@ -58,6 +58,16 @@ const CAMPUS_IMAGE_PRESETS = [
   { label: 'Medical Center', url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80', thumb: '🏥' }
 ];
 
+const COURSE_PRESET_IMAGES = [
+  { label: 'Full-Stack Coding', url: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80', thumb: '💻' },
+  { label: 'AI & Data Science', url: 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&w=1200&q=80', thumb: '🤖' },
+  { label: 'UI/UX & Design', url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80', thumb: '🎨' },
+  { label: 'Cloud & DevOps', url: 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?auto=format&fit=crop&w=1200&q=80', thumb: '☁️' },
+  { label: 'Business & Management', url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80', thumb: '📈' },
+  { label: 'Foreign Languages', url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=1200&q=80', thumb: '🌍' },
+  { label: 'Cybersecurity', url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=80', thumb: '🔒' }
+];
+
 const PRESET_FLAGS = [
   { flag: '🇦🇿', name: 'Azərbaycan' },
   { flag: '🇹🇷', name: 'Türkiyə' },
@@ -132,6 +142,7 @@ function SuperAdminPage() {
   const [universities, setUniversities] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [scholarships, setScholarships] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [countries, setCountries] = useState([]);
   const [languages, setLanguages] = useState([]);
   const [talents, setTalents] = useState([]);
@@ -144,6 +155,38 @@ function SuperAdminPage() {
   const [modalMode, setModalMode] = useState('add');
   const [editingItem, setEditingItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // Course Form State with 31 Languages, Cover Image, and Video Lectures
+  const [courseForm, setCourseForm] = useState({
+    title: '',
+    description: '',
+    shortDescription: '',
+    whatYouLearn: '',
+    requirements: '',
+    category: 'Proqramlaşdırma',
+    instructorName: 'EduSaz Academy',
+    price: '0',
+    discountPrice: '0',
+    currency: 'AZN',
+    isFree: true,
+    level: 'Bütün Səviyyələr',
+    duration: '24 saat',
+    language: 'az',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
+    previewVideoUrl: '',
+    isPublished: true,
+    videoLectures: [
+      { title: '1. Giriş və Mühitin Quraşdırılması', videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', durationMinutes: 15, isFree: true }
+    ],
+    translations: generateDefault31Translations()
+  });
+
+  const [activeCourseLangSubTab, setActiveCourseLangSubTab] = useState('az');
+  const [isTranslatingCourse, setIsTranslatingCourse] = useState(false);
+  const [isSavingCourse, setIsSavingCourse] = useState(false);
+  const [isUploadingCourseImg, setIsUploadingCourseImg] = useState(false);
+  const [courseProgress, setCourseProgress] = useState({ visible: false, percent: 0, text: '' });
+  const courseFileInputRef = useRef(null);
 
   // University Form State with 31 Languages & Complete Fields
   const [uniForm, setUniForm] = useState({
@@ -324,6 +367,15 @@ function SuperAdminPage() {
             }, {}) : generateDefault31Translations(s.name || s.title, '', s.description)
           }));
           setScholarships(mappedSchs);
+        }
+      }
+
+      // 3.5. Fetch Courses from Backend
+      const courseRes = await fetch(`${baseUrl}/Courses?lang=az`);
+      if (courseRes.ok) {
+        const json = await courseRes.json();
+        if (json.data) {
+          setCourses(json.data);
         }
       }
 
@@ -1250,6 +1302,82 @@ function SuperAdminPage() {
     }
   };
 
+  const handleAiTranslateCourse = async () => {
+    if (!courseForm.title?.trim() && !courseForm.description?.trim()) {
+      toast.showError("Zəhmət olmasa əvvəlcə kursun əsas adını (AZ) daxil edin!");
+      return;
+    }
+
+    setIsTranslatingCourse(true);
+    setCourseProgress({ visible: true, percent: 10, text: '31 dildə kurs tərcümə paketi hazırlanır...' });
+    toast.showInfo("Kurs məlumatları 31 qlobal dilə tərcümə olunur... ⏳");
+
+    try {
+      const baseTitle = courseForm.title?.trim() || '';
+      const baseDesc = courseForm.description?.trim() || `${baseTitle} üzrə peşəkar video dərslər və praktiki tapşırıqlar.`;
+
+      const newTranslations = { ...(courseForm.translations || {}) };
+
+      const chunks = [];
+      for (let i = 0; i < ALL_31_LANGUAGES.length; i += 5) {
+        chunks.push(ALL_31_LANGUAGES.slice(i, i + 5));
+      }
+
+      let completedLangs = 0;
+      for (const chunk of chunks) {
+        await Promise.all(
+          chunk.map(async (lang) => {
+            const langCode = lang.code;
+            if (langCode === 'az') {
+              newTranslations['az'] = { name: baseTitle, description: baseDesc };
+              completedLangs++;
+              return;
+            }
+
+            const [tTitle, tDesc] = await Promise.all([
+              translateText(baseTitle, 'az', langCode),
+              translateText(baseDesc, 'az', langCode)
+            ]);
+
+            newTranslations[langCode] = {
+              name: tTitle || `${baseTitle} (${langCode.toUpperCase()})`,
+              description: tDesc || baseDesc
+            };
+            completedLangs++;
+          })
+        );
+
+        const currentPercent = Math.min(95, Math.round((completedLangs / ALL_31_LANGUAGES.length) * 100));
+        setCourseProgress({
+          visible: true,
+          percent: currentPercent,
+          text: `31 dil tərcümə olunur: ${completedLangs}/${ALL_31_LANGUAGES.length} dil (${currentPercent}%)`
+        });
+      }
+
+      setCourseForm(prev => ({
+        ...prev,
+        translations: newTranslations
+      }));
+
+      setCourseProgress({
+        visible: true,
+        percent: 100,
+        text: '✨ Bütün 31 dil üçün kurs adı və təsviri 100% tərcümə olundu!'
+      });
+
+      toast.showSuccess("✨ Bütün 31 dil üçün kurs adı və təsviri avtomatik tərcümə olundu!");
+    } catch (err) {
+      console.error("AI course translation error:", err);
+      toast.showError("Tərcümə zamanı xəta baş verdi.");
+    } finally {
+      setIsTranslatingCourse(false);
+      setTimeout(() => {
+        setCourseProgress(prev => prev.percent === 100 ? { ...prev, visible: false } : prev);
+      }, 3500);
+    }
+  };
+
   const handleSaveSch = async (e) => {
     e.preventDefault();
     if (isSavingSch) return;
@@ -1370,6 +1498,264 @@ function SuperAdminPage() {
       }, 700);
     } finally {
       setIsSavingSch(false);
+    }
+  };
+
+  // --- 3.5. COURSE CRUD HANDLERS --- //
+  const openCourseModal = async (mode, crs = null) => {
+    setModalMode(mode);
+    setActiveCourseLangSubTab('az');
+    setIsSavingCourse(false);
+    setIsTranslatingCourse(false);
+    setCourseProgress({ visible: false, percent: 0, text: '' });
+
+    if (mode === 'edit' && crs) {
+      setEditingItem(crs);
+      const baseUrl = getApiBaseUrl();
+      try {
+        const res = await fetch(`${baseUrl}/Courses/${crs.id}?lang=az`);
+        if (res.ok) {
+          const detail = (await res.json()).data;
+          const lectures = [];
+          if (detail.sections && detail.sections.length > 0) {
+            detail.sections.forEach(s => {
+              if (s.lectures) lectures.push(...s.lectures);
+            });
+          }
+          setCourseForm({
+            title: detail.title || '',
+            description: detail.description || '',
+            shortDescription: detail.shortDescription || '',
+            whatYouLearn: detail.whatYouLearn || '',
+            requirements: detail.requirements || '',
+            category: detail.category || 'Proqramlaşdırma',
+            instructorName: detail.instructorName || 'EduSaz Academy',
+            price: detail.price !== undefined ? detail.price : '0',
+            discountPrice: detail.discountPrice !== undefined ? detail.discountPrice : '0',
+            currency: detail.currency || 'AZN',
+            isFree: detail.isFree || detail.price === 0,
+            level: detail.level || 'Bütün Səviyyələr',
+            duration: '24 saat',
+            language: detail.language || 'az',
+            thumbnailUrl: detail.thumbnailUrl || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
+            previewVideoUrl: detail.previewVideoUrl || '',
+            isPublished: detail.isPublished !== false,
+            videoLectures: lectures.length > 0 ? lectures : [{ title: '1. Giriş Dərsi', videoUrl: '', durationMinutes: 15, isFree: true }],
+            translations: detail.translations ? Object.keys(detail.translations).reduce((acc, code) => {
+              acc[code] = {
+                name: detail.translations[code]?.title || '',
+                description: detail.translations[code]?.description || ''
+              };
+              return acc;
+            }, {}) : generateDefault31Translations(detail.title, '', detail.description)
+          });
+        } else {
+          setCourseForm({
+            title: crs.title || '',
+            description: crs.description || '',
+            shortDescription: crs.shortDescription || '',
+            whatYouLearn: crs.whatYouLearn || '',
+            requirements: crs.requirements || '',
+            category: crs.category || 'Proqramlaşdırma',
+            instructorName: crs.instructorName || 'EduSaz Academy',
+            price: crs.price !== undefined ? crs.price : '0',
+            discountPrice: crs.discountPrice !== undefined ? crs.discountPrice : '0',
+            currency: crs.currency || 'AZN',
+            isFree: crs.isFree || crs.price === 0,
+            level: crs.level || 'Bütün Səviyyələr',
+            duration: '24 saat',
+            language: crs.language || 'az',
+            thumbnailUrl: crs.thumbnailUrl || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
+            previewVideoUrl: crs.previewVideoUrl || '',
+            isPublished: crs.isPublished !== false,
+            videoLectures: [{ title: '1. Giriş Dərsi', videoUrl: '', durationMinutes: 15, isFree: true }],
+            translations: generateDefault31Translations(crs.title, '', crs.description)
+          });
+        }
+      } catch {
+        setCourseForm({
+          title: crs.title || '',
+          description: crs.description || '',
+          shortDescription: crs.shortDescription || '',
+          whatYouLearn: crs.whatYouLearn || '',
+          requirements: crs.requirements || '',
+          category: crs.category || 'Proqramlaşdırma',
+          instructorName: crs.instructorName || 'EduSaz Academy',
+          price: crs.price !== undefined ? crs.price : '0',
+          discountPrice: crs.discountPrice !== undefined ? crs.discountPrice : '0',
+          currency: crs.currency || 'AZN',
+          isFree: crs.isFree || crs.price === 0,
+          level: crs.level || 'Bütün Səviyyələr',
+          duration: '24 saat',
+          language: crs.language || 'az',
+          thumbnailUrl: crs.thumbnailUrl || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
+          previewVideoUrl: crs.previewVideoUrl || '',
+          isPublished: crs.isPublished !== false,
+          videoLectures: [{ title: '1. Giriş Dərsi', videoUrl: '', durationMinutes: 15, isFree: true }],
+          translations: generateDefault31Translations(crs.title, '', crs.description)
+        });
+      }
+    } else {
+      setEditingItem(null);
+      setCourseForm({
+        title: '',
+        description: '',
+        shortDescription: '',
+        whatYouLearn: '',
+        requirements: '',
+        category: 'Proqramlaşdırma',
+        instructorName: 'EduSaz Academy',
+        price: '0',
+        discountPrice: '0',
+        currency: 'AZN',
+        isFree: true,
+        level: 'Bütün Səviyyələr',
+        duration: '24 saat',
+        language: 'az',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
+        previewVideoUrl: '',
+        isPublished: true,
+        videoLectures: [
+          { title: '1. Giriş və Mühitin Quraşdırılması', videoUrl: '', durationMinutes: 15, isFree: true },
+          { title: '2. Əsas Anlayışlar və Praktiki Nümunələr', videoUrl: '', durationMinutes: 25, isFree: false }
+        ],
+        translations: generateDefault31Translations()
+      });
+    }
+    setModalType('course');
+  };
+
+  const handleCourseCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingCourseImg(true);
+    const baseUrl = getApiBaseUrl();
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch(`${baseUrl}/Upload?folder=courses`, {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const uploadedUrl = json.data?.fileUrl || json.fileUrl;
+        if (uploadedUrl) {
+          setCourseForm(prev => ({ ...prev, thumbnailUrl: uploadedUrl }));
+          toast.showSuccess("Kursun card şəkli uğurla yükləndi!");
+        }
+      } else {
+        toast.showError("Şəkil yüklənərkən xəta baş verdi.");
+      }
+    } catch {
+      toast.showError("Şəbəkə xətası baş verdi.");
+    } finally {
+      setIsUploadingCourseImg(false);
+    }
+  };
+
+  const handleSaveCourse = async (e) => {
+    e.preventDefault();
+    if (!courseForm.title.trim()) {
+      toast.showError("Kursun adı mütləqdir!");
+      return;
+    }
+    if (isSavingCourse) return;
+
+    setIsSavingCourse(true);
+    setCourseProgress({ visible: true, percent: 15, text: "Kurs məlumatları və video dərsliklər hazırlanır..." });
+
+    const pInterval = setInterval(() => {
+      setCourseProgress(prev => {
+        if (prev.percent >= 90) {
+          clearInterval(pInterval);
+          return { visible: true, percent: 90, text: "31 dildə qlobal profillər yekunlaşdırılır..." };
+        }
+        return {
+          visible: true,
+          percent: prev.percent + 15,
+          text: `31 dildə tərcümə olunur: ${prev.percent + 15}%`
+        };
+      });
+    }, 350);
+
+    const baseUrl = getApiBaseUrl();
+    const payload = {
+      title: courseForm.title.trim(),
+      description: courseForm.description || '',
+      shortDescription: courseForm.shortDescription || '',
+      whatYouLearn: courseForm.whatYouLearn || '',
+      requirements: courseForm.requirements || '',
+      category: courseForm.category,
+      level: courseForm.level,
+      language: courseForm.language,
+      price: courseForm.isFree ? 0 : parseFloat(courseForm.price) || 0,
+      discountPrice: parseFloat(courseForm.discountPrice) || 0,
+      currency: courseForm.currency || 'AZN',
+      isFree: courseForm.isFree || parseFloat(courseForm.price) === 0,
+      thumbnailUrl: courseForm.thumbnailUrl || '',
+      previewVideoUrl: courseForm.previewVideoUrl || '',
+      instructorName: courseForm.instructorName || 'EduSaz Academy',
+      baseLanguageCode: 'az',
+      isPublished: courseForm.isPublished !== false,
+      videoLectures: courseForm.videoLectures.filter(v => v.title && v.title.trim())
+    };
+
+    try {
+      if (modalMode === 'add') {
+        const res = await fetch(`${baseUrl}/Courses`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        clearInterval(pInterval);
+        setCourseProgress({ visible: true, percent: 100, text: "✅ 31 dildə uğurla tamamlandı!" });
+
+        if (res.ok) {
+          toast.showSuccess("Yeni kurs 31 dildə tərcümə olunaraq bazaya əlavə edildi!");
+          setTimeout(() => {
+            setModalType(null);
+            setIsSavingCourse(false);
+            setCourseProgress({ visible: false, percent: 0, text: '' });
+            loadDataFromBackend();
+          }, 600);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          toast.showError(err.message || "Kurs əlavə edilərkən xəta baş verdi");
+          setIsSavingCourse(false);
+          setCourseProgress({ visible: false, percent: 0, text: '' });
+        }
+      } else {
+        const res = await fetch(`${baseUrl}/Courses/${editingItem.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        clearInterval(pInterval);
+        setCourseProgress({ visible: true, percent: 100, text: "✅ 31 dildə yeniləndi!" });
+
+        if (res.ok) {
+          toast.showSuccess("Kurs məlumatları və video dərsliklər 31 dildə yeniləndi!");
+          setTimeout(() => {
+            setModalType(null);
+            setIsSavingCourse(false);
+            setCourseProgress({ visible: false, percent: 0, text: '' });
+            loadDataFromBackend();
+          }, 600);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          toast.showError(err.message || "Kurs yenilənərkən xəta baş verdi");
+          setIsSavingCourse(false);
+          setCourseProgress({ visible: false, percent: 0, text: '' });
+        }
+      }
+    } catch {
+      clearInterval(pInterval);
+      setIsSavingCourse(false);
+      setCourseProgress({ visible: false, percent: 0, text: '' });
+      toast.showError("Şəbəkə xətası baş verdi");
     }
   };
 
@@ -1506,6 +1892,10 @@ function SuperAdminPage() {
         await fetch(`${baseUrl}/Scholarships/${deleteTarget.id}`, { method: 'DELETE' });
         setScholarships(prev => prev.filter(s => s.id !== deleteTarget.id));
         toast.showSuccess("Təqaüd bazadan silindi!");
+      } else if (deleteTarget.type === 'course') {
+        await fetch(`${baseUrl}/Courses/${deleteTarget.id}`, { method: 'DELETE' });
+        setCourses(prev => prev.filter(c => c.id !== deleteTarget.id));
+        toast.showSuccess("Kurs bazadan silindi!");
       } else if (deleteTarget.type === 'country') {
         await fetch(`${baseUrl}/Countries/${deleteTarget.id}`, { method: 'DELETE' });
         setCountries(prev => prev.filter(c => c.id !== deleteTarget.id));
@@ -1677,6 +2067,15 @@ function SuperAdminPage() {
             <span className="stat-trend positive">↑ 100% Qrantlar</span>
           </div>
 
+          <div className="stat-card" onClick={() => setActiveTab('Courses')}>
+            <div className="stat-icon">📚</div>
+            <div className="stat-info">
+              <span className="stat-label">{t('superAdmin.availableCourses', 'Onlayn Kurslar')}</span>
+              <strong className="stat-number">{courses.length}</strong>
+            </div>
+            <span className="stat-trend positive">↑ Video Dərslər</span>
+          </div>
+
           <div className="stat-card" onClick={() => setActiveTab('Countries')}>
             <div className="stat-icon">🌍</div>
             <div className="stat-info">
@@ -1708,6 +2107,9 @@ function SuperAdminPage() {
           </button>
           <button className={`tab-btn ${activeTab === 'Scholarships' ? 'active' : ''}`} onClick={() => setActiveTab('Scholarships')}>
             💰 {t('superAdmin.scholarships', 'Təqaüdlər')} ({scholarships.length})
+          </button>
+          <button className={`tab-btn ${activeTab === 'Courses' ? 'active' : ''}`} onClick={() => setActiveTab('Courses')}>
+            📚 {t('superAdmin.courses', 'Kurslar')} ({courses.length})
           </button>
           <button className={`tab-btn ${activeTab === 'Countries' ? 'active' : ''}`} onClick={() => setActiveTab('Countries')}>
             🌍 {t('superAdmin.countries', 'Ölkələr')} ({countries.length})
@@ -1928,7 +2330,7 @@ function SuperAdminPage() {
                   </thead>
                   <tbody>
                     {scholarships
-                      .filter(s => !searchTerm || s.title.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .filter(s => !searchTerm || (s.title && s.title.toLowerCase().includes(searchTerm.toLowerCase().trim())) || (s.provider && s.provider.toLowerCase().includes(searchTerm.toLowerCase().trim())) || (s.country && s.country.toLowerCase().includes(searchTerm.toLowerCase().trim())))
                       .map(sch => (
                         <tr key={sch.id}>
                           <td><strong>{sch.title}</strong></td>
@@ -1950,7 +2352,126 @@ function SuperAdminPage() {
             </div>
           )}
 
-          {/* TAB 4: COUNTRIES */}
+          {/* TAB 4: COURSES */}
+          {activeTab === 'Courses' && (
+            <div className="super-table-container">
+              <div className="table-header-box">
+                <div>
+                  <h3>📚 {t('superAdmin.courses', 'Onlayn Kurslar')}</h3>
+                  <p className="table-desc">Video dərslər, təlimçilər və 31 dildə qlobal kurs kataloqu.</p>
+                </div>
+                <div className="table-actions">
+                  <div className="search-input-wrap">
+                    <input 
+                      type="text" 
+                      placeholder="Kurs və ya müəllim axtar..." 
+                      value={searchTerm} 
+                      onChange={e => setSearchTerm(e.target.value)} 
+                    />
+                  </div>
+                  <button className="btn-add-primary" onClick={() => openCourseModal('add')}>
+                    + Yeni Kurs Əlavə Et
+                  </button>
+                </div>
+              </div>
+
+              <div className="data-table-wrapper">
+                <table className="super-data-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '90px' }}>Card Şəkli</th>
+                      <th>Kursun Adı</th>
+                      <th>Kateqoriya</th>
+                      <th>Təlimçi</th>
+                      <th>Səviyyə</th>
+                      <th>Qiymət</th>
+                      <th style={{ textAlign: 'center' }}>Video Dərslər</th>
+                      <th>Status</th>
+                      <th style={{ textAlign: 'right' }}>Əməliyyatlar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {courses
+                      .filter(crs => {
+                        const s = searchTerm.toLowerCase().trim();
+                        if (!s) return true;
+                        return (crs.title && crs.title.toLowerCase().includes(s)) ||
+                               (crs.category && crs.category.toLowerCase().includes(s)) ||
+                               (crs.instructorName && crs.instructorName.toLowerCase().includes(s)) ||
+                               (crs.level && crs.level.toLowerCase().includes(s));
+                      })
+                      .map(crs => (
+                        <tr key={crs.id}>
+                          <td>
+                            <img 
+                              src={crs.thumbnailUrl || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=300&q=80'} 
+                              alt={crs.title} 
+                              style={{ width: '70px', height: '46px', objectFit: 'cover', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}
+                            />
+                          </td>
+                          <td>
+                            <strong style={{ fontSize: '14px', display: 'block', color: '#fff' }}>{crs.title}</strong>
+                            {crs.shortDescription && (
+                              <small style={{ color: '#94a3b8', display: 'block', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {crs.shortDescription}
+                              </small>
+                            )}
+                          </td>
+                          <td>
+                            <span className="badge" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+                              {crs.category || 'Ümumi'}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <img 
+                                src={crs.instructorAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'} 
+                                alt={crs.instructorName} 
+                                style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }}
+                              />
+                              <span>{crs.instructorName || 'EduSaz Academy'}</span>
+                            </div>
+                          </td>
+                          <td><span className="badge" style={{ background: '#334155' }}>{crs.level || 'Bütün Səviyyələr'}</span></td>
+                          <td>
+                            {crs.isFree || crs.price === 0 ? (
+                              <span className="badge" style={{ background: '#10b981', color: '#fff' }}>Pulsuz</span>
+                            ) : (
+                              <strong style={{ color: '#38bdf8' }}>{crs.price} {crs.currency || 'AZN'}</strong>
+                            )}
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span className="badge-count" style={{
+                              background: 'rgba(245, 158, 11, 0.12)',
+                              color: '#fbbf24',
+                              padding: '4px 10px',
+                              borderRadius: '16px',
+                              fontWeight: 600,
+                              fontSize: '12px'
+                            }}>
+                              🎥 {crs.totalLectures || 1} video dərs
+                            </span>
+                          </td>
+                          <td>
+                            <span className="status-pill active">
+                              {crs.isPublished !== false ? 'Aktiv' : 'Qaralama'}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <div className="row-actions" style={{ justifyContent: 'flex-end' }}>
+                              <button className="btn-edit" onClick={() => openCourseModal('edit', crs)} title="Redaktə et">✏️</button>
+                              <button className="btn-delete" onClick={() => setDeleteTarget({ type: 'course', id: crs.id, name: crs.title })} title="Sil">🗑️</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: COUNTRIES */}
           {activeTab === 'Countries' && (
             <div className="super-table-container">
               <div className="table-header-box">
@@ -3376,6 +3897,483 @@ function SuperAdminPage() {
                 </button>
                 <button type="submit" className="btn-save" disabled={isSavingSch || isTranslatingSch}>
                   {isSavingSch ? '⏳ Yadda saxlanılır...' : (modalMode === 'add' ? 'Təqaüdü Əlavə Et (31 Dil)' : 'Yenilə (31 Dil)')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 3.5. COURSE MODAL (31-Language with Cover Image, Details, & Video Lectures) */}
+      {modalType === 'course' && (
+        <div className="modal-overlay">
+          <div className="modal-card animate-fade-in" style={{ maxWidth: '880px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="modal-header">
+              <h3>{modalMode === 'add' ? '📚 Yeni Kurs (31 Dildə & Video Dərslər)' : '✏️ Kurs Məlumatlarını Yenilə'}</h3>
+              <button className="btn-close-modal" onClick={() => !isSavingCourse && setModalType(null)} disabled={isSavingCourse}>&times;</button>
+            </div>
+
+            <form onSubmit={handleSaveCourse} className="modal-form">
+              {/* Row 1: Title, Category */}
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label>Kursun Əsas Adı (AZ) *</label>
+                  <input 
+                    type="text" 
+                    value={courseForm.title} 
+                    onChange={e => {
+                      const val = e.target.value;
+                      setCourseForm(prev => ({
+                        ...prev,
+                        title: val,
+                        translations: {
+                          ...(prev.translations || {}),
+                          az: { ...(prev.translations?.az || {}), name: val }
+                        }
+                      }));
+                    }} 
+                    placeholder="Məsələn: Full-Stack Web Proqramlaşdırma: React & Node.js" 
+                    required 
+                    disabled={isSavingCourse}
+                  />
+                </div>
+
+                <div className="form-group" style={{ flex: 1.2 }}>
+                  <label>Kateqoriya *</label>
+                  <select 
+                    value={courseForm.category} 
+                    onChange={e => setCourseForm({ ...courseForm, category: e.target.value })}
+                    className="super-select"
+                    required
+                    disabled={isSavingCourse}
+                  >
+                    <option value="Proqramlaşdırma">💻 Proqramlaşdırma & IT</option>
+                    <option value="AI & Data Science">🤖 Süni İntellekt & Data</option>
+                    <option value="Dizayn & Yaradıcılıq">🎨 UI/UX & Qrafik Dizayn</option>
+                    <option value="Cloud & DevOps">☁️ Cloud & DevOps</option>
+                    <option value="Biznes & Menecment">📈 Biznes & Menecment</option>
+                    <option value="Xarici Dillər">🌍 Xarici Dillər (IELTS, TOEFL)</option>
+                    <option value="Xaricdə Təhsil">🎓 Xaricdə Təhsil & İmtahanlar</option>
+                    <option value="Kiber Təhlükəsizlik">🔒 Kiber Təhlükəsizlik</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 2: Instructor, Level, Language, Price */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Təlimçi / Tədris Mərkəzi</label>
+                  <input 
+                    type="text" 
+                    value={courseForm.instructorName} 
+                    onChange={e => setCourseForm({ ...courseForm, instructorName: e.target.value })} 
+                    placeholder="Məs: Dr. Rəşad Əliyev və ya EduSaz Academy" 
+                    disabled={isSavingCourse}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Səviyyə</label>
+                  <select 
+                    value={courseForm.level} 
+                    onChange={e => setCourseForm({ ...courseForm, level: e.target.value })}
+                    className="super-select"
+                    disabled={isSavingCourse}
+                  >
+                    <option value="Bütün Səviyyələr">Bütün Səviyyələr</option>
+                    <option value="Başlanğıc">Başlanğıc (Beginner)</option>
+                    <option value="Orta">Orta (Intermediate)</option>
+                    <option value="İrəli">İrəli (Advanced)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Tədris Dili</label>
+                  <select 
+                    value={courseForm.language} 
+                    onChange={e => setCourseForm({ ...courseForm, language: e.target.value })}
+                    className="super-select"
+                    disabled={isSavingCourse}
+                  >
+                    <option value="az">🇦🇿 Azərbaycan dili</option>
+                    <option value="en">🇬🇧 İngilis dili</option>
+                    <option value="tr">🇹🇷 Türk dili</option>
+                    <option value="ru">🇷🇺 Rus dili</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Qiymət / Ödəniş</label>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '13px', margin: 0 }}>
+                      <input 
+                        type="checkbox" 
+                        checked={courseForm.isFree} 
+                        onChange={e => setCourseForm({ ...courseForm, isFree: e.target.checked, price: e.target.checked ? '0' : courseForm.price })}
+                        disabled={isSavingCourse}
+                      />
+                      Pulsuz
+                    </label>
+                    {!courseForm.isFree && (
+                      <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          min="0"
+                          value={courseForm.price} 
+                          onChange={e => setCourseForm({ ...courseForm, price: e.target.value })}
+                          placeholder="Qiymət"
+                          style={{ width: '80px', padding: '6px 8px' }}
+                          disabled={isSavingCourse}
+                        />
+                        <select 
+                          value={courseForm.currency} 
+                          onChange={e => setCourseForm({ ...courseForm, currency: e.target.value })}
+                          className="super-select"
+                          style={{ width: '70px', padding: '6px' }}
+                          disabled={isSavingCourse}
+                        >
+                          <option value="AZN">AZN</option>
+                          <option value="USD">USD</option>
+                          <option value="EUR">EUR</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 3: Card Şəkli (Cover Image) & Tanıtım Videosu */}
+              <div className="form-row" style={{ alignItems: 'flex-start' }}>
+                {/* Cover Image Upload */}
+                <div className="form-group" style={{ flex: 1.5 }}>
+                  <label>🖼️ Kursun Card Şəkli (Cover Image)</label>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '4px' }}>
+                    <img 
+                      src={courseForm.thumbnailUrl || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=300&q=80'} 
+                      alt="Cover Preview" 
+                      style={{ width: '100px', height: '62px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)' }}
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                      <input 
+                        type="file" 
+                        ref={courseFileInputRef} 
+                        style={{ display: 'none' }} 
+                        accept="image/*"
+                        onChange={handleCourseCoverUpload}
+                      />
+                      <button 
+                        type="button" 
+                        className="btn-upload-secondary" 
+                        onClick={() => courseFileInputRef.current?.click()}
+                        disabled={isUploadingCourseImg || isSavingCourse}
+                        style={{ padding: '8px 14px', fontSize: '13px', background: 'rgba(59, 130, 246, 0.15)', border: '1px solid #3b82f6', color: '#60a5fa', borderRadius: '6px', cursor: 'pointer' }}
+                      >
+                        {isUploadingCourseImg ? '⏳ Şəkil Yüklənir...' : '📁 Kompyuterdən Şəkil Yüklə'}
+                      </button>
+                      <input 
+                        type="url" 
+                        value={courseForm.thumbnailUrl} 
+                        onChange={e => setCourseForm({ ...courseForm, thumbnailUrl: e.target.value })}
+                        placeholder="və ya Şəkil URL-i daxil edin..."
+                        style={{ fontSize: '12px', padding: '6px 10px' }}
+                        disabled={isSavingCourse}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Preset Images Quick Selector */}
+                  <div style={{ marginTop: '8px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '11px', color: '#94a3b8', width: '100%' }}>Hazır şablonlar:</span>
+                    {COURSE_PRESET_IMAGES.map((p, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setCourseForm({ ...courseForm, thumbnailUrl: p.url })}
+                        style={{
+                          background: 'rgba(255,255,255,0.06)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: '4px',
+                          padding: '3px 8px',
+                          fontSize: '11px',
+                          color: '#e2e8f0',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {p.thumb} {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Preview Video URL */}
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>🎬 Kursun Tanıtım Video Linki (Preview Video)</label>
+                  <input 
+                    type="url" 
+                    value={courseForm.previewVideoUrl} 
+                    onChange={e => setCourseForm({ ...courseForm, previewVideoUrl: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    disabled={isSavingCourse}
+                  />
+                  <small style={{ color: '#94a3b8', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                    YouTube, Vimeo və ya MP4 video linki
+                  </small>
+                </div>
+              </div>
+
+              {/* Row 4: Video Dərslikləri & Linkləri (Dynamic Lectures List) */}
+              <div className="form-group" style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '15px', fontWeight: 600, color: '#f8fafc', margin: 0 }}>🎥 Kurs Daxilindəki Video Linkləri & Dərslər</label>
+                    <span style={{ fontSize: '12px', color: '#94a3b8', display: 'block' }}>Tələbələrin izləyəcəyi video dərsliklərin linklərini və başlıqlarını əlavə edin:</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCourseForm(prev => ({
+                      ...prev,
+                      videoLectures: [
+                        ...prev.videoLectures,
+                        { title: `${prev.videoLectures.length + 1}. Yeni Video Dərs`, videoUrl: '', durationMinutes: 15, isFree: false }
+                      ]
+                    }))}
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      border: '1px solid #10b981',
+                      color: '#34d399',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    + Video Dərs Əlavə Et
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {courseForm.videoLectures.map((lec, lIdx) => (
+                    <div key={lIdx} style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8', width: '24px' }}>#{lIdx + 1}</span>
+                      <input 
+                        type="text" 
+                        value={lec.title} 
+                        onChange={e => {
+                          const val = e.target.value;
+                          setCourseForm(prev => {
+                            const copy = [...prev.videoLectures];
+                            copy[lIdx] = { ...copy[lIdx], title: val };
+                            return { ...prev, videoLectures: copy };
+                          });
+                        }}
+                        placeholder="Dərsin Adı (Məs: 1. Giriş və Quraşdırma)"
+                        style={{ flex: 1.5, fontSize: '13px', padding: '6px 10px' }}
+                        disabled={isSavingCourse}
+                      />
+                      <input 
+                        type="url" 
+                        value={lec.videoUrl} 
+                        onChange={e => {
+                          const val = e.target.value;
+                          setCourseForm(prev => {
+                            const copy = [...prev.videoLectures];
+                            copy[lIdx] = { ...copy[lIdx], videoUrl: val };
+                            return { ...prev, videoLectures: copy };
+                          });
+                        }}
+                        placeholder="Video Linki (YouTube / Vimeo / MP4)"
+                        style={{ flex: 2, fontSize: '13px', padding: '6px 10px' }}
+                        disabled={isSavingCourse}
+                      />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <input 
+                          type="number" 
+                          min="1" 
+                          value={lec.durationMinutes || 15} 
+                          onChange={e => {
+                            const val = parseInt(e.target.value) || 15;
+                            setCourseForm(prev => {
+                              const copy = [...prev.videoLectures];
+                              copy[lIdx] = { ...copy[lIdx], durationMinutes: val };
+                              return { ...prev, videoLectures: copy };
+                            });
+                          }}
+                          placeholder="Dəqiqə"
+                          style={{ width: '60px', fontSize: '12px', padding: '6px 6px', textAlign: 'center' }}
+                          disabled={isSavingCourse}
+                        />
+                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>dəq</span>
+                      </div>
+                      {courseForm.videoLectures.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setCourseForm(prev => ({
+                            ...prev,
+                            videoLectures: prev.videoLectures.filter((_, idx) => idx !== lIdx)
+                          }))}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            color: '#f87171',
+                            borderRadius: '6px',
+                            padding: '6px 8px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                          title="Sil"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Row 5: Description */}
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label>Kurs Haqqında Ətraflı Məlumat (AZ)</label>
+                <textarea 
+                  rows={3}
+                  value={courseForm.description} 
+                  onChange={e => {
+                    const val = e.target.value;
+                    setCourseForm(prev => ({
+                      ...prev,
+                      description: val,
+                      translations: {
+                        ...(prev.translations || {}),
+                        az: { ...(prev.translations?.az || {}), description: val }
+                      }
+                    }));
+                  }}
+                  placeholder="Kursun məqsədi, kimlər üçün nəzərdə tutulduğu və qazandıracağı praktiki bacarıqlar haqqında..."
+                  disabled={isSavingCourse}
+                />
+              </div>
+
+              {/* Row 6: 31-Language AI Translation Section */}
+              <div className="translations-31-section">
+                <div className="trans-header">
+                  <div>
+                    <h4>🌍 31 Qlobal Dildə Kurs Adı və Təsviri</h4>
+                    <span className="trans-sub">AI ilə tək kliklə 31 dilə tərcümə edin və ya hər dili ayrıca redaktə edin:</span>
+                  </div>
+                  <button 
+                    type="button" 
+                    className="btn-auto-gen" 
+                    disabled={isTranslatingCourse || isSavingCourse}
+                    onClick={handleAiTranslateCourse}
+                  >
+                    {isTranslatingCourse ? '⏳ 31 Dilə Tərcümə Olunur...' : '✨ AI ilə 31 Dilə Avtomatik Tərcümə Et'}
+                  </button>
+                </div>
+
+                <div className="lang-subtabs-grid">
+                  {ALL_31_LANGUAGES.map((lang) => {
+                    const hasData = !!(courseForm.translations?.[lang.code]?.name || courseForm.translations?.[lang.code]?.title);
+                    return (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        className={`subtab-btn ${activeCourseLangSubTab === lang.code ? 'active' : ''}`}
+                        onClick={() => setActiveCourseLangSubTab(lang.code)}
+                      >
+                        <span className="flag">{lang.flag}</span>
+                        <span className="code">{lang.code.toUpperCase()}</span>
+                        {hasData && <span className="check-dot" style={{ color: '#4ade80', fontSize: '10px' }}>✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Subtab Active Language Input Editor */}
+                <div className="active-subtab-editor">
+                  <div className="form-group">
+                    <label>
+                      {ALL_31_LANGUAGES.find(l => l.code === activeCourseLangSubTab)?.flag}{' '}
+                      {ALL_31_LANGUAGES.find(l => l.code === activeCourseLangSubTab)?.name} dilində Kursun Adı:
+                    </label>
+                    <input 
+                      type="text" 
+                      value={courseForm.translations?.[activeCourseLangSubTab]?.name || ''} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setCourseForm(prev => ({
+                          ...prev,
+                          ...(activeCourseLangSubTab === 'az' ? { title: val } : {}),
+                          translations: {
+                            ...(prev.translations || {}),
+                            [activeCourseLangSubTab]: {
+                              ...(prev.translations?.[activeCourseLangSubTab] || {}),
+                              name: val
+                            }
+                          }
+                        }));
+                      }}
+                      placeholder={`Kurs adı (${activeCourseLangSubTab.toUpperCase()})`} 
+                      disabled={isSavingCourse}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginTop: '8px' }}>
+                    <label>
+                      {ALL_31_LANGUAGES.find(l => l.code === activeCourseLangSubTab)?.flag}{' '}
+                      {ALL_31_LANGUAGES.find(l => l.code === activeCourseLangSubTab)?.name} dilində Kurs Təsviri:
+                    </label>
+                    <textarea 
+                      rows={2}
+                      value={courseForm.translations?.[activeCourseLangSubTab]?.description || ''} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setCourseForm(prev => ({
+                          ...prev,
+                          ...(activeCourseLangSubTab === 'az' ? { description: val } : {}),
+                          translations: {
+                            ...(prev.translations || {}),
+                            [activeCourseLangSubTab]: {
+                              ...(prev.translations?.[activeCourseLangSubTab] || {}),
+                              description: val
+                            }
+                          }
+                        }));
+                      }}
+                      placeholder={`Kurs təsviri (${activeCourseLangSubTab.toUpperCase()})...`} 
+                      disabled={isSavingCourse}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Dynamic Loading Progress Bar */}
+              {courseProgress.visible && (
+                <div className="uni-progress-container animate-fade-in" style={{ marginTop: '16px' }}>
+                  <div className="uni-progress-header">
+                    <span className="uni-progress-text">
+                      {courseProgress.percent === 100 ? '✅' : '⚡'} {courseProgress.text}
+                    </span>
+                    <span className="uni-progress-badge">{courseProgress.percent}%</span>
+                  </div>
+                  <div className="uni-progress-track">
+                    <div 
+                      className={`uni-progress-fill ${courseProgress.percent === 100 ? 'complete' : ''}`}
+                      style={{ width: `${courseProgress.percent}%` }}
+                    >
+                      <span className="uni-progress-glow"></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Actions */}
+              <div className="modal-actions" style={{ marginTop: '20px' }}>
+                <button type="button" className="btn-cancel" onClick={() => setModalType(null)} disabled={isSavingCourse}>
+                  {t('superAdmin.cancel', 'Ləğv Et')}
+                </button>
+                <button type="submit" className="btn-save" disabled={isSavingCourse || isTranslatingCourse}>
+                  {isSavingCourse ? '⏳ Yadda saxlanılır...' : (modalMode === 'add' ? 'Kursu Əlavə Et (31 Dil)' : 'Yenilə (31 Dil)')}
                 </button>
               </div>
             </form>
