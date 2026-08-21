@@ -118,3 +118,4 @@
 /Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/bin/Debug/net8.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 /Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/bin/Debug/net8.0/Microsoft.IdentityModel.Tokens.dll
 /Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/bin/Debug/net8.0/System.IdentityModel.Tokens.Jwt.dll
+/Users/gulchohrasultanova/Desktop/edusaz/Edusaz.Backend/Edusaz.API/bin/Debug/net8.0/Edusaz.API.staticwebassets.runtime.json
