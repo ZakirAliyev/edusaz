@@ -44,15 +44,15 @@ function UserProfilePage() {
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: 'Əli',
-    lastName: 'Əliyev',
-    email: 'student@edusaz.com',
-    phone: '+994 50 123 45 67',
-    country: 'Azərbaycan',
-    gpa: '3.6',
-    englishScore: 'IELTS 6.5',
-    degreeLevel: 'Bakalavr',
-    desiredField: 'Kompüter Elmləri / İT'
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    country: '',
+    gpa: '',
+    englishScore: '',
+    degreeLevel: '',
+    desiredField: ''
   });
 
   useEffect(() => {
@@ -65,15 +65,15 @@ function UserProfilePage() {
   useEffect(() => {
     if (apiProfile) {
       setProfileData({
-        firstName: apiProfile.firstName || 'Əli',
-        lastName: apiProfile.lastName || 'Əliyev',
+        firstName: apiProfile.firstName || '',
+        lastName: apiProfile.lastName || '',
         email: apiProfile.email || userEmail,
-        phone: apiProfile.phone || '+994 50 123 45 67',
-        country: apiProfile.country || 'Azərbaycan',
-        gpa: apiProfile.gpa ? String(apiProfile.gpa) : '3.6',
-        englishScore: apiProfile.englishScore || 'IELTS 6.5',
-        degreeLevel: apiProfile.degreeLevel || 'Bakalavr',
-        desiredField: apiProfile.desiredField || 'Kompüter Elmləri / İT'
+        phone: apiProfile.phone || '',
+        country: apiProfile.country || '',
+        gpa: apiProfile.gpa ? String(apiProfile.gpa) : '',
+        englishScore: apiProfile.englishScore || '',
+        degreeLevel: apiProfile.degreeLevel || '',
+        desiredField: apiProfile.desiredField || ''
       });
     }
   }, [apiProfile, userEmail]);

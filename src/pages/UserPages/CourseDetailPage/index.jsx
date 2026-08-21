@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useGetPublishedCourseByIdQuery } from '../../../services/apis/userApi';
 import { useToast } from '../../../context/ToastContext';
+import Cookies from 'js-cookie';
 import ScrollToTop from '../../../components/Common/ScrollToTop.jsx';
 import './index.scss';
 
@@ -10,6 +11,7 @@ function CourseDetailPage() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
   const toast = useToast();
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(null);
   const [activeVideo, setActiveVideo] = useState(null);
 
@@ -19,7 +21,7 @@ function CourseDetailPage() {
     return (
       <div className="cdp-loading">
         <div className="cdp-spinner" />
-        <p>Loading course details...</p>
+        <p>Kurs məlumatları yüklənir...</p>
       </div>
     );
   }
@@ -27,15 +29,21 @@ function CourseDetailPage() {
   if (!course) {
     return (
       <div className="cdp-empty">
-        <h2>Course Not Found</h2>
-        <p>The requested course does not exist or has been removed.</p>
-        <Link to="/courses" className="cdp-btn">← Back to Courses</Link>
+        <h2>Kurs tapılmadı</h2>
+        <p>Bu kurs mövcud deyil və ya silinib.</p>
+        <Link to="/courses" className="cdp-btn">← Kurslara qayıt</Link>
       </div>
     );
   }
 
   const handleEnroll = () => {
-    toast.showSuccess(`Enrolled in "${course.title}" successfully! 🎉`);
+    const token = Cookies.get('userToken');
+    if (!token) {
+      toast.showError(t('auth.loginRequired') || 'Daxil olmaq tələb olunur');
+      navigate('/signin');
+      return;
+    }
+    toast.showSuccess(`"${course.title}" kursuna müraciətiniz qəbul olundu! 🎉`);
   };
 
   return (
@@ -53,10 +61,10 @@ function CourseDetailPage() {
             <p className="cdp-desc">{course.shortDescription || course.description}</p>
 
             <div className="cdp-meta">
-              <span className="cdp-badge">{course.level}</span>
-              <span>⭐ {(course.rating || 4.8).toFixed(1)} rating</span>
-              <span>👥 {course.totalStudents || 0} students</span>
-              <span>🌐 Language: {course.language?.toUpperCase()}</span>
+              {course.level && <span className="cdp-badge">{course.level}</span>}
+              {course.rating > 0 && <span>⭐ {course.rating.toFixed(1)} reytinq</span>}
+              {course.totalStudents > 0 && <span>👥 {course.totalStudents} tələbə</span>}
+              {course.language && <span>🌐 Dil: {course.language.toUpperCase()}</span>}
             </div>
 
             <div className="cdp-instructor">

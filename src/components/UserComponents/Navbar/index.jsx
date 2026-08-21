@@ -147,13 +147,16 @@ function Navbar() {
                         {isLoggedIn ? (
                             <div className="logged-in-profile">
                                 <Link to={
-                                    userRole === 'Instructor' || userRole === 'instructor' || localStorage.getItem('isInstructor') === 'true' ? '/instructor-portal' :
-                                    userRole === 'University' || userRole === 'university' ? '/university-portal' :
-                                    userRole === 'Admin' || userRole === 'admin' ? '/superadmin' : '/profile'
+                                    (userRole === 'superadmin' || userRole === 'SuperAdmin') ? '/superadmin' :
+                                    (userRole === 'universityadmin' || userRole === 'UniversityAdmin') ? '/university-portal' :
+                                    (userRole === 'instructor' || userRole === 'Instructor' || userRole === 'teacher' || userRole === 'Teacher' || userRole === 'coursecenter' || userRole === 'CourseCenter') ? '/instructor-portal' :
+                                    '/profile'
                                 } className="btn-profile">
                                     <UserIcon /> {
-                                        localStorage.getItem('isInstructor') === 'true' ? 'Instructor Portal' :
-                                        userRole === 'University' || userRole === 'university' ? t('nav.portal') : t('nav.profile')
+                                        (userRole === 'superadmin' || userRole === 'SuperAdmin') ? 'Admin Panel' :
+                                        (userRole === 'universityadmin' || userRole === 'UniversityAdmin') ? t('nav.portal') :
+                                        (userRole === 'instructor' || userRole === 'Instructor' || userRole === 'teacher' || userRole === 'Teacher' || userRole === 'coursecenter' || userRole === 'CourseCenter') ? 'Portal' :
+                                        t('nav.profile')
                                     }
                                 </Link>
                                 <button className="btn-signout" onClick={handleSignOut}>

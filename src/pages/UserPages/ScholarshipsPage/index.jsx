@@ -6,7 +6,8 @@ import { useLanguage } from '../../../context/LanguageContext';
 import { 
   useGetScholarshipsQuery, 
   useCheckEligibilityMutation, 
-  useSubscribeNotificationMutation 
+  useSubscribeNotificationMutation,
+  useCreateStudentApplicationMutation
 } from '../../../services/apis/userApi';
 import './index.scss';
 
@@ -53,6 +54,7 @@ function ScholarshipsPage() {
   
   const [checkEligibility, { isLoading: isEvaluating }] = useCheckEligibilityMutation();
   const [subscribeNotification, { isLoading: isSubscribing }] = useSubscribeNotificationMutation();
+  const [createApplication] = useCreateStudentApplicationMutation();
 
   const [activeModal, setActiveModal] = useState(null); // 'check' | 'notify' | null
   const [selectedSch, setSelectedSch] = useState(null);
@@ -74,7 +76,7 @@ function ScholarshipsPage() {
     setApplicationSubmitted(false);
     setAnalysisResult(null);
 
-    const userEmail = localStorage.getItem('userEmail') || 'student@edusaz.com';
+    const userEmail = localStorage.getItem('userEmail') || '';
 
     if (sch.buttonType === 'check' || sch.status === 'Open') {
       setActiveModal('check');
@@ -93,7 +95,7 @@ function ScholarshipsPage() {
 
   const handleActivateNotification = async () => {
     if (!selectedSch) return;
-    const userEmail = localStorage.getItem('userEmail') || 'student@edusaz.com';
+    const userEmail = localStorage.getItem('userEmail') || '';
     try {
       await subscribeNotification({ scholarshipId: selectedSch.id, email: userEmail }).unwrap();
       setNotificationSaved(true);
@@ -101,6 +103,28 @@ function ScholarshipsPage() {
       console.error('Notification subscription error:', err);
       setNotificationSaved(true);
     }
+  };
+
+  const handleScholarshipApply = async () => {
+    if (!selectedSch) return;
+    const userEmail = localStorage.getItem('userEmail') || '';
+    const userName = localStorage.getItem('userName') || 'Tələbə';
+    try {
+      if (selectedSch.universityId) {
+        await createApplication({
+          universityId: selectedSch.universityId,
+          studentName: userName,
+          programName: `Təqaüd Müraciəti: ${selectedSch.name}`,
+          email: userEmail,
+          originCountry: 'Azərbaycan',
+          countryFlag: '🇦🇿',
+          matchScore: analysisResult?.matchScore || 90
+        }).unwrap();
+      }
+    } catch (err) {
+      console.error('App error:', err);
+    }
+    setApplicationSubmitted(true);
   };
 
   const closeModal = () => {
@@ -231,7 +255,7 @@ function ScholarshipsPage() {
 
             <div className="sp-modal-actions">
               {!applicationSubmitted ? (
-                <button className="btn-primary-modal" onClick={() => setApplicationSubmitted(true)}>
+                <button className="btn-primary-modal" onClick={handleScholarshipApply}>
                   {t('scholarshipsSection.applyBtn', 'Rəsmi Səhifədən Müraciət Et')}
                 </button>
               ) : null}

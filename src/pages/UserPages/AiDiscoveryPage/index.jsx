@@ -45,6 +45,7 @@ function AiDiscoveryPage() {
   };
   
   const handleAnalyzingComplete = () => {
+    localStorage.setItem('edusaz_ai_selections', JSON.stringify(selections));
     navigate('/ai-discovery/results');
   };
 

@@ -329,24 +329,30 @@ function BrowseUniversitiesPage() {
                     <p className="bu-card-program">{uni.description ? uni.description.substring(0, 60) + '...' : ''}</p>
                     
                     <div className="bu-card-stats">
-                      <div className="bu-card-stat">
-                        <span>{t('matchedUniversities.labels.tuition')}</span>
-                        <strong>{uni.tuition || "$6,500/yr"}</strong>
-                      </div>
-                      <div className="bu-card-stat">
-                        <span>{t('matchedUniversities.labels.acceptance')}</span>
-                        <strong>{uni.acceptanceRate || "45%"}</strong>
-                      </div>
-                      <div className="bu-card-stat">
-                        <span>{t('matchedUniversities.labels.language')}</span>
-                        <strong>{uni.teachingLanguage || "English"}</strong>
-                      </div>
+                      {uni.tuition && (
+                        <div className="bu-card-stat">
+                          <span>{t('matchedUniversities.labels.tuition')}</span>
+                          <strong>{uni.tuition}</strong>
+                        </div>
+                      )}
+                      {uni.acceptanceRate && (
+                        <div className="bu-card-stat">
+                          <span>{t('matchedUniversities.labels.acceptance')}</span>
+                          <strong>{uni.acceptanceRate}</strong>
+                        </div>
+                      )}
+                      {uni.teachingLanguage && (
+                        <div className="bu-card-stat">
+                          <span>{t('matchedUniversities.labels.language')}</span>
+                          <strong>{uni.teachingLanguage}</strong>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="bu-card-footer">
-                      <div className="bu-deadline">
-                        {uni.deadline || "Apr 30"}
-                      </div>
+                      {uni.deadline && (
+                        <div className="bu-deadline">{uni.deadline}</div>
+                      )}
                       <button className="bu-card-btn">&rarr;</button>
                     </div>
                   </div>

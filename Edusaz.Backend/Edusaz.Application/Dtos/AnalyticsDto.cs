@@ -61,3 +61,16 @@ public class UpdateLeadStatusDto
 {
     public string Status { get; set; } = string.Empty;
 }
+
+public class CreateStudentLeadDto
+{
+    public Guid UniversityId { get; set; }
+    public Guid? ProgramId { get; set; }
+    public string StudentName { get; set; } = string.Empty;
+    public string OriginCountry { get; set; } = string.Empty;
+    public string CountryFlag { get; set; } = "🌐";
+    public string ProgramName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public int MatchScore { get; set; } = 80;
+}

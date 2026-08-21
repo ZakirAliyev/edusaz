@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Edusaz.Application.Dtos;
 using Edusaz.Application.Wrappers;
+using Edusaz.Domain.Entities;
 using Edusaz.Infrastructure.Contexts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -54,6 +56,67 @@ public class StudentLeadsController : ControllerBase
             .ToListAsync();
 
         return Ok(ApiResponse<List<StudentLeadDto>>.SuccessResponse(apps));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateStudentLeadDto dto)
+    {
+        if (dto == null)
+            return BadRequest(ApiResponse<StudentLeadDto>.ErrorResponse("Request body is empty", 400));
+
+        var initials = "";
+        if (!string.IsNullOrWhiteSpace(dto.StudentName))
+        {
+            var parts = dto.StudentName.Trim().Split(' ');
+            initials = parts.Length >= 2
+                ? $"{parts[0][0]}{parts[^1][0]}".ToUpper()
+                : dto.StudentName[..Math.Min(2, dto.StudentName.Length)].ToUpper();
+        }
+
+        var colors = new[] { "#7A5CFF", "#10b981", "#f59e0b", "#ef4444", "#3b82f6" };
+        var color = colors[new Random().Next(colors.Length)];
+
+        var app = new StudentApplication
+        {
+            Id = Guid.NewGuid(),
+            UniversityId = dto.UniversityId,
+            ProgramId = dto.ProgramId,
+            StudentName = dto.StudentName ?? string.Empty,
+            OriginCountry = dto.OriginCountry ?? string.Empty,
+            CountryFlag = dto.CountryFlag ?? "🌐",
+            ProgramName = dto.ProgramName ?? string.Empty,
+            Email = dto.Email ?? string.Empty,
+            Phone = dto.Phone ?? string.Empty,
+            MatchScore = dto.MatchScore > 0 ? dto.MatchScore : 80,
+            Status = "Applied",
+            Initials = initials,
+            Color = color,
+            AppliedAt = DateTime.UtcNow
+        };
+
+        _context.StudentApplications.Add(app);
+        await _context.SaveChangesAsync();
+
+        var result = new StudentLeadDto
+        {
+            Id = app.Id,
+            UniversityId = app.UniversityId,
+            Name = app.StudentName,
+            Origin = app.OriginCountry,
+            Flag = app.CountryFlag,
+            Program = app.ProgramName,
+            Email = app.Email,
+            Phone = app.Phone,
+            Match = $"{app.MatchScore}%",
+            MatchType = app.MatchScore >= 90 ? "high" : "medium",
+            Status = app.Status,
+            Time = "İndi",
+            Initials = app.Initials,
+            Color = app.Color,
+            CreatedAt = app.AppliedAt
+        };
+
+        return Ok(ApiResponse<StudentLeadDto>.SuccessResponse(result, "Müraciət uğurla göndərildi!", 201));
     }
 
     [HttpPut("{id}/status")]

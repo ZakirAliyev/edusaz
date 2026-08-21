@@ -28,23 +28,23 @@ function CoursesPage() {
       {/* Hero Banner */}
       <section className="pcp-hero">
         <div className="container">
-          <div className="pcp-hero__badge">🎓 Online Courses Platform</div>
+          <div className="pcp-hero__badge">🎓 {t('courses.platform') || 'Online Kurslar Platforması'}</div>
           <h1 className="pcp-hero__title">
-            Learn From Industry <span className="pcp-hero__gradient">Experts</span> Worldwide
+            {t('courses.heroTitle') || 'Dünya üzrə Mütəxəssislərdən'} <span className="pcp-hero__gradient">{t('courses.heroAccent') || 'Öyrən'}</span>
           </h1>
           <p className="pcp-hero__desc">
-            Explore hundreds of expert-led video courses, gain practical skills, and boost your global career with Edusaz.
+            {t('courses.heroDesc') || 'Yüzlərlə ekspert tərəfindən hazırlanmış kursları kəşf et, praktiki bacarıqlar əldə et.'}
           </p>
 
           {/* Search bar */}
           <div className="pcp-hero__search">
             <input
               type="text"
-              placeholder="Search by title, topic, or keyword..."
+              placeholder={t('courses.searchPlaceholder') || 'Ad, mövzu və ya açar söz axtar...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button className="pcp-hero__search-btn">🔍 Search</button>
+            <button className="pcp-hero__search-btn">🔍 {t('common.search') || 'Axtar'}</button>
           </div>
         </div>
       </section>
@@ -67,21 +67,21 @@ function CoursesPage() {
 
           {/* Courses Count */}
           <div className="pcp-meta">
-            <h2>{selectedCategory === 'All' ? 'All Courses' : selectedCategory}</h2>
-            <span>{courses.length} courses available</span>
+            <h2>{selectedCategory === 'All' ? (t('courses.allCourses') || 'Bütün Kurslar') : selectedCategory}</h2>
+            <span>{courses.length} {t('courses.available') || 'kurs mövcuddur'}</span>
           </div>
 
           {/* Course Cards Grid */}
           {isLoading ? (
             <div className="pcp-loading">
               <div className="pcp-spinner" />
-              <p>Loading courses...</p>
+              <p>{t('common.loading') || 'Yüklənir...'}</p>
             </div>
           ) : courses.length === 0 ? (
             <div className="pcp-empty">
               <div className="pcp-empty__icon">📚</div>
-              <h3>No Courses Found</h3>
-              <p>We couldn't find any courses matching your criteria. Try adjusting your search or filters.</p>
+              <h3>{t('courses.notFound') || 'Kurs tapılmadı'}</h3>
+              <p>{t('courses.notFoundDesc') || 'Axtarış meyarlarına uyğun kurs tapılmadı. Filtrleri dəyişdirin.'}</p>
             </div>
           ) : (
             <div className="pcp-grid">
@@ -107,15 +107,19 @@ function CoursesPage() {
                         {course.instructorAvatar ? (
                           <img src={course.instructorAvatar} alt={course.instructorName} />
                         ) : (
-                          <span>{course.instructorName?.[0] || '👨‍🏫'}</span>
+                          <span>{course.instructorName?.[0] || '🎓'}</span>
                         )}
                       </div>
-                      <span>{course.instructorName || 'Instructor'}</span>
+                      {course.instructorName && <span>{course.instructorName}</span>}
                     </div>
 
                     <div className="pcp-card__footer">
                       <div className="pcp-card__rating">
-                        ⭐ {(course.rating || 4.8).toFixed(1)} <span>({course.totalStudents || 0})</span>
+                        {course.rating > 0 ? (
+                          <>⭐ {course.rating.toFixed(1)} <span>({course.totalStudents || 0})</span></>
+                        ) : course.totalStudents > 0 ? (
+                          <span>👥 {course.totalStudents}</span>
+                        ) : null}
                       </div>
                       <div className="pcp-card__price">
                         {course.isFree ? (

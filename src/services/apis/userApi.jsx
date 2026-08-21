@@ -174,6 +174,14 @@ export const userApi = createApi({
             query: (universityId = '') => `/StudentLeads?universityId=${universityId}`,
             transformResponse: (response) => response.data,
         }),
+        createStudentApplication: builder.mutation({
+            query: (data) => ({
+                url: '/StudentLeads',
+                method: 'POST',
+                body: data,
+            }),
+            transformResponse: (response) => response.data,
+        }),
         updateStudentLeadStatus: builder.mutation({
             query: ({ id, status }) => ({
                 url: `/StudentLeads/${id}/status`,
@@ -444,6 +452,7 @@ export const {
     useUpdateUserProfileMutation,
     useGetAnalyticsQuery,
     useGetStudentLeadsQuery,
+    useCreateStudentApplicationMutation,
     useUpdateStudentLeadStatusMutation,
     // Admin Users
     useGetUsersQuery,

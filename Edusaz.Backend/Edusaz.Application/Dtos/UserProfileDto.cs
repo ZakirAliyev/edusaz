@@ -10,11 +10,11 @@ public class UserProfileDto
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
-    public string Country { get; set; } = "Azərbaycan";
-    public double Gpa { get; set; } = 3.6;
-    public string EnglishScore { get; set; } = "IELTS 6.5";
-    public string DegreeLevel { get; set; } = "Bakalavr";
-    public string DesiredField { get; set; } = "Kompüter Elmləri / İT";
+    public string? Country { get; set; }
+    public double? Gpa { get; set; }
+    public string? EnglishScore { get; set; }
+    public string? DegreeLevel { get; set; }
+    public string? DesiredField { get; set; }
     public int ScholarshipCount { get; set; }
     public List<UserActivityDto> Activities { get; set; } = new();
     public string Role { get; set; } = "Student";
@@ -35,7 +35,7 @@ public class UpdateUserProfileDto
     public string Email { get; set; } = string.Empty;
     public string? Phone { get; set; }
     public string? Country { get; set; }
-    public double Gpa { get; set; } = 3.6;
+    public double? Gpa { get; set; }
     public string? EnglishScore { get; set; }
     public string? DegreeLevel { get; set; }
     public string? DesiredField { get; set; }

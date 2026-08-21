@@ -170,7 +170,7 @@ public class AuthService : IAuthService
         if (!string.IsNullOrEmpty(dto.LastName)) user.LastName = dto.LastName;
         if (!string.IsNullOrEmpty(dto.Phone)) user.PhoneNumber = dto.Phone;
         if (!string.IsNullOrEmpty(dto.Country)) user.Country = dto.Country;
-        if (dto.Gpa > 0) user.Gpa = dto.Gpa;
+        if (dto.Gpa.HasValue && dto.Gpa.Value > 0) user.Gpa = dto.Gpa.Value;
         if (!string.IsNullOrEmpty(dto.EnglishScore)) user.EnglishScore = dto.EnglishScore;
         if (!string.IsNullOrEmpty(dto.DegreeLevel)) user.DegreeLevel = dto.DegreeLevel;
         if (!string.IsNullOrEmpty(dto.DesiredField)) user.DesiredField = dto.DesiredField;
