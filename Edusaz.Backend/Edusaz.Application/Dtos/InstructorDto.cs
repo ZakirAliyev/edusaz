@@ -98,8 +98,11 @@ public class CourseListDto
     public double Rating { get; set; }
     public int ReviewCount { get; set; }
     public int TotalLectures { get; set; }
+    public int TotalDurationMinutes { get; set; }
     public string InstructorName { get; set; } = string.Empty;
     public string InstructorAvatar { get; set; } = string.Empty;
+    public string InstructorBio { get; set; } = string.Empty;
+    public bool IsSuperAdminCreated { get; set; }
     public DateTime CreatedDate { get; set; }
 }
 

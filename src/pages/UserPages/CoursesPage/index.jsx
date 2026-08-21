@@ -135,16 +135,18 @@ function CoursesPage() {
                       </p>
                     )}
 
-                    <div className="pcp-card__instructor">
-                      <div className="pcp-card__avatar">
-                        {course.instructorAvatar ? (
-                          <img src={course.instructorAvatar} alt={course.instructorName} />
-                        ) : (
-                          <span>{course.instructorName?.[0] || '🎓'}</span>
-                        )}
+                    {!course.isSuperAdminCreated && course.instructorName && (
+                      <div className="pcp-card__instructor">
+                        <div className="pcp-card__avatar">
+                          {course.instructorAvatar ? (
+                            <img src={course.instructorAvatar} alt={course.instructorName} />
+                          ) : (
+                            <span>{course.instructorName?.[0] || '👨‍🏫'}</span>
+                          )}
+                        </div>
+                        <span><AutoTranslate text={course.instructorName} /></span>
                       </div>
-                      {course.instructorName && <span>{course.instructorName}</span>}
-                    </div>
+                    )}
 
                     <div className="pcp-card__footer">
                       <div className="pcp-card__rating">
@@ -152,11 +154,13 @@ function CoursesPage() {
                           <>⭐ {course.rating.toFixed(1)} <span>({course.totalStudents || 0})</span></>
                         ) : course.totalStudents > 0 ? (
                           <span>👥 {course.totalStudents}</span>
-                        ) : null}
+                        ) : (
+                          <span>📚 {course.totalLectures || 0} {t('courses.lectures', 'dərs')}</span>
+                        )}
                       </div>
                       <div className="pcp-card__price">
                         {course.isFree ? (
-                          <span className="free">{t('courses.free') || 'Ödənişsiz'}</span>
+                          <span className="free">{t('courses.free', 'Ödənişsiz')}</span>
                         ) : (
                           <>
                             {course.discountPrice > 0 && course.discountPrice < course.price && (

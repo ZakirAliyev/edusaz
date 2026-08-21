@@ -86,6 +86,16 @@ public class CoursesController : ControllerBase
             }
 
             int totalLectures = c.Sections?.Sum(s => s.Lectures?.Count ?? 0) ?? c.TotalLectures;
+            int totalDuration = c.Sections?.Sum(s => s.Lectures?.Sum(l => l.DurationMinutes) ?? 0) ?? c.TotalDurationMinutes;
+
+            bool isSuperAdmin = c.Instructor == null || 
+                                string.IsNullOrWhiteSpace(c.Instructor.DisplayName) || 
+                                c.Instructor.DisplayName.ToLower().Contains("superadmin") || 
+                                c.Instructor.DisplayName.ToLower().Contains("edusaz");
+
+            string instName = !string.IsNullOrWhiteSpace(c.Instructor?.DisplayName) 
+                ? c.Instructor.DisplayName 
+                : (c.Instructor?.User != null ? $"{c.Instructor.User.FirstName} {c.Instructor.User.LastName}".Trim() : string.Empty);
 
             return new CourseListDto
             {
@@ -105,10 +115,11 @@ public class CoursesController : ControllerBase
                 Rating = c.Rating > 0 ? c.Rating : 5.0,
                 ReviewCount = c.ReviewCount,
                 TotalLectures = totalLectures,
-                InstructorName = !string.IsNullOrWhiteSpace(c.Instructor?.DisplayName) 
-                    ? c.Instructor.DisplayName 
-                    : (c.Instructor?.User != null ? $"{c.Instructor.User.FirstName} {c.Instructor.User.LastName}".Trim() : "EduSaz Academy"),
-                InstructorAvatar = !string.IsNullOrWhiteSpace(c.Instructor?.AvatarUrl) ? c.Instructor.AvatarUrl : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+                TotalDurationMinutes = totalDuration,
+                InstructorName = instName,
+                InstructorAvatar = c.Instructor?.AvatarUrl ?? string.Empty,
+                InstructorBio = c.Instructor?.Bio ?? string.Empty,
+                IsSuperAdminCreated = isSuperAdmin,
                 CreatedDate = c.CreatedDate
             };
         }).ToList();
@@ -171,6 +182,16 @@ public class CoursesController : ControllerBase
             );
 
         int totalLectures = course.Sections?.Sum(s => s.Lectures?.Count ?? 0) ?? course.TotalLectures;
+        int totalDuration = course.Sections?.Sum(s => s.Lectures?.Sum(l => l.DurationMinutes) ?? 0) ?? course.TotalDurationMinutes;
+
+        bool isSuperAdmin = course.Instructor == null || 
+                            string.IsNullOrWhiteSpace(course.Instructor.DisplayName) || 
+                            course.Instructor.DisplayName.ToLower().Contains("superadmin") || 
+                            course.Instructor.DisplayName.ToLower().Contains("edusaz");
+
+        string instName = !string.IsNullOrWhiteSpace(course.Instructor?.DisplayName) 
+            ? course.Instructor.DisplayName 
+            : (course.Instructor?.User != null ? $"{course.Instructor.User.FirstName} {course.Instructor.User.LastName}".Trim() : string.Empty);
 
         var dto = new CourseDetailDto
         {
@@ -196,10 +217,11 @@ public class CoursesController : ControllerBase
             Rating = course.Rating > 0 ? course.Rating : 5.0,
             ReviewCount = course.ReviewCount,
             TotalLectures = totalLectures,
-            InstructorName = !string.IsNullOrWhiteSpace(course.Instructor?.DisplayName) 
-                ? course.Instructor.DisplayName 
-                : (course.Instructor?.User != null ? $"{course.Instructor.User.FirstName} {course.Instructor.User.LastName}".Trim() : "EduSaz Academy"),
-            InstructorAvatar = !string.IsNullOrWhiteSpace(course.Instructor?.AvatarUrl) ? course.Instructor.AvatarUrl : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+            TotalDurationMinutes = totalDuration,
+            InstructorName = instName,
+            InstructorAvatar = course.Instructor?.AvatarUrl ?? string.Empty,
+            InstructorBio = course.Instructor?.Bio ?? string.Empty,
+            IsSuperAdminCreated = isSuperAdmin,
             CreatedDate = course.CreatedDate,
             Translations = translationDict,
             Sections = course.Sections
