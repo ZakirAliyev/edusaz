@@ -182,6 +182,32 @@ export const userApi = createApi({
             }),
             transformResponse: (response) => response.data,
         }),
+        getReviews: builder.query({
+            query: ({ universityId, courseId } = {}) => {
+                let url = '/Reviews';
+                if (universityId) url += `?universityId=${universityId}`;
+                else if (courseId) url += `?courseId=${courseId}`;
+                return url;
+            },
+            transformResponse: (response) => response.data,
+            providesTags: ['Reviews'],
+        }),
+        createReview: builder.mutation({
+            query: (reviewData) => ({
+                url: '/Reviews',
+                method: 'POST',
+                body: reviewData,
+            }),
+            invalidatesTags: ['Reviews'],
+            transformResponse: (response) => response.data,
+        }),
+        deleteReview: builder.mutation({
+            query: (id) => ({
+                url: `/Reviews/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Reviews'],
+        }),
         updateStudentLeadStatus: builder.mutation({
             query: ({ id, status }) => ({
                 url: `/StudentLeads/${id}/status`,
@@ -454,6 +480,10 @@ export const {
     useGetStudentLeadsQuery,
     useCreateStudentApplicationMutation,
     useUpdateStudentLeadStatusMutation,
+    // Reviews
+    useGetReviewsQuery,
+    useCreateReviewMutation,
+    useDeleteReviewMutation,
     // Admin Users
     useGetUsersQuery,
     useAdminCreateUserMutation,

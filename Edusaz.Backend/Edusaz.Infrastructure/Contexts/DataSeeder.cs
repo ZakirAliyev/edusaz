@@ -25,6 +25,11 @@ public static class DataSeeder
                 ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""DesiredField"" text;
                 ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""EnglishScore"" text;
                 ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""Gpa"" double precision;
+                ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""UniversityId"" uuid;
+                ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""AuthorName"" text;
+                ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""AuthorAvatar"" text;
+                ALTER TABLE ""Reviews"" ALTER COLUMN ""CourseId"" DROP NOT NULL;
+                ALTER TABLE ""Reviews"" ALTER COLUMN ""UserId"" DROP NOT NULL;
                 CREATE TABLE IF NOT EXISTS ""UniversityMedias"" (
                     ""Id"" uuid PRIMARY KEY,
                     ""UniversityId"" uuid NOT NULL,
