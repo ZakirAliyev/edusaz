@@ -125,23 +125,27 @@
 
         .mu-card-img-wrapper {
           position: relative;
-          width: 100%;
+          width: calc(100% - 16px);
+          margin: 8px 8px 0 8px;
           aspect-ratio: 16 / 9;
-          background: #f1f5f9;
+          background: #f8fafc;
+          border-radius: 12px;
           overflow: hidden;
+          box-sizing: border-box;
 
           .mu-card-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: 10px;
             display: block;
           }
 
           .mu-card-tags {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
+            top: 8px;
+            left: 8px;
+            right: 8px;
             display: flex;
             justify-content: space-between;
             gap: 6px;
