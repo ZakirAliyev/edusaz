@@ -64,16 +64,24 @@ function MatchedUniversities() {
         </div>
 
         {isLoading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading backend universities...</div>
+          <div className="mu-loading">Loading backend universities...</div>
         ) : (
           <div className="mu-grid">
-            {(Array.isArray(apiUniversities) ? apiUniversities : (apiUniversities?.data || [])).slice(0, 6).map(uni => (
-              <Link to={`/universities/${uni.id}`} key={uni.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+            {(Array.isArray(apiUniversities) ? apiUniversities : (apiUniversities?.data || [])).slice(0, 8).map(uni => (
+              <Link to={`/universities/${uni.id}`} key={uni.id} className="mu-card-link">
                 <div className="mu-card">
                   <div className="mu-card-img-wrapper">
-                    <img src={uni.logoUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"} alt={uni.name} className="mu-card-img" />
+                    <img 
+                      src={uni.logoUrl || uni.imageUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"} 
+                      alt={uni.name} 
+                      className="mu-card-img" 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80";
+                      }}
+                    />
                     <div className="mu-card-tags">
-                      <div className="mu-tag-match" style={{ backgroundColor: "#10b981" }}>
+                      <div className="mu-tag-match">
                         <SparkleIcon /> 96% {t('matchedUniversities.match')}
                       </div>
                       {uni.hasScholarship && (
@@ -88,12 +96,10 @@ function MatchedUniversities() {
                     <div className="mu-card-header">
                       <h3 className="mu-uni-name">{uni.name}</h3>
                       <span className="mu-uni-rank">{uni.ranking || (`${t('matchedUniversities.est')} ${uni.establishedYear}`)}</span>
-
                     </div>
                     
                     <span className="mu-uni-location">{uni.city ? `${uni.city}, ${uni.country}` : uni.country}</span>
                     <span className="mu-uni-program">{uni.description ? uni.description.substring(0, 50) + "..." : "Bachelor in Computer Science"}</span>
-
 
                     <div className="mu-uni-stats">
                       <div className="stat-box">
@@ -128,5 +134,3 @@ function MatchedUniversities() {
 }
 
 export default MatchedUniversities;
-
-
