@@ -608,10 +608,13 @@ function SuperAdminPage() {
     setVideoUrlInput('');
     if (mode === 'edit' && uni) {
       setEditingItem(uni);
+      // Resolve countryId: if not set, find it by matching country name in countries list
+      const resolvedCountryId = uni.countryId || 
+        countries.find(c => c.nameAz === uni.country || c.nameAz?.toLowerCase() === uni.country?.toLowerCase())?.id || '';
       setUniForm({
         name: uni.name || '',
         country: uni.country || 'Azərbaycan',
-        countryId: uni.countryId || '',
+        countryId: resolvedCountryId,
         city: uni.city || 'Bakı',
         logoUrl: uni.logoUrl || '',
         establishedYear: uni.establishedYear || 1919,
@@ -3169,19 +3172,20 @@ function SuperAdminPage() {
                 <div className="form-group" style={{ flex: 1 }}>
                   <label>{t('superAdmin.country', 'Ölkə')} *</label>
                   <select 
-                    value={uniForm.country} 
+                    value={uniForm.countryId || ''} 
                     onChange={e => {
-                      const selectedCountryName = e.target.value;
-                      const matched = countries.find(c => c.nameAz === selectedCountryName);
+                      const selectedId = e.target.value;
+                      const matched = countries.find(c => c.id === selectedId);
                       setUniForm({ 
                         ...uniForm, 
-                        country: selectedCountryName,
-                        countryId: matched?.id || uniForm.countryId 
+                        countryId: selectedId,
+                        country: matched?.nameAz || uniForm.country
                       });
                     }}
                   >
+                    <option value="">-- Ölkə seçin --</option>
                     {countries.map(c => (
-                      <option key={c.id || c.nameAz} value={c.nameAz}>{c.flag} {c.nameAz}</option>
+                      <option key={c.id || c.nameAz} value={c.id}>{c.flag} {c.nameAz}</option>
                     ))}
                   </select>
                 </div>
