@@ -7,6 +7,7 @@ public class CountryDto
     public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+    public string DefaultName { get; set; } = string.Empty;  // Always English, used as fallback
     public string Label { get; set; } = string.Empty;
     public string FlagEmoji { get; set; } = string.Empty;
     public int UniversityCount { get; set; }

@@ -409,7 +409,7 @@ function SuperAdminPage() {
             id: c.id,
             code: (c.code || 'AZ').toUpperCase(),
             flag: c.flagEmoji || '🌐',
-            nameAz: c.name || 'Ölkə',
+            nameAz: c.name || c.defaultName || c.code || 'Ölkə',
             universitiesCount: c.universityCount ?? 0,
             status: 'Aktiv'
           }));
@@ -608,9 +608,12 @@ function SuperAdminPage() {
     setVideoUrlInput('');
     if (mode === 'edit' && uni) {
       setEditingItem(uni);
-      // Resolve countryId: if not set, find it by matching country name in countries list
-      const resolvedCountryId = uni.countryId || 
-        countries.find(c => c.nameAz === uni.country || c.nameAz?.toLowerCase() === uni.country?.toLowerCase())?.id || '';
+      // Resolve countryId: try stored countryId, then match by nameAz, then by countryCode
+      const resolvedCountryId = 
+        (uni.countryId && countries.some(c => c.id === uni.countryId) ? uni.countryId : null) ||
+        countries.find(c => c.nameAz && uni.country && c.nameAz.toLowerCase() === uni.country.toLowerCase())?.id ||
+        countries.find(c => c.code && uni.countryCode && c.code.toLowerCase() === uni.countryCode.toLowerCase())?.id ||
+        uni.countryId || '';
       setUniForm({
         name: uni.name || '',
         country: uni.country || 'Azərbaycan',

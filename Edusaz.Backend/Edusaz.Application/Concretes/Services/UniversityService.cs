@@ -104,7 +104,10 @@ public class UniversityService : IUniversityService
             {
                 var countryTranslation = country.Translations?.FirstOrDefault(t => t.Language?.Code == langCode)
                                         ?? country.Translations?.FirstOrDefault();
-                displayCountry = countryTranslation?.Name ?? country.DefaultName;
+                // Use IsNullOrEmpty so empty-string translations fall back to DefaultName
+                displayCountry = !string.IsNullOrEmpty(countryTranslation?.Name)
+                                 ? countryTranslation!.Name
+                                 : (!string.IsNullOrEmpty(country.DefaultName) ? country.DefaultName : u.Country ?? string.Empty);
             }
             else
             {
@@ -188,7 +191,9 @@ public class UniversityService : IUniversityService
         {
             var countryTranslation = country.Translations?.FirstOrDefault(t => t.Language?.Code == langCode)
                                     ?? country.Translations?.FirstOrDefault();
-            displayCountry = countryTranslation?.Name ?? country.DefaultName;
+            displayCountry = !string.IsNullOrEmpty(countryTranslation?.Name)
+                             ? countryTranslation!.Name
+                             : (!string.IsNullOrEmpty(country.DefaultName) ? country.DefaultName : u.Country ?? string.Empty);
         }
         else
         {

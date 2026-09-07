@@ -62,7 +62,8 @@ public class CountryService : ICountryService
             {
                 Id = c.Id,
                 Code = c.Code,
-                Name = translation?.Name ?? c.DefaultName,
+                Name = !string.IsNullOrEmpty(translation?.Name) ? translation!.Name : c.DefaultName,
+                DefaultName = c.DefaultName,
                 Label = translation?.Label ?? c.DefaultLabel,
                 FlagEmoji = c.FlagEmoji,
                 UniversityCount = actualUniversityCount,
