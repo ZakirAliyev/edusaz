@@ -326,10 +326,18 @@ function BrowseUniversitiesPage() {
         ) : (
           <div className="bu-grid">
             {filteredUniversities.map(uni => (
-              <Link to={`/universities/${uni.id}`} key={uni.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Link to={`/universities/${uni.id}`} key={uni.id} className="mu-card-link">
                 <div className="mu-card">
                   <div className="mu-card-img-wrapper">
-                    <img src={uni.logoUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80"} alt={uni.name} className="mu-card-img" />
+                    <img 
+                      src={uni.logoUrl || uni.imageUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"} 
+                      alt={uni.name} 
+                      className="mu-card-img" 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80";
+                      }}
+                    />
                     <div className="mu-card-tags">
                       <div className="mu-tag-match" style={{ backgroundColor: "#10b981" }}>
                         <SparkleIcon /> 96% {t('matchedUniversities.match')}

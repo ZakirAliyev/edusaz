@@ -235,17 +235,34 @@
 
   .bu-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    align-items: stretch;
+    width: 100%;
+    box-sizing: border-box;
 
     @media (max-width: 1200px) {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
     }
     @media (max-width: 1024px) {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
     }
     @media (max-width: 640px) {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .mu-card-link {
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     // ---- mu-card styles (identical to home MatchedUniversities) ----
@@ -253,125 +270,195 @@
       background: #ffffff;
       border-radius: 16px;
       overflow: hidden;
-      border: 1px solid #f1f5f9;
+      border: 1px solid #e2e8f0;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
 
       &:hover {
         transform: translateY(-4px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 12px 24px -4px rgba(123, 77, 255, 0.12);
+        border-color: #cbd5e1;
       }
 
       .mu-card-img-wrapper {
         position: relative;
-        height: 180px;
+        width: calc(100% - 16px);
+        margin: 8px 8px 0 8px;
+        height: 160px;
+        background: #f8fafc;
+        border-radius: 12px;
+        overflow: hidden;
+        box-sizing: border-box;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
 
         .mu-card-img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
+          max-width: 100%;
+          max-height: 100%;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          border-radius: 8px;
+          display: block;
+          transition: transform 0.3s ease;
         }
 
         .mu-card-tags {
           position: absolute;
-          top: 12px;
-          left: 12px;
-          right: 12px;
+          top: 8px;
+          left: 8px;
+          right: 8px;
           display: flex;
           justify-content: space-between;
+          gap: 6px;
+          pointer-events: none;
+          z-index: 2;
 
           .mu-tag-match {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 4px;
-            color: white;
-            font-size: 0.75rem;
-            font-weight: 500;
-            padding: 4px 10px;
+            background: #10b981;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 4px 8px;
             border-radius: 100px;
+            white-space: nowrap;
           }
 
           .mu-tag-scholarship {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 4px;
             background: #f59e0b;
-            color: white;
-            font-size: 0.75rem;
-            font-weight: 500;
-            padding: 4px 10px;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 4px 8px;
             border-radius: 100px;
+            white-space: nowrap;
           }
         }
       }
 
       .mu-card-body {
-        padding: 20px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+        box-sizing: border-box;
 
         .mu-card-header {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          margin-bottom: 8px;
+          gap: 8px;
+          margin-bottom: 6px;
+          min-height: 44px;
 
           .mu-uni-name {
-            font-size: 1.125rem;
-            font-weight: 500;
+            font-size: 0.975rem;
+            font-weight: 600;
             color: #0f172a;
             margin: 0;
-            line-height: 1.4;
+            line-height: 1.35;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            word-break: break-word;
+            height: 2.7em;
           }
 
           .mu-uni-rank {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: #94a3b8;
             font-weight: 500;
             white-space: nowrap;
+            flex-shrink: 0;
+            padding-top: 2px;
           }
         }
 
         .mu-uni-location {
           display: block;
-          font-size: 0.875rem;
+          font-size: 0.8rem;
           color: #64748b;
-          margin-bottom: 8px;
+          margin-bottom: 6px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          height: 1.2rem;
+          line-height: 1.2rem;
         }
 
         .mu-uni-program {
           display: block;
-          font-size: 0.875rem;
+          font-size: 0.8rem;
           color: #7b4dff;
           font-weight: 500;
-          margin-bottom: 20px;
+          margin-bottom: 14px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          height: 1.2rem;
+          line-height: 1.2rem;
         }
 
         .mu-uni-stats {
-          display: flex;
-          gap: 12px;
-          margin-bottom: 20px;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 6px;
+          margin-bottom: 14px;
+          margin-top: auto;
+          width: 100%;
 
           .stat-box {
-            flex: 1;
             background: #f8fafc;
-            padding: 10px;
+            padding: 8px 4px;
             border-radius: 8px;
+            border: 1px solid #f1f5f9;
+            text-align: center;
+            min-width: 0;
+            height: 52px;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
-            text-align: center;
-            border: 1px solid #f1f5f9;
+            box-sizing: border-box;
 
             .stat-label {
-              font-size: 0.7rem;
+              font-size: 0.65rem;
               color: #94a3b8;
-              margin-bottom: 4px;
+              margin-bottom: 2px;
+              display: block;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              width: 100%;
             }
 
             .stat-val {
-              font-size: 0.875rem;
-              font-weight: 500;
+              font-size: 0.78rem;
+              font-weight: 600;
               color: #334155;
+              display: block;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              width: 100%;
             }
           }
         }
@@ -380,19 +467,24 @@
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding-top: 16px;
+          padding-top: 12px;
           border-top: 1px solid #f1f5f9;
           color: #94a3b8;
+          height: 38px;
+          box-sizing: border-box;
+          flex-shrink: 0;
 
           .mu-deadline {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 0.875rem;
+            gap: 4px;
+            font-size: 0.78rem;
+            white-space: nowrap;
           }
 
           svg {
             color: #7b4dff;
+            flex-shrink: 0;
           }
         }
       }
