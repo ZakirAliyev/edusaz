@@ -49,15 +49,46 @@ public class UniversityService : IUniversityService
             include: q => q.Include(u => u.Translations).ThenInclude(t => t.Language).Include(u => u.CountryRef)
         );
 
-        var countries = await _countryReadRepository.GetAllAsync(c => !c.IsDeleted);
+        // Load countries WITH translations so we can match by any language name (e.g. 'İtaliya' -> Italy)
+        var countries = await _countryReadRepository.GetAllAsync(
+            predicate: c => !c.IsDeleted,
+            include: q => q.Include(c => c.Translations).ThenInclude(t => t.Language)
+        );
         var mediaList = await _universityMediaReadRepository.GetAllAsync(m => !m.IsDeleted);
 
         return universities.Select(u => {
-            var country = u.CountryRef 
-                          ?? (u.CountryId.HasValue ? countries.FirstOrDefault(c => c.Id == u.CountryId.Value) : null)
-                          ?? countries.FirstOrDefault(c => !string.IsNullOrEmpty(c.Code) && string.Equals(c.Code, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase))
-                          ?? countries.FirstOrDefault(c => !string.IsNullOrEmpty(c.DefaultName) && string.Equals(c.DefaultName, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase))
-                          ?? countries.FirstOrDefault(c => (!string.IsNullOrEmpty(c.Code) && c.Code.ToLower().Contains("us")) || (!string.IsNullOrEmpty(c.DefaultName) && c.DefaultName.ToLower().Contains("usa")));
+            Country? country;
+
+            // 1. Direct navigation property (CountryRef loaded via EF Include)
+            if (u.CountryRef != null)
+            {
+                country = u.CountryRef;
+            }
+            // 2. Match by CountryId
+            else if (u.CountryId.HasValue)
+            {
+                country = countries.FirstOrDefault(c => c.Id == u.CountryId.Value);
+            }
+            // 3. Match by Code or DefaultName (English)
+            else if (!string.IsNullOrWhiteSpace(u.Country))
+            {
+                country = countries.FirstOrDefault(c =>
+                    (!string.IsNullOrEmpty(c.Code) && string.Equals(c.Code, u.Country.Trim(), StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(c.DefaultName) && string.Equals(c.DefaultName, u.Country.Trim(), StringComparison.OrdinalIgnoreCase))
+                );
+                // 4. Fallback: match by any translation name (e.g. 'İtaliya' matches Italy's 'az' translation)
+                if (country == null)
+                {
+                    country = countries.FirstOrDefault(c =>
+                        c.Translations != null &&
+                        c.Translations.Any(t => string.Equals(t.Name, u.Country.Trim(), StringComparison.OrdinalIgnoreCase))
+                    );
+                }
+            }
+            else
+            {
+                country = null;
+            }
 
             var translation = u.Translations != null 
                               ? (u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) ?? u.Translations.FirstOrDefault())
@@ -67,12 +98,25 @@ public class UniversityService : IUniversityService
             var images = uMedia.Where(m => m.MediaType == "Image").Select(m => m.Url).ToList();
             var videos = uMedia.Where(m => m.MediaType == "Video").Select(m => m.Url).ToList();
 
+            // Determine the display country name for the requested language
+            string displayCountry;
+            if (country != null)
+            {
+                var countryTranslation = country.Translations?.FirstOrDefault(t => t.Language?.Code == langCode)
+                                        ?? country.Translations?.FirstOrDefault();
+                displayCountry = countryTranslation?.Name ?? country.DefaultName;
+            }
+            else
+            {
+                displayCountry = u.Country ?? string.Empty;
+            }
+
             return new UniversityDto
             {
                 Id = u.Id,
-                Country = country?.DefaultName ?? u.Country ?? "Azərbaycan",
+                Country = displayCountry,
                 CountryId = country?.Id ?? u.CountryId,
-                CountryCode = country?.Code ?? (string.Equals(u.Country, "USA", StringComparison.OrdinalIgnoreCase) ? "usa" : "az"),
+                CountryCode = country?.Code ?? string.Empty,
                 LogoUrl = u.LogoUrl ?? "",
                 WebsiteUrl = u.WebsiteUrl ?? "",
                 EstablishedYear = u.EstablishedYear,
@@ -100,11 +144,36 @@ public class UniversityService : IUniversityService
 
         if (u == null) return null;
 
-        var countries = await _countryReadRepository.GetAllAsync(c => !c.IsDeleted);
-        var country = u.CountryRef ?? countries.FirstOrDefault(c => 
-            (!string.IsNullOrEmpty(c.Code) && string.Equals(c.Code, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase)) ||
-            (!string.IsNullOrEmpty(c.DefaultName) && string.Equals(c.DefaultName, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase)) ||
-            (!string.IsNullOrEmpty(c.Code) && c.Code.ToLower() == "usa" && string.Equals(u.Country?.Trim(), "USA", StringComparison.OrdinalIgnoreCase)));
+        // Load countries with translations for accurate matching
+        var countries = await _countryReadRepository.GetAllAsync(
+            predicate: c => !c.IsDeleted,
+            include: q => q.Include(c => c.Translations).ThenInclude(t => t.Language)
+        );
+
+        Country? country;
+        if (u.CountryRef != null)
+        {
+            country = u.CountryRef;
+        }
+        else if (u.CountryId.HasValue)
+        {
+            country = countries.FirstOrDefault(c => c.Id == u.CountryId.Value);
+        }
+        else
+        {
+            country = countries.FirstOrDefault(c =>
+                (!string.IsNullOrEmpty(c.Code) && string.Equals(c.Code, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(c.DefaultName) && string.Equals(c.DefaultName, u.Country?.Trim(), StringComparison.OrdinalIgnoreCase))
+            );
+            // Fallback: match by translation name
+            if (country == null && !string.IsNullOrWhiteSpace(u.Country))
+            {
+                country = countries.FirstOrDefault(c =>
+                    c.Translations != null &&
+                    c.Translations.Any(t => string.Equals(t.Name, u.Country.Trim(), StringComparison.OrdinalIgnoreCase))
+                );
+            }
+        }
 
         var translation = u.Translations != null
                           ? (u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) ?? u.Translations.FirstOrDefault())
@@ -114,10 +183,22 @@ public class UniversityService : IUniversityService
         var images = media.Where(m => m.MediaType == "Image").OrderBy(m => m.OrderIndex).Select(m => m.Url).ToList();
         var videos = media.Where(m => m.MediaType == "Video").OrderBy(m => m.OrderIndex).Select(m => m.Url).ToList();
 
+        string displayCountry;
+        if (country != null)
+        {
+            var countryTranslation = country.Translations?.FirstOrDefault(t => t.Language?.Code == langCode)
+                                    ?? country.Translations?.FirstOrDefault();
+            displayCountry = countryTranslation?.Name ?? country.DefaultName;
+        }
+        else
+        {
+            displayCountry = u.Country ?? string.Empty;
+        }
+
         return new UniversityDto
         {
             Id = u.Id,
-            Country = country?.DefaultName ?? u.Country,
+            Country = displayCountry,
             CountryId = country?.Id ?? u.CountryId,
             CountryCode = country?.Code ?? string.Empty,
             LogoUrl = u.LogoUrl,
