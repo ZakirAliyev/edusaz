@@ -21,6 +21,9 @@ import CoursesPage from "../pages/UserPages/CoursesPage/index.jsx";
 import CourseDetailPage from "../pages/UserPages/CourseDetailPage/index.jsx";
 import UserProfilePage from "../pages/UserPages/UserProfilePage/index.jsx";
 import HiddenTalentsPage from "../pages/UserPages/HiddenTalentsPage/index.jsx";
+import PaymentSuccessPage from "../pages/UserPages/PaymentSuccessPage/index.jsx";
+import PaymentFailPage from "../pages/UserPages/PaymentFailPage/index.jsx";
+import PaymentResultPage from "../pages/UserPages/PaymentResultPage/index.jsx";
 
 import Cookies from "js-cookie";
 import PrivateRoute from "../components/Common/PrivateRoute.jsx";
@@ -108,6 +111,22 @@ export const ROUTES = [
             {
                 path: 'gizli-bacariqlar',
                 element: <HiddenTalentsPage/>
+            },
+            {
+                path: 'payment/success',
+                element: <PaymentSuccessPage/>
+            },
+            {
+                path: 'payment/fail',
+                element: <PaymentFailPage/>
+            },
+            {
+                path: 'payment/failed',
+                element: <PaymentFailPage/>
+            },
+            {
+                path: 'payment/result',
+                element: <PaymentResultPage/>
             }
         ]
     },

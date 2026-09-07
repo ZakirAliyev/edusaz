@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 
 .env
+
+# .NET
+bin/
+obj/
+publish_backend/
+*.tar.gz

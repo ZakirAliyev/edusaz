@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../build/Edusaz.API.props" />
-</Project>
