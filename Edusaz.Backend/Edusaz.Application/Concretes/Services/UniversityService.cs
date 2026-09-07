@@ -139,10 +139,30 @@ public class UniversityService : IUniversityService
 
     public async Task<UniversityDto> CreateUniversityAsync(CreateUniversityDto dto)
     {
+        // Resolve CountryId from the provided country name (translated) if not already given
+        Guid? resolvedCountryId = dto.CountryId;
+        if (!resolvedCountryId.HasValue && !string.IsNullOrWhiteSpace(dto.Country))
+        {
+            var allCountries = await _countryReadRepository.GetAllAsync(
+                predicate: c => !c.IsDeleted,
+                include: q => q.Include(c => c.Translations).ThenInclude(t => t.Language)
+            );
+
+            // Try matching by DefaultName or any translation name
+            var matchedCountry = allCountries.FirstOrDefault(c =>
+                string.Equals(c.DefaultName, dto.Country.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(c.Code, dto.Country.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                c.Translations.Any(t => string.Equals(t.Name, dto.Country.Trim(), StringComparison.OrdinalIgnoreCase))
+            );
+
+            if (matchedCountry != null)
+                resolvedCountryId = matchedCountry.Id;
+        }
+
         var university = new University
         {
             Country = dto.Country,
-            CountryId = dto.CountryId,
+            CountryId = resolvedCountryId ?? dto.CountryId,
             LogoUrl = dto.LogoUrl,
             WebsiteUrl = dto.WebsiteUrl,
             EstablishedYear = dto.EstablishedYear,
@@ -234,8 +254,25 @@ public class UniversityService : IUniversityService
 
         if (u == null) throw new Exception("University not found.");
 
+        // Resolve CountryId from translated country name if not directly provided
+        Guid? resolvedCountryId = dto.CountryId;
+        if (!resolvedCountryId.HasValue && !string.IsNullOrWhiteSpace(dto.Country))
+        {
+            var allCountries = await _countryReadRepository.GetAllAsync(
+                predicate: c => !c.IsDeleted,
+                include: q => q.Include(c => c.Translations).ThenInclude(t => t.Language)
+            );
+            var matchedCountry = allCountries.FirstOrDefault(c =>
+                string.Equals(c.DefaultName, dto.Country.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(c.Code, dto.Country.Trim(), StringComparison.OrdinalIgnoreCase) ||
+                c.Translations.Any(t => string.Equals(t.Name, dto.Country.Trim(), StringComparison.OrdinalIgnoreCase))
+            );
+            if (matchedCountry != null)
+                resolvedCountryId = matchedCountry.Id;
+        }
+
         u.Country = dto.Country;
-        if (dto.CountryId.HasValue) u.CountryId = dto.CountryId;
+        u.CountryId = resolvedCountryId ?? dto.CountryId ?? u.CountryId;
         if (!string.IsNullOrEmpty(dto.LogoUrl)) u.LogoUrl = dto.LogoUrl;
         if (!string.IsNullOrEmpty(dto.WebsiteUrl)) u.WebsiteUrl = dto.WebsiteUrl;
         if (dto.EstablishedYear > 0) u.EstablishedYear = dto.EstablishedYear;

@@ -68,6 +68,7 @@ public class InstructorsController : ControllerBase
         return Ok(ApiResponse<object>.SuccessResponse(courses));
     }
 
+
     [HttpGet("courses/{id}")]
     public async Task<IActionResult> GetCourse(Guid id)
     {
