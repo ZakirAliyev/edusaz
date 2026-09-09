@@ -115,6 +115,11 @@ jobs:
               ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundNote" text;
               ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "PaidAt" timestamp with time zone;
               ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "TransactionId" text NOT NULL DEFAULT '';
+              ALTER TABLE "CoursePayments" OWNER TO postgres;
+              GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO postgres;
+              GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO PUBLIC;
+              GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
+              GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO PUBLIC;
             ' || true
 
             sudo -u postgres psql -d edusaz_db -c "
@@ -168,6 +173,11 @@ jobs:
                   ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundNote" text;
                   ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "PaidAt" timestamp with time zone;
                   ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "TransactionId" text NOT NULL DEFAULT '';
+                  ALTER TABLE "CoursePayments" OWNER TO postgres;
+                  GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO postgres;
+                  GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO PUBLIC;
+                  GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
+                  GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO PUBLIC;
                 ' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c "
                   UPDATE \"AspNetUsers\" SET \"UniversityId\" = NULL 
