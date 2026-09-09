@@ -526,8 +526,8 @@ function SuperAdminPage() {
         lastName: user.lastName || '',
         email: user.email || '',
         password: '',
-        role: user.role || 'Student',
-        universityId: user.universityId || '',
+        role: user.role || 'Teacher',
+        universityId: user.role === 'UniversityAdmin' ? (user.universityId || '') : '',
         status: user.status || 'Active'
       });
     } else {
@@ -537,8 +537,8 @@ function SuperAdminPage() {
         lastName: '',
         email: '',
         password: '',
-        role: 'UniversityAdmin',
-        universityId: universities?.[0]?.id || '',
+        role: 'Teacher',
+        universityId: '',
         status: 'Active'
       });
     }
@@ -564,10 +564,10 @@ function SuperAdminPage() {
       return;
     }
 
-    // Fix: convert empty universityId string to null so backend Guid? parsing works correctly
+    // universityId is only valid for UniversityAdmin role, otherwise it MUST be null
     const payload = {
       ...userFormData,
-      universityId: (userFormData.universityId && userFormData.universityId !== '')
+      universityId: (userFormData.role === 'UniversityAdmin' && userFormData.universityId && userFormData.universityId !== '')
         ? userFormData.universityId
         : null,
     };
@@ -4879,7 +4879,14 @@ function SuperAdminPage() {
                   <label>Hesab Növü (Account Type) *</label>
                   <select
                     value={userFormData.role}
-                    onChange={e => setUserFormData({ ...userFormData, role: e.target.value })}
+                    onChange={e => {
+                      const newRole = e.target.value;
+                      setUserFormData(prev => ({
+                        ...prev,
+                        role: newRole,
+                        universityId: newRole === 'UniversityAdmin' ? prev.universityId : ''
+                      }));
+                    }}
                     required
                     style={{ background: '#1e293b', color: '#fff', border: '1px solid #334155', borderRadius: '8px', padding: '10px 12px' }}
                   >

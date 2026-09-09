@@ -315,13 +315,18 @@ public class AuthController : ControllerBase
             }
         }
 
+        var assignedRole = string.IsNullOrWhiteSpace(dto.Role) ? "Student" : dto.Role;
+        Guid? uniId = assignedRole.Equals("UniversityAdmin", StringComparison.OrdinalIgnoreCase) 
+            ? dto.UniversityId 
+            : null;
+
         var user = new User
         {
             UserName = normalizedEmail,
             Email = normalizedEmail,
             FirstName = string.IsNullOrWhiteSpace(dto.FirstName) ? normalizedEmail.Split('@')[0] : dto.FirstName.Trim(),
             LastName = dto.LastName?.Trim() ?? "",
-            UniversityId = dto.UniversityId,
+            UniversityId = uniId,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -332,7 +337,6 @@ public class AuthController : ControllerBase
             return BadRequest(ApiResponse<string>.ErrorResponse($"İstifadəçi yaradılarkən xəta: {errors}"));
         }
 
-        var assignedRole = string.IsNullOrWhiteSpace(dto.Role) ? "Student" : dto.Role;
         if (!await _roleManager.RoleExistsAsync(assignedRole))
             await _roleManager.CreateAsync(new Role { Name = assignedRole });
 
@@ -375,7 +379,18 @@ public class AuthController : ControllerBase
             user.Email = dto.Email.Trim().ToLower();
             user.UserName = dto.Email.Trim().ToLower();
         }
-        if (dto.UniversityId.HasValue) user.UniversityId = dto.UniversityId;
+
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        var effectiveRole = !string.IsNullOrEmpty(dto.Role) ? dto.Role : (currentRoles.FirstOrDefault() ?? "Student");
+
+        if (effectiveRole.Equals("UniversityAdmin", StringComparison.OrdinalIgnoreCase))
+        {
+            user.UniversityId = dto.UniversityId;
+        }
+        else
+        {
+            user.UniversityId = null;
+        }
 
         if (!string.IsNullOrEmpty(dto.Password))
         {
@@ -387,7 +402,6 @@ public class AuthController : ControllerBase
 
         if (!string.IsNullOrEmpty(dto.Role))
         {
-            var currentRoles = await _userManager.GetRolesAsync(user);
             await _userManager.RemoveFromRolesAsync(user, currentRoles);
             
             if (!await _roleManager.RoleExistsAsync(dto.Role))

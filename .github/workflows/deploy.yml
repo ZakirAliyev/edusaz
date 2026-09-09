@@ -105,6 +105,13 @@ jobs:
                 "LastUpdatedDate" timestamp with time zone NOT NULL,
                 "IsDeleted" boolean NOT NULL DEFAULT false
               );
+            sudo -u postgres psql -d edusaz_db -c '
+              UPDATE "AspNetUsers" SET "UniversityId" = NULL 
+              WHERE "Id" NOT IN (
+                SELECT ur."UserId" FROM "AspNetUserRoles" ur 
+                JOIN "AspNetRoles" r ON ur."RoleId" = r."Id" 
+                WHERE r."Name" = 'UniversityAdmin'
+              );
             ' || true
 
             # If PostgreSQL runs inside a docker container on VPS:
@@ -140,6 +147,14 @@ jobs:
                     "CreatedDate" timestamp with time zone NOT NULL,
                     "LastUpdatedDate" timestamp with time zone NOT NULL,
                     "IsDeleted" boolean NOT NULL DEFAULT false
+                  );
+                ' 2>/dev/null || true
+                docker exec $container psql -U postgres -d edusaz_db -c '
+                  UPDATE "AspNetUsers" SET "UniversityId" = NULL 
+                  WHERE "Id" NOT IN (
+                    SELECT ur."UserId" FROM "AspNetUserRoles" ur 
+                    JOIN "AspNetRoles" r ON ur."RoleId" = r."Id" 
+                    WHERE r."Name" = 'UniversityAdmin'
                   );
                 ' 2>/dev/null || true
               done
