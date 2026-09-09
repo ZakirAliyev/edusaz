@@ -356,7 +356,18 @@ function InstructorPortalPage() {
     if (!courseForm.title) { toast?.error?.('Course title is required'); return; }
     setIsSaving(true);
     try {
-      const payload = { email: instructorEmail, ...courseForm };
+      const isGuid = (val) => typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+      const cleanSections = (courseForm.sections || []).map((s, sIdx) => ({
+        ...s,
+        id: isGuid(s.id) ? s.id : undefined,
+        order: sIdx + 1,
+        lectures: (s.lectures || []).map((l, lIdx) => ({
+          ...l,
+          id: isGuid(l.id) ? l.id : undefined,
+          order: lIdx + 1
+        }))
+      }));
+      const payload = { email: instructorEmail, ...courseForm, sections: cleanSections };
       if (courseMode === 'add') {
         await createCourse(payload).unwrap();
         toast?.success?.('Course created successfully!');

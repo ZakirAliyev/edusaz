@@ -229,7 +229,7 @@ public class InstructorService : IInstructorService
             IsFree = dto.IsFree,
             ThumbnailUrl = dto.ThumbnailUrl,
             PreviewVideoUrl = dto.PreviewVideoUrl,
-            IsPublished = false,
+            IsPublished = dto.IsPublished,
             IsApproved = true
         };
 
