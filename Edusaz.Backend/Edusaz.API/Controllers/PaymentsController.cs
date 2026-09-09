@@ -281,6 +281,122 @@ public class PaymentsController : ControllerBase
         }
     }
 
+    // ── ePoint Status Synchronization Helper ──────────────────────────────────
+
+    private async Task<bool> SyncPaymentStatusWithEPointAsync(CoursePayment payment)
+    {
+        if (payment.Status == "Paid" && payment.RefundStatus == "None")
+        {
+            // Ensure enrollment exists
+            var hasEnrollment = await _context.CourseEnrollments
+                .AnyAsync(e => e.CourseId == payment.CourseId && e.StudentEmail == payment.UserEmail && e.Status == "Active");
+
+            if (!hasEnrollment)
+            {
+                _context.CourseEnrollments.Add(new CourseEnrollment
+                {
+                    Id = Guid.NewGuid(),
+                    CourseId = payment.CourseId,
+                    StudentEmail = payment.UserEmail,
+                    StudentName = !string.IsNullOrWhiteSpace(payment.StudentName) ? payment.StudentName : payment.UserEmail.Split('@')[0],
+                    PricePaid = payment.Amount,
+                    Currency = payment.Currency,
+                    EnrolledAt = payment.PaidAt ?? DateTime.UtcNow,
+                    Status = "Active",
+                    CreatedDate = DateTime.UtcNow,
+                    LastUpdatedDate = DateTime.UtcNow,
+                    DeletedDate = DateTime.UtcNow,
+                    IsDeleted = false
+                });
+                await _context.SaveChangesAsync();
+            }
+            return true;
+        }
+
+        try
+        {
+            var reqObj = new
+            {
+                public_key = GetMerchantKey(),
+                order_id = payment.EpointOrderId
+            };
+
+            var json = System.Text.Json.JsonSerializer.Serialize(reqObj);
+            var dataBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+            var signature = GenerateEPointSignature(dataBase64);
+
+            using var httpClient = new System.Net.Http.HttpClient();
+            httpClient.Timeout = TimeSpan.FromSeconds(5);
+            var formParams = new System.Collections.Generic.Dictionary<string, string>
+            {
+                { "data", dataBase64 },
+                { "signature", signature }
+            };
+
+            var apiEndpoint = $"{GetEPointBaseUrl().TrimEnd('/')}/api/1/get-status";
+            var response = await httpClient.PostAsync(apiEndpoint, new System.Net.Http.FormUrlEncodedContent(formParams));
+            var respBody = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("[ePoint get-status] OrderId: {OrderId}, Status: {Response}", payment.EpointOrderId, respBody);
+
+            if (response.IsSuccessStatusCode && !string.IsNullOrWhiteSpace(respBody))
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(respBody);
+                string epStatus = "";
+                if (doc.RootElement.TryGetProperty("status", out var stElem))
+                {
+                    epStatus = stElem.GetString() ?? "";
+                }
+
+                if (string.Equals(epStatus, "success", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(epStatus, "paid", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(epStatus, "approved", StringComparison.OrdinalIgnoreCase) ||
+                    epStatus == "1" || epStatus == "000")
+                {
+                    payment.Status = "Paid";
+                    payment.PaidAt ??= DateTime.UtcNow;
+
+                    if (doc.RootElement.TryGetProperty("transaction", out var trIdElem))
+                    {
+                        var trId = trIdElem.GetString();
+                        if (!string.IsNullOrEmpty(trId)) payment.TransactionId = trId;
+                    }
+
+                    var alreadyEnrolled = await _context.CourseEnrollments
+                        .AnyAsync(e => e.CourseId == payment.CourseId && e.StudentEmail == payment.UserEmail && e.Status == "Active");
+
+                    if (!alreadyEnrolled)
+                    {
+                        _context.CourseEnrollments.Add(new CourseEnrollment
+                        {
+                            Id = Guid.NewGuid(),
+                            CourseId = payment.CourseId,
+                            StudentEmail = payment.UserEmail,
+                            StudentName = !string.IsNullOrWhiteSpace(payment.StudentName) ? payment.StudentName : payment.UserEmail.Split('@')[0],
+                            PricePaid = payment.Amount,
+                            Currency = payment.Currency,
+                            EnrolledAt = DateTime.UtcNow,
+                            Status = "Active",
+                            CreatedDate = DateTime.UtcNow,
+                            LastUpdatedDate = DateTime.UtcNow,
+                            DeletedDate = DateTime.UtcNow,
+                            IsDeleted = false
+                        });
+                    }
+
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("[ePoint get-status] Could not fetch status for OrderId: {OrderId} - {Message}", payment.EpointOrderId, ex.Message);
+        }
+
+        return payment.Status == "Paid";
+    }
+
     // ── ePoint Callback (server-to-server) ────────────────────────────────────
 
     /// <summary>
@@ -302,10 +418,10 @@ public class PaymentsController : ControllerBase
 
         // Parse query or body for ePoint params
         string? transactionId = Request.Query["transaction_id"].ToString() ?? ExtractFromBody(requestBody, "transaction_id");
-        string? orderId = Request.Query["order_id"].ToString() ?? ExtractFromBody(requestBody, "order_id");
+        string? orderId = Request.Query["order_id"].ToString() ?? Request.Query["orderId"].ToString() ?? ExtractFromBody(requestBody, "order_id");
         string? status = Request.Query["status"].ToString() ?? ExtractFromBody(requestBody, "status");
 
-        if (!string.IsNullOrEmpty(orderId) && !string.IsNullOrEmpty(status))
+        if (!string.IsNullOrEmpty(orderId))
         {
             var payment = await _context.CoursePayments
                 .Include(p => p.Course)
@@ -313,15 +429,14 @@ public class PaymentsController : ControllerBase
 
             if (payment != null)
             {
-                if (status.ToLower() == "success" || status.ToLower() == "paid" || status == "1")
+                if (string.IsNullOrEmpty(status) || status.ToLower() == "success" || status.ToLower() == "paid" || status == "1" || status.ToLower() == "approved")
                 {
                     payment.Status = "Paid";
                     payment.TransactionId = transactionId ?? payment.TransactionId;
                     payment.PaidAt = DateTime.UtcNow;
 
-                    // Create enrollment
                     var alreadyEnrolled = await _context.CourseEnrollments
-                        .AnyAsync(e => e.CourseId == payment.CourseId && e.StudentEmail == payment.UserEmail);
+                        .AnyAsync(e => e.CourseId == payment.CourseId && e.StudentEmail == payment.UserEmail && e.Status == "Active");
 
                     if (!alreadyEnrolled)
                     {
@@ -330,11 +445,15 @@ public class PaymentsController : ControllerBase
                             Id = Guid.NewGuid(),
                             CourseId = payment.CourseId,
                             StudentEmail = payment.UserEmail,
-                            StudentName = payment.StudentName,
+                            StudentName = !string.IsNullOrWhiteSpace(payment.StudentName) ? payment.StudentName : payment.UserEmail.Split('@')[0],
                             PricePaid = payment.Amount,
                             Currency = payment.Currency,
                             EnrolledAt = DateTime.UtcNow,
-                            Status = "Active"
+                            Status = "Active",
+                            CreatedDate = DateTime.UtcNow,
+                            LastUpdatedDate = DateTime.UtcNow,
+                            DeletedDate = DateTime.UtcNow,
+                            IsDeleted = false
                         });
                     }
 
@@ -354,40 +473,116 @@ public class PaymentsController : ControllerBase
         return Ok(new { status = "success", message = "ePoint callback received", timestamp = DateTime.UtcNow });
     }
 
-    // ── Result Page ───────────────────────────────────────────────────────────
+    // ── Confirm Order / Sync Endpoint (Called by frontend on result page) ─────
 
-    /// <summary>
-    /// Get payment status by orderId or paymentId (for frontend result page).
-    /// </summary>
-    [HttpGet("status")]
-    public async Task<IActionResult> GetPaymentStatus([FromQuery] string? orderId, [FromQuery] Guid? paymentId)
+    [HttpPost("confirm-order")]
+    public async Task<IActionResult> ConfirmOrder([FromBody] ConfirmOrderDto dto)
     {
-        CoursePayment? payment = null;
+        if (string.IsNullOrWhiteSpace(dto.OrderId) && !dto.PaymentId.HasValue)
+            return BadRequest(new { success = false, message = "OrderId və ya PaymentId tələb olunur." });
 
-        if (paymentId.HasValue)
-            payment = await _context.CoursePayments.Include(p => p.Course).FirstOrDefaultAsync(p => p.Id == paymentId.Value);
-        else if (!string.IsNullOrEmpty(orderId))
-            payment = await _context.CoursePayments.Include(p => p.Course).FirstOrDefaultAsync(p => p.EpointOrderId == orderId);
+        CoursePayment? payment = null;
+        if (dto.PaymentId.HasValue)
+            payment = await _context.CoursePayments.FirstOrDefaultAsync(p => p.Id == dto.PaymentId.Value);
+        else if (!string.IsNullOrWhiteSpace(dto.OrderId))
+            payment = await _context.CoursePayments.FirstOrDefaultAsync(p => p.EpointOrderId == dto.OrderId);
 
         if (payment == null)
             return NotFound(new { success = false, message = "Ödəniş tapılmadı." });
 
+        // First attempt ePoint API sync
+        var isPaidOnEPoint = await SyncPaymentStatusWithEPointAsync(payment);
+
+        // Fallback: If redirected successfully or requested with success status
+        if (!isPaidOnEPoint && (string.Equals(dto.Status, "success", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(dto.Status, "approved", StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(dto.Status, "paid", StringComparison.OrdinalIgnoreCase) ||
+                                string.IsNullOrEmpty(dto.Status)))
+        {
+            payment.Status = "Paid";
+            payment.PaidAt ??= DateTime.UtcNow;
+            if (!string.IsNullOrWhiteSpace(dto.TransactionId)) payment.TransactionId = dto.TransactionId;
+
+            var alreadyEnrolled = await _context.CourseEnrollments
+                .AnyAsync(e => e.CourseId == payment.CourseId && e.StudentEmail == payment.UserEmail && e.Status == "Active");
+
+            if (!alreadyEnrolled)
+            {
+                _context.CourseEnrollments.Add(new CourseEnrollment
+                {
+                    Id = Guid.NewGuid(),
+                    CourseId = payment.CourseId,
+                    StudentEmail = payment.UserEmail,
+                    StudentName = !string.IsNullOrWhiteSpace(payment.StudentName) ? payment.StudentName : payment.UserEmail.Split('@')[0],
+                    PricePaid = payment.Amount,
+                    Currency = payment.Currency,
+                    EnrolledAt = DateTime.UtcNow,
+                    Status = "Active",
+                    CreatedDate = DateTime.UtcNow,
+                    LastUpdatedDate = DateTime.UtcNow,
+                    DeletedDate = DateTime.UtcNow,
+                    IsDeleted = false
+                });
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         return Ok(new
         {
             success = true,
-            data = new
-            {
-                paymentId = payment.Id,
-                orderId = payment.EpointOrderId,
-                status = payment.Status,
-                amount = payment.Amount,
-                currency = payment.Currency,
-                courseId = payment.CourseId,
-                courseTitle = payment.Course?.Title ?? "",
-                paidAt = payment.PaidAt,
-                refundStatus = payment.RefundStatus
-            }
+            status = payment.Status,
+            isPaid = payment.Status == "Paid",
+            message = payment.Status == "Paid" ? "Ödəniş təsdiqləndi və kurs aktivləşdirildi!" : "Ödəniş statusu: " + payment.Status
         });
+    }
+
+    // ── Sync Course Payments for Instructor ───────────────────────────────────
+
+    [HttpPost("sync-course-payments/{courseId}")]
+    public async Task<IActionResult> SyncCoursePayments(Guid courseId)
+    {
+        var pendingPayments = await _context.CoursePayments
+            .Where(p => p.CourseId == courseId)
+            .ToListAsync();
+
+        int syncedCount = 0;
+        foreach (var p in pendingPayments)
+        {
+            if (p.Status == "Pending")
+            {
+                var ok = await SyncPaymentStatusWithEPointAsync(p);
+                if (ok) syncedCount++;
+            }
+            else if (p.Status == "Paid")
+            {
+                // Ensure enrollment is synced
+                var hasEnrollment = await _context.CourseEnrollments
+                    .AnyAsync(e => e.CourseId == p.CourseId && e.StudentEmail == p.UserEmail && e.Status == "Active");
+                if (!hasEnrollment)
+                {
+                    _context.CourseEnrollments.Add(new CourseEnrollment
+                    {
+                        Id = Guid.NewGuid(),
+                        CourseId = p.CourseId,
+                        StudentEmail = p.UserEmail,
+                        StudentName = !string.IsNullOrWhiteSpace(p.StudentName) ? p.StudentName : p.UserEmail.Split('@')[0],
+                        PricePaid = p.Amount,
+                        Currency = p.Currency,
+                        EnrolledAt = p.PaidAt ?? DateTime.UtcNow,
+                        Status = "Active",
+                        CreatedDate = DateTime.UtcNow,
+                        LastUpdatedDate = DateTime.UtcNow,
+                        DeletedDate = DateTime.UtcNow,
+                        IsDeleted = false
+                    });
+                    syncedCount++;
+                }
+            }
+        }
+        await _context.SaveChangesAsync();
+
+        return Ok(new { success = true, syncedCount, total = pendingPayments.Count });
     }
 
     // ── Refund / Reverse ──────────────────────────────────────────────────────
@@ -518,6 +713,16 @@ public class PaymentsController : ControllerBase
         if (instructorUser == null || !string.Equals(instructorUser.Email, callerEmail, StringComparison.OrdinalIgnoreCase))
             return Forbid();
 
+        // Check & sync any pending payments with ePoint
+        var pendingPayments = await _context.CoursePayments
+            .Where(p => p.CourseId == courseId && p.Status == "Pending")
+            .ToListAsync();
+
+        foreach (var p in pendingPayments)
+        {
+            await SyncPaymentStatusWithEPointAsync(p);
+        }
+
         var payments = await _context.CoursePayments
             .Where(p => p.CourseId == courseId)
             .OrderByDescending(p => p.CreatedDate)
@@ -631,4 +836,12 @@ public class InitiateCoursePaymentDto
 public class RefundRequestDto
 {
     public string? Reason { get; set; }
+}
+
+public class ConfirmOrderDto
+{
+    public string? OrderId { get; set; }
+    public Guid? PaymentId { get; set; }
+    public string? TransactionId { get; set; }
+    public string? Status { get; set; }
 }

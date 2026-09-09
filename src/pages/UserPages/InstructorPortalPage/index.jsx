@@ -13,6 +13,8 @@ import {
   useGetCourseStudentsQuery,
   useGetCoursePaymentsQuery,
   useRequestRefundMutation,
+  useSyncCoursePaymentsMutation,
+  useConfirmOrderPaymentMutation,
 } from '../../../services/apis/userApi';
 import { useToast } from '../../../context/ToastContext';
 import ScrollToTop from '../../../components/Common/ScrollToTop.jsx';
@@ -1310,6 +1312,33 @@ function StudentsTab({ courses, instructorEmail, i }) {
   );
 
   const [requestRefund] = useRequestRefundMutation();
+  const [syncCoursePayments, { isLoading: isSyncing }] = useSyncCoursePaymentsMutation();
+  const [confirmOrder] = useConfirmOrderPaymentMutation();
+
+  const handleSyncPayments = async () => {
+    if (!selectedCourse) return;
+    try {
+      await syncCoursePayments(selectedCourse).unwrap();
+      toast.showSuccess('ePoint ödəniş statusları uğurla yeniləndi ✅');
+      refetchPayments();
+    } catch (err) {
+      toast.showError('Sinxronlaşdırma zamanı xəta: ' + (err?.data?.message || err?.message || ''));
+    }
+  };
+
+  const handleManualConfirm = async (payment) => {
+    try {
+      await confirmOrder({
+        orderId: payment.epointOrderId,
+        paymentId: payment.id,
+        status: 'success'
+      }).unwrap();
+      toast.showSuccess('Ödəniş təsdiqləndi və tələbə kursa əlavə edildi ✅');
+      refetchPayments();
+    } catch (err) {
+      toast.showError('Xəta: ' + (err?.data?.message || err?.message || ''));
+    }
+  };
 
   const handleRefundConfirm = async () => {
     if (!refundModal) return;
@@ -1406,79 +1435,107 @@ function StudentsTab({ courses, instructorEmail, i }) {
       {activeSubTab === 'payments' && (
         paymentsLoading ? (
           <div className="ip__loading">Ödənişlər yüklənir...</div>
-        ) : payments.length === 0 ? (
-          <div className="ip__empty">
-            <div className="ip__empty-icon">💳</div>
-            <p>Bu kurs üçün hələ ödəniş qeydi yoxdur.</p>
-          </div>
         ) : (
-          <div className="ip__students-table">
-            <div className="ip__students-header" style={{ gridTemplateColumns: '1.2fr 1.5fr 1fr 1fr 1fr 1.2fr' }}>
-              <span>Tələbə</span>
-              <span>Məbləğ & Sifariş ID</span>
-              <span>Tarix</span>
-              <span>Status</span>
-              <span>Ləğv Statusu</span>
-              <span>Əməliyyat</span>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+              <button
+                className="ip__btn ip__btn--ghost"
+                style={{ padding: '6px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid rgba(255,255,255,0.15)' }}
+                onClick={handleSyncPayments}
+                disabled={isSyncing}
+              >
+                {isSyncing ? '⏳ ePoint Yoxlanılır...' : '🔄 ePoint Statusunu Yoxla / Sinxronlaşdır'}
+              </button>
             </div>
-            {payments.map(p => (
-              <div key={p.id} className="ip__students-row" style={{ gridTemplateColumns: '1.2fr 1.5fr 1fr 1fr 1fr 1.2fr', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, color: '#fff' }}>{p.studentName || 'Tələbə'}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--ip-text-muted)' }}>{p.userEmail}</div>
-                </div>
 
-                <div>
-                  <div style={{ fontWeight: 700, color: '#10b981' }}>{p.amount} {p.currency || 'AZN'}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--ip-text-muted)', fontFamily: 'monospace' }}>
-                    {p.epointOrderId || p.id?.substring(0, 8)}
-                  </div>
-                </div>
-
-                <span style={{ fontSize: '12px' }}>
-                  {p.paidAt ? new Date(p.paidAt).toLocaleDateString() : (p.createdDate ? new Date(p.createdDate).toLocaleDateString() : '-')}
-                </span>
-
-                <span className={`ip__status-badge ${p.status?.toLowerCase()}`}>
-                  {p.status === 'Paid' ? 'Ödənilib ✅' : (p.status === 'Pending' ? 'Gözləyir ⏳' : p.status)}
-                </span>
-
-                <div>
-                  {p.refundStatus === 'Refunded' ? (
-                    <span style={{ display: 'inline-block', padding: '3px 8px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', fontSize: '11px', fontWeight: 600 }}>
-                      Ləğv edildi (Revers)
-                    </span>
-                  ) : p.refundStatus === 'Requested' ? (
-                    <span style={{ display: 'inline-block', padding: '3px 8px', borderRadius: '6px', background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', fontSize: '11px', fontWeight: 600 }}>
-                      Revers sorğulanıb
-                    </span>
-                  ) : (
-                    <span style={{ fontSize: '12px', color: 'var(--ip-text-dim)' }}>-</span>
-                  )}
-                </div>
-
-                <div>
-                  {p.status === 'Paid' && p.refundStatus !== 'Refunded' ? (
-                    <button
-                      className="ip__btn ip__btn--danger"
-                      style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px' }}
-                      onClick={() => setRefundModal({
-                        paymentId: p.id,
-                        studentName: p.studentName || p.userEmail,
-                        userEmail: p.userEmail,
-                        amount: p.amount,
-                        currency: p.currency || 'AZN',
-                        orderId: p.epointOrderId
-                      })}
-                    >
-                      🔄 Ləğv Et (Revers)
-                    </button>
-                  ) : (
-                    <span style={{ fontSize: '12px', color: 'var(--ip-text-muted)' }}>Əməliyyat yoxdur</span>
-                  )}
-                </div>
+            {payments.length === 0 ? (
+              <div className="ip__empty">
+                <div className="ip__empty-icon">💳</div>
+                <p>Bu kurs üçün hələ ödəniş qeydi yoxdur.</p>
               </div>
-            ))}
+            ) : (
+              <div className="ip__students-table">
+                <div className="ip__students-header" style={{ gridTemplateColumns: '1.2fr 1.5fr 1fr 1fr 1fr 1.2fr' }}>
+                  <span>Tələbə</span>
+                  <span>Məbləğ & Sifariş ID</span>
+                  <span>Tarix</span>
+                  <span>Status</span>
+                  <span>Ləğv Statusu</span>
+                  <span>Əməliyyat</span>
+                </div>
+                {payments.map(p => (
+                  <div key={p.id} className="ip__students-row" style={{ gridTemplateColumns: '1.2fr 1.5fr 1fr 1fr 1fr 1.2fr', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, color: '#fff' }}>{p.studentName || 'Tələbə'}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--ip-text-muted)' }}>{p.userEmail}</div>
+                    </div>
+
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#10b981' }}>{p.amount} {p.currency || 'AZN'}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--ip-text-muted)', fontFamily: 'monospace' }}>
+                        {p.epointOrderId || p.id?.substring(0, 8)}
+                      </div>
+                    </div>
+
+                    <span style={{ fontSize: '12px' }}>
+                      {p.paidAt ? new Date(p.paidAt).toLocaleDateString() : (p.createdDate ? new Date(p.createdDate).toLocaleDateString() : '-')}
+                    </span>
+
+                    <span className={`ip__status-badge ${p.status?.toLowerCase()}`}>
+                      {p.status === 'Paid' ? 'Ödənilib ✅' : (p.status === 'Pending' ? 'Gözləyir ⏳' : p.status)}
+                    </span>
+
+                    <div>
+                      {p.refundStatus === 'Refunded' ? (
+                        <span style={{ display: 'inline-block', padding: '3px 8px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', fontSize: '11px', fontWeight: 600 }}>
+                          Ləğv edildi (Revers)
+                        </span>
+                      ) : p.refundStatus === 'Requested' ? (
+                        <span style={{ display: 'inline-block', padding: '3px 8px', borderRadius: '6px', background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', fontSize: '11px', fontWeight: 600 }}>
+                          Revers sorğulanıb
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '12px', color: 'var(--ip-text-dim)' }}>-</span>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {p.refundStatus !== 'Refunded' ? (
+                        <>
+                          <button
+                            className="ip__btn ip__btn--danger"
+                            style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px' }}
+                            onClick={() => setRefundModal({
+                              paymentId: p.id,
+                              studentName: p.studentName || p.userEmail,
+                              userEmail: p.userEmail,
+                              amount: p.amount,
+                              currency: p.currency || 'AZN',
+                              orderId: p.epointOrderId
+                            })}
+                          >
+                            🔄 Ləğv Et (Revers)
+                          </button>
+
+                          {p.status === 'Pending' && (
+                            <button
+                              className="ip__btn ip__btn--primary"
+                              style={{ padding: '6px 10px', fontSize: '11px', borderRadius: '8px', background: '#10b981' }}
+                              title="ePoint ilə ödəniş təsdiqləndi kimi qeyd et"
+                              onClick={() => handleManualConfirm(p)}
+                            >
+                              ✅ Təsdiqlə
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <span style={{ fontSize: '12px', color: 'var(--ip-text-muted)' }}>Əməliyyat yoxdur</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )
       )}

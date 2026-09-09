@@ -427,6 +427,22 @@ export const userApi = createApi({
             query: ({ courseId, userEmail }) =>
                 `/Payments/enrollment-check?courseId=${courseId}&userEmail=${encodeURIComponent(userEmail)}`,
             transformResponse: (response) => response,
+            providesTags: ['CourseEnrollment'],
+        }),
+        confirmOrderPayment: builder.mutation({
+            query: (body) => ({
+                url: '/Payments/confirm-order',
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['CourseEnrollment', 'CoursePayments'],
+        }),
+        syncCoursePayments: builder.mutation({
+            query: (courseId) => ({
+                url: `/Payments/sync-course-payments/${courseId}`,
+                method: 'POST',
+            }),
+            invalidatesTags: ['CourseEnrollment', 'CoursePayments'],
         }),
         getPaymentStatus: builder.query({
             query: ({ orderId, paymentId } = {}) => {
@@ -436,6 +452,7 @@ export const userApi = createApi({
                 return `/Payments/status?${params.join('&')}`;
             },
             transformResponse: (response) => response.data,
+            providesTags: ['CoursePayments'],
         }),
         getCoursePayments: builder.query({
             query: ({ courseId, email }) =>
@@ -449,7 +466,7 @@ export const userApi = createApi({
                 method: 'POST',
                 body: { reason },
             }),
-            invalidatesTags: ['CoursePayments'],
+            invalidatesTags: ['CoursePayments', 'CourseEnrollment'],
         }),
         enrollFreeCourse: builder.mutation({
             query: ({ courseId, userEmail, studentName }) => ({
@@ -577,6 +594,8 @@ export const {
     useDeleteHiddenTalentMutation,
     // Payments & Enrollment
     useInitiateCoursePaymentMutation,
+    useConfirmOrderPaymentMutation,
+    useSyncCoursePaymentsMutation,
     useCheckCourseEnrollmentQuery,
     useGetPaymentStatusQuery,
     useGetCoursePaymentsQuery,

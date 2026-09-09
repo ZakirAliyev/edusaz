@@ -1,19 +1,40 @@
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useConfirmOrderPaymentMutation, useGetPaymentStatusQuery } from '../../../services/apis/userApi.jsx';
 import './index.scss';
 
 function PaymentSuccessPage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
 
-  const orderId = searchParams.get('order_id') || searchParams.get('orderId') || searchParams.get('id') || searchParams.get('transaction_id') || 'EDU-' + Math.floor(100000 + Math.random() * 900000);
+  const orderId = searchParams.get('order_id') || searchParams.get('orderId') || searchParams.get('id') || '';
+  const paymentId = searchParams.get('paymentId') || searchParams.get('payment_id') || '';
+  const transactionId = searchParams.get('transaction') || searchParams.get('transaction_id') || '';
+  const displayOrderId = orderId || paymentId || transactionId || 'EDU-' + Math.floor(100000 + Math.random() * 900000);
   const amount = searchParams.get('amount') || '';
   const currency = searchParams.get('currency') || 'AZN';
 
+  const [confirmOrder] = useConfirmOrderPaymentMutation();
+  const { data: statusData } = useGetPaymentStatusQuery(
+    { orderId: orderId || undefined, paymentId: paymentId || undefined },
+    { skip: !orderId && !paymentId }
+  );
+
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    if (orderId || paymentId || transactionId) {
+      confirmOrder({
+        orderId: orderId || undefined,
+        paymentId: paymentId || undefined,
+        transactionId: transactionId || undefined,
+        status: 'success'
+      });
+    }
+  }, [orderId, paymentId, transactionId, confirmOrder]);
+
+  const courseId = statusData?.courseId;
+  const courseTitle = statusData?.courseTitle;
 
   return (
     <div className="payment-result-page success-page">
@@ -35,24 +56,26 @@ function PaymentSuccessPage() {
         </h1>
 
         <p className="payment-subtitle">
-          {t('payment.successDesc', 'Əməliyyatınız uğurla icra olundu. Qeydiyyat və ya müraciətiniz sistemdə aktivləşdirildi.')}
+          {courseTitle 
+            ? `Təbriklər! "${courseTitle}" kursuna qeydiyyatınız uğurla tamamlandı və dərslər aktivləşdirildi.`
+            : t('payment.successDesc', 'Əməliyyatınız uğurla icra olundu. Qeydiyyat və ya müraciətiniz sistemdə aktivləşdirildi.')}
         </p>
 
         <div className="payment-details-card">
           <div className="detail-row">
             <span className="detail-label">{t('payment.orderId', 'Sifariş / Qəbz Nömrəsi')}:</span>
-            <span className="detail-value order-id">{orderId}</span>
+            <span className="detail-value order-id">{displayOrderId}</span>
           </div>
-          {amount && (
+          {(amount || statusData?.amount) && (
             <div className="detail-row">
               <span className="detail-label">{t('payment.amount', 'Məbləğ')}:</span>
-              <span className="detail-value amount-value">{amount} {currency}</span>
+              <span className="detail-value amount-value">{amount || statusData?.amount} {currency || statusData?.currency || 'AZN'}</span>
             </div>
           )}
           <div className="detail-row">
             <span className="detail-label">{t('payment.status', 'Status')}:</span>
             <span className="detail-value status-tag success">
-              ● {t('payment.statusSuccess', 'Uğurlu')}
+              ● {t('payment.statusSuccess', 'Uğurlu (Ödənilib)')}
             </span>
           </div>
           <div className="detail-row">
@@ -66,11 +89,17 @@ function PaymentSuccessPage() {
         </div>
 
         <div className="payment-actions">
-          <Link to="/" className="btn-primary">
-            {t('payment.backHome', 'Əsas Səhifəyə Qayıt')}
-          </Link>
-          <Link to="/universities" className="btn-secondary">
-            {t('payment.browseUniversities', 'Universitetləri İncələ')}
+          {courseId ? (
+            <Link to={`/courses/${courseId}`} className="btn-primary" style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', fontWeight: 600 }}>
+              🎓 Kursa Keçin və Dərslərə Başlayın ▶
+            </Link>
+          ) : (
+            <Link to="/courses" className="btn-primary">
+              📚 Kurslara Bax
+            </Link>
+          )}
+          <Link to="/" className="btn-secondary">
+            {t('payment.backHome', 'Əsas Səhifə')}
           </Link>
         </div>
 
