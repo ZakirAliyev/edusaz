@@ -620,55 +620,79 @@ public class PaymentsController : ControllerBase
         if (instructorUser == null || !string.Equals(instructorUser.Email, callerEmail, StringComparison.OrdinalIgnoreCase))
             return Forbid();
 
-        // Call ePoint Reverse API
-        bool reverseSuccess = false;
-        string epointReverseMsg = "";
+        // Ensure TransactionId is available from ePoint
+        if (string.IsNullOrWhiteSpace(payment.TransactionId))
+        {
+            await SyncPaymentStatusWithEPointAsync(payment);
+        }
+
+        if (string.IsNullOrWhiteSpace(payment.TransactionId))
+        {
+            return BadRequest(new { success = false, message = "ePoint tranzaksiya ID-si tapılmadı. Zəhmət olmasa əvvəlcə statusu sinxronlaşdırın." });
+        }
+
+        var publicKey = GetMerchantKey();
+
+        // ePoint Reverse API Payload (as verified in MezuroApp)
+        var payloadObj = new
+        {
+            public_key = publicKey,
+            language = "az",
+            transaction = payment.TransactionId,
+            currency = payment.Currency ?? "AZN"
+        };
+
+        var json = System.Text.Json.JsonSerializer.Serialize(payloadObj);
+        var dataBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+        var signature = GenerateEPointSignature(dataBase64);
+
+        _logger.LogInformation("[ePoint Reverse API] Requesting reverse for Order: {OrderId}, Trx: {TrxId}",
+            payment.EpointOrderId, payment.TransactionId);
+
+        using var httpClient = new System.Net.Http.HttpClient();
+        var formParams = new System.Collections.Generic.Dictionary<string, string>
+        {
+            { "data", dataBase64 },
+            { "signature", signature }
+        };
+
+        var apiEndpoint = $"{GetEPointBaseUrl().TrimEnd('/')}/api/1/reverse";
+        var response = await httpClient.PostAsync(apiEndpoint, new System.Net.Http.FormUrlEncodedContent(formParams));
+        var respBody = await response.Content.ReadAsStringAsync();
+
+        _logger.LogInformation("[ePoint Reverse API] Response: {Response}, Status: {StatusCode}", respBody, response.StatusCode);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return BadRequest(new { success = false, message = $"ePoint server xətası: HTTP {(int)response.StatusCode} {response.ReasonPhrase}" });
+        }
+
+        EpointReverseResponse? ep = null;
         try
         {
-            var reqObj = new
-            {
-                public_key = GetMerchantKey(),
-                transaction = string.IsNullOrEmpty(payment.TransactionId) ? payment.EpointOrderId : payment.TransactionId,
-                amount = payment.Amount,
-                currency = payment.Currency,
-                order_id = payment.EpointOrderId
-            };
-
-            var json = System.Text.Json.JsonSerializer.Serialize(reqObj);
-            var dataBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
-            var signature = GenerateEPointSignature(dataBase64);
-
-            using var httpClient = new System.Net.Http.HttpClient();
-            var formParams = new System.Collections.Generic.Dictionary<string, string>
-            {
-                { "data", dataBase64 },
-                { "signature", signature }
-            };
-
-            var apiEndpoint = $"{GetEPointBaseUrl().TrimEnd('/')}/api/1/reverse";
-            var response = await httpClient.PostAsync(apiEndpoint, new System.Net.Http.FormUrlEncodedContent(formParams));
-            var respBody = await response.Content.ReadAsStringAsync();
-
-            _logger.LogInformation("[ePoint Reverse API] Response: {Response}", respBody);
-
-            if (response.IsSuccessStatusCode)
-            {
-                reverseSuccess = true;
-            }
-            else
-            {
-                epointReverseMsg = respBody;
-            }
+            ep = System.Text.Json.JsonSerializer.Deserialize<EpointReverseResponse>(
+                respBody,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
         }
-        catch (Exception ex)
+        catch (Exception parseEx)
         {
-            _logger.LogWarning("[ePoint Reverse API] Call exception: {Message}", ex.Message);
+            _logger.LogError(parseEx, "[ePoint Reverse API] Parse error for: {Body}", respBody);
         }
 
-        // Mark payment as Refunded (or Requested if reverse pending)
+        var isSuccess = ep != null && string.Equals(ep.status, "success", StringComparison.OrdinalIgnoreCase);
+
+        if (!isSuccess)
+        {
+            var errMsg = ep?.message ?? $"ePoint reverse əməliyyatı uğursuz oldu: {respBody}";
+            return BadRequest(new { success = false, message = errMsg });
+        }
+
+        // Mark payment as Refunded only after successful ePoint API reverse
         payment.RefundStatus = "Refunded";
         payment.RefundRequestedAt = DateTime.UtcNow;
-        payment.RefundNote = dto.Reason ?? "Müəllim tərəfindən sifariş ləğv edildi və pul geri qaytarıldı";
+        payment.RefundedAt = DateTime.UtcNow;
+        payment.RefundNote = dto.Reason ?? "Müəllim tərəfindən sifariş ləğv edildi və pul ePoint vasitəsilə geri qaytarıldı";
 
         // Update enrollment status to Refunded (revoking access)
         var enrollment = await _context.CourseEnrollments
@@ -681,7 +705,7 @@ public class PaymentsController : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("[Refund] Refund processed. PaymentId: {PaymentId}, Course: {CourseId}, Student: {Email}, Instructor: {Instructor}",
+        _logger.LogInformation("[Refund] Refund SUCCESS. PaymentId: {PaymentId}, Course: {CourseId}, Student: {Email}, Instructor: {Instructor}",
             paymentId, payment.CourseId, payment.UserEmail, callerEmail);
 
         return Ok(new
@@ -844,4 +868,11 @@ public class ConfirmOrderDto
     public Guid? PaymentId { get; set; }
     public string? TransactionId { get; set; }
     public string? Status { get; set; }
+}
+
+public class EpointReverseResponse
+{
+    public string status { get; set; } = string.Empty;
+    public string? message { get; set; }
+    public string? code { get; set; }
 }
