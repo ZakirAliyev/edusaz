@@ -156,9 +156,15 @@ public class PaymentsController : ControllerBase
                 UserEmail = dto.UserEmail,
                 StudentName = !string.IsNullOrWhiteSpace(dto.StudentName) ? dto.StudentName : dto.UserEmail.Split('@')[0],
                 EpointOrderId = orderId,
+                TransactionId = string.Empty,
                 Amount = amountAzn,
                 Currency = epointCurrency,
-                Status = "Pending"
+                Status = "Pending",
+                RefundStatus = "None",
+                CreatedDate = DateTime.UtcNow,
+                LastUpdatedDate = DateTime.UtcNow,
+                DeletedDate = DateTime.UtcNow,
+                IsDeleted = false
             };
             _context.CoursePayments.Add(payment);
             await _context.SaveChangesAsync();
@@ -257,7 +263,8 @@ public class PaymentsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "[ePoint Payment] Failed to initiate payment: {Message}", ex.Message);
-            return StatusCode(500, new { success = false, message = $"Ödəniş başladılarkən xəta: {ex.Message}" });
+            var inner = ex.InnerException != null ? $" -> {ex.InnerException.Message}" : "";
+            return StatusCode(500, new { success = false, message = $"Ödəniş başladılarkən xəta: {ex.Message}{inner}" });
         }
     }
 

@@ -6,7 +6,7 @@ namespace Edusaz.Domain.Entities;
 public class CoursePayment : BaseEntity
 {
     public Guid CourseId { get; set; }
-    public Course Course { get; set; } = null!;
+    public Course? Course { get; set; }
 
     public string UserEmail { get; set; } = string.Empty;
     public string StudentName { get; set; } = string.Empty;
