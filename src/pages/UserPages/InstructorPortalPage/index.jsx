@@ -341,15 +341,21 @@ function InstructorPortalPage() {
   };
 
   const handleAutoTranslate = () => {
-    const base = { title: courseForm.title, description: courseForm.shortDescription, shortDescription: courseForm.shortDescription, whatYouLearn: courseForm.whatYouLearn, requirements: courseForm.requirements };
+    const base = {
+      title: courseForm.title,
+      description: courseForm.description || courseForm.shortDescription,
+      shortDescription: courseForm.shortDescription,
+      whatYouLearn: courseForm.whatYouLearn,
+      requirements: courseForm.requirements
+    };
     const generated = {};
     LANGS_31.forEach(lang => {
-      if (lang.code !== 'en') {
-        generated[lang.code] = { ...base, title: `${courseForm.title} (${lang.name})` };
+      if (lang.code !== (courseForm.language || 'az')) {
+        generated[lang.code] = { ...base };
       }
     });
     setCourseForm(f => ({ ...f, translations: { ...f.translations, ...generated } }));
-    toast?.success?.('Auto-translated to 31 languages!');
+    toast?.success?.('31 dil üçün təmiz tərcümələr hazırlandı!');
   };
 
   const handleSaveCourse = async () => {
