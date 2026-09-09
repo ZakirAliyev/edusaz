@@ -72,6 +72,39 @@ public class PaymentsController : ControllerBase
         return Math.Round(amount * rate, 2);
     }
 
+    private async Task EnsureCoursePaymentsTableExistsAsync()
+    {
+        try
+        {
+            await _context.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS ""CoursePayments"" (
+                    ""Id"" uuid PRIMARY KEY,
+                    ""CourseId"" uuid NOT NULL REFERENCES ""Courses""(""Id""),
+                    ""UserEmail"" text NOT NULL,
+                    ""StudentName"" text NOT NULL DEFAULT '',
+                    ""EpointOrderId"" text NOT NULL DEFAULT '',
+                    ""TransactionId"" text NOT NULL DEFAULT '',
+                    ""Amount"" numeric NOT NULL DEFAULT 0,
+                    ""Currency"" text NOT NULL DEFAULT 'AZN',
+                    ""Status"" text NOT NULL DEFAULT 'Pending',
+                    ""RefundStatus"" text NOT NULL DEFAULT 'None',
+                    ""PaidAt"" timestamp with time zone,
+                    ""RefundRequestedAt"" timestamp with time zone,
+                    ""RefundedAt"" timestamp with time zone,
+                    ""RefundNote"" text,
+                    ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                    ""LastUpdatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                    ""DeletedDate"" timestamp with time zone,
+                    ""IsDeleted"" boolean NOT NULL DEFAULT false
+                );
+            ");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("[CoursePayments Table Check] {Message}", ex.Message);
+        }
+    }
+
     // ── Initiate Payment ──────────────────────────────────────────────────────
 
     /// <summary>
@@ -82,140 +115,150 @@ public class PaymentsController : ControllerBase
     [HttpPost("initiate-course-payment")]
     public async Task<IActionResult> InitiateCoursePayment([FromBody] InitiateCoursePaymentDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.CourseId.ToString()) || string.IsNullOrWhiteSpace(dto.UserEmail))
-            return BadRequest(new { success = false, message = "courseId və userEmail tələb olunur." });
-
-        var course = await _context.Courses
-            .FirstOrDefaultAsync(c => c.Id == dto.CourseId && !c.IsDeleted);
-
-        if (course == null)
-            return NotFound(new { success = false, message = "Kurs tapılmadı." });
-
-        if (course.IsFree)
-            return BadRequest(new { success = false, message = "Bu kurs ödənişsizdir." });
-
-        var originalAmount = course.DiscountPrice > 0 && course.DiscountPrice < course.Price
-            ? course.DiscountPrice
-            : course.Price;
-
-        var originalCurrency = string.IsNullOrWhiteSpace(course.Currency) ? "AZN" : course.Currency.ToUpperInvariant();
-        var amountAzn = ConvertCurrencyToAzn(originalAmount, originalCurrency);
-        var epointCurrency = "AZN"; // ePoint requires AZN
-
-        // Check if already enrolled
-        var alreadyEnrolled = await _context.CourseEnrollments
-            .AnyAsync(e => e.CourseId == dto.CourseId && e.StudentEmail == dto.UserEmail && e.Status == "Active");
-
-        if (alreadyEnrolled)
-            return BadRequest(new { success = false, message = "Siz artıq bu kursa qeydiyyat keçmisiniz." });
-
-        // Create pending payment record
-        var orderId = $"EDU-{dto.CourseId.ToString()[..8].ToUpper()}-{DateTime.UtcNow:yyyyMMddHHmmss}";
-
-        var payment = new CoursePayment
-        {
-            Id = Guid.NewGuid(),
-            CourseId = dto.CourseId,
-            UserEmail = dto.UserEmail,
-            StudentName = dto.StudentName ?? dto.UserEmail.Split('@')[0],
-            EpointOrderId = orderId,
-            Amount = amountAzn,
-            Currency = epointCurrency,
-            Status = "Pending"
-        };
-        _context.CoursePayments.Add(payment);
-        await _context.SaveChangesAsync();
-
-        var successUrl = GetSuccessRedirect() + $"?orderId={orderId}&paymentId={payment.Id}";
-        var errorUrl = GetErrorRedirect() + $"?orderId={orderId}&paymentId={payment.Id}&status=failed";
-
-        // Try calling ePoint API endpoint (epoint.az/api/1/request)
-        string paymentRedirectUrl = "";
         try
         {
-            var reqObj = new
+            if (dto == null || dto.CourseId == Guid.Empty || string.IsNullOrWhiteSpace(dto.UserEmail))
+                return BadRequest(new { success = false, message = "courseId və userEmail tələb olunur." });
+
+            await EnsureCoursePaymentsTableExistsAsync();
+
+            var course = await _context.Courses
+                .FirstOrDefaultAsync(c => c.Id == dto.CourseId && !c.IsDeleted);
+
+            if (course == null)
+                return NotFound(new { success = false, message = "Kurs tapılmadı." });
+
+            if (course.IsFree)
+                return BadRequest(new { success = false, message = "Bu kurs ödənişsizdir." });
+
+            var originalAmount = course.DiscountPrice > 0 && course.DiscountPrice < course.Price
+                ? course.DiscountPrice
+                : course.Price;
+
+            var originalCurrency = string.IsNullOrWhiteSpace(course.Currency) ? "AZN" : course.Currency.ToUpperInvariant();
+            var amountAzn = ConvertCurrencyToAzn(originalAmount, originalCurrency);
+            var epointCurrency = "AZN"; // ePoint requires AZN
+
+            // Check if already enrolled
+            var alreadyEnrolled = await _context.CourseEnrollments
+                .AnyAsync(e => e.CourseId == dto.CourseId && e.StudentEmail == dto.UserEmail && e.Status == "Active");
+
+            if (alreadyEnrolled)
+                return BadRequest(new { success = false, message = "Siz artıq bu kursa qeydiyyat keçmisiniz." });
+
+            // Create pending payment record
+            var orderId = $"EDU-{dto.CourseId.ToString()[..8].ToUpper()}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+            var payment = new CoursePayment
             {
-                public_key = GetMerchantKey(),
-                amount = amountAzn,
-                currency = epointCurrency,
-                language = "az",
-                order_id = orderId,
-                description = originalCurrency == "AZN"
-                    ? $"Kurs: {course.Title}"
-                    : $"Kurs: {course.Title} ({originalAmount} {originalCurrency} = {amountAzn} AZN)",
-                success_redirect_url = successUrl,
-                error_redirect_url = errorUrl
+                Id = Guid.NewGuid(),
+                CourseId = dto.CourseId,
+                UserEmail = dto.UserEmail,
+                StudentName = !string.IsNullOrWhiteSpace(dto.StudentName) ? dto.StudentName : dto.UserEmail.Split('@')[0],
+                EpointOrderId = orderId,
+                Amount = amountAzn,
+                Currency = epointCurrency,
+                Status = "Pending"
             };
+            _context.CoursePayments.Add(payment);
+            await _context.SaveChangesAsync();
 
-            var json = System.Text.Json.JsonSerializer.Serialize(reqObj);
-            var dataBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
-            var signature = GenerateEPointSignature(dataBase64);
+            var successUrl = GetSuccessRedirect() + $"?orderId={orderId}&paymentId={payment.Id}";
+            var errorUrl = GetErrorRedirect() + $"?orderId={orderId}&paymentId={payment.Id}&status=failed";
 
-            using var httpClient = new System.Net.Http.HttpClient();
-            var formParams = new System.Collections.Generic.Dictionary<string, string>
+            // Try calling ePoint API endpoint (epoint.az/api/1/request)
+            string paymentRedirectUrl = "";
+            try
             {
-                { "data", dataBase64 },
-                { "signature", signature }
-            };
-
-            var apiEndpoint = $"{GetEPointBaseUrl().TrimEnd('/')}/api/1/request";
-            var response = await httpClient.PostAsync(apiEndpoint, new System.Net.Http.FormUrlEncodedContent(formParams));
-            var respBody = await response.Content.ReadAsStringAsync();
-
-            _logger.LogInformation("[ePoint API] Request response: {Response}", respBody);
-
-            if (response.IsSuccessStatusCode && !string.IsNullOrWhiteSpace(respBody))
-            {
-                using var doc = System.Text.Json.JsonDocument.Parse(respBody);
-                if (doc.RootElement.TryGetProperty("redirect_url", out var rUrl))
+                var reqObj = new
                 {
-                    paymentRedirectUrl = rUrl.GetString() ?? "";
-                }
-                if (doc.RootElement.TryGetProperty("transaction", out var trId))
+                    public_key = GetMerchantKey(),
+                    amount = amountAzn,
+                    currency = epointCurrency,
+                    language = "az",
+                    order_id = orderId,
+                    description = originalCurrency == "AZN"
+                        ? $"Kurs: {course.Title}"
+                        : $"Kurs: {course.Title} ({originalAmount} {originalCurrency} = {amountAzn} AZN)",
+                    success_redirect_url = successUrl,
+                    error_redirect_url = errorUrl
+                };
+
+                var json = System.Text.Json.JsonSerializer.Serialize(reqObj);
+                var dataBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+                var signature = GenerateEPointSignature(dataBase64);
+
+                using var httpClient = new System.Net.Http.HttpClient();
+                var formParams = new System.Collections.Generic.Dictionary<string, string>
                 {
-                    payment.TransactionId = trId.GetString() ?? "";
-                    await _context.SaveChangesAsync();
+                    { "data", dataBase64 },
+                    { "signature", signature }
+                };
+
+                var apiEndpoint = $"{GetEPointBaseUrl().TrimEnd('/')}/api/1/request";
+                var response = await httpClient.PostAsync(apiEndpoint, new System.Net.Http.FormUrlEncodedContent(formParams));
+                var respBody = await response.Content.ReadAsStringAsync();
+
+                _logger.LogInformation("[ePoint API] Request response: {Response}", respBody);
+
+                if (response.IsSuccessStatusCode && !string.IsNullOrWhiteSpace(respBody))
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(respBody);
+                    if (doc.RootElement.TryGetProperty("redirect_url", out var rUrl))
+                    {
+                        paymentRedirectUrl = rUrl.GetString() ?? "";
+                    }
+                    if (doc.RootElement.TryGetProperty("transaction", out var trId))
+                    {
+                        payment.TransactionId = trId.GetString() ?? "";
+                        await _context.SaveChangesAsync();
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("[ePoint API] Could not reach ePoint API v1 directly: {Message}", ex.Message);
+            }
+
+            // Fallback to web checkout URL if API direct redirect wasn't provided
+            if (string.IsNullOrEmpty(paymentRedirectUrl))
+            {
+                var amountStr = amountAzn.ToString("F2");
+                var signaturePayload = $"{GetMerchantKey()}{amountStr}{orderId}{successUrl}{errorUrl}";
+                using var hmac = new HMACSHA1(Encoding.UTF8.GetBytes(GetSecretKey()));
+                var hmacSig = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(signaturePayload)));
+
+                paymentRedirectUrl = $"{GetEPointBaseUrl().TrimEnd('/')}/payment/new?" +
+                    $"merchant_key={Uri.EscapeDataString(GetMerchantKey())}" +
+                    $"&amount={Uri.EscapeDataString(amountStr)}" +
+                    $"&currency={Uri.EscapeDataString(epointCurrency)}" +
+                    $"&order_id={Uri.EscapeDataString(orderId)}" +
+                    $"&description={Uri.EscapeDataString($"Kurs: {course.Title}")}" +
+                    $"&success_redirect_url={Uri.EscapeDataString(successUrl)}" +
+                    $"&error_redirect_url={Uri.EscapeDataString(errorUrl)}" +
+                    $"&signature={Uri.EscapeDataString(hmacSig)}";
+            }
+
+            _logger.LogInformation("[ePoint] Initiated payment. OrderId: {OrderId}, Amount: {AmountAzn} AZN (Original: {OrigAmount} {OrigCurrency}), User: {Email}",
+                orderId, amountAzn, originalAmount, originalCurrency, dto.UserEmail);
+
+            return Ok(new
+            {
+                success = true,
+                paymentUrl = paymentRedirectUrl,
+                orderId = orderId,
+                paymentId = payment.Id,
+                amount = amountAzn,
+                originalAmount = originalAmount,
+                currency = epointCurrency,
+                originalCurrency = originalCurrency
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogWarning("[ePoint API] Could not reach ePoint API v1 directly: {Message}", ex.Message);
+            _logger.LogError(ex, "[ePoint Payment] Failed to initiate payment: {Message}", ex.Message);
+            return StatusCode(500, new { success = false, message = $"Ödəniş başladılarkən xəta: {ex.Message}" });
         }
-
-        // Fallback to web checkout URL if API direct redirect wasn't provided
-        if (string.IsNullOrEmpty(paymentRedirectUrl))
-        {
-            var amountStr = amountAzn.ToString("F2");
-            var signaturePayload = $"{GetMerchantKey()}{amountStr}{orderId}{successUrl}{errorUrl}";
-            using var hmac = new HMACSHA1(Encoding.UTF8.GetBytes(GetSecretKey()));
-            var hmacSig = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(signaturePayload)));
-
-            paymentRedirectUrl = $"{GetEPointBaseUrl().TrimEnd('/')}/payment/new?" +
-                $"merchant_key={Uri.EscapeDataString(GetMerchantKey())}" +
-                $"&amount={Uri.EscapeDataString(amountStr)}" +
-                $"&currency={Uri.EscapeDataString(epointCurrency)}" +
-                $"&order_id={Uri.EscapeDataString(orderId)}" +
-                $"&description={Uri.EscapeDataString($"Kurs: {course.Title}")}" +
-                $"&success_redirect_url={Uri.EscapeDataString(successUrl)}" +
-                $"&error_redirect_url={Uri.EscapeDataString(errorUrl)}" +
-                $"&signature={Uri.EscapeDataString(hmacSig)}";
-        }
-
-        _logger.LogInformation("[ePoint] Initiated payment. OrderId: {OrderId}, Amount: {AmountAzn} AZN (Original: {OrigAmount} {OrigCurrency}), User: {Email}",
-            orderId, amountAzn, originalAmount, originalCurrency, dto.UserEmail);
-
-        return Ok(new
-        {
-            success = true,
-            paymentUrl = paymentRedirectUrl,
-            orderId = orderId,
-            paymentId = payment.Id,
-            amount = amountAzn,
-            originalAmount = originalAmount,
-            currency = epointCurrency,
-            originalCurrency = originalCurrency
-        });
     }
 
     // ── ePoint Callback (server-to-server) ────────────────────────────────────

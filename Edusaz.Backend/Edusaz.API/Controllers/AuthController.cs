@@ -40,52 +40,67 @@ public class AuthController : ControllerBase
     {
         try
         {
-            await _context.Database.ExecuteSqlRawAsync(@"
-                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""UniversityId"" uuid;
-                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""ProfileImageUrl"" text;
-                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""Country"" text;
-                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""DegreeLevel"" text;
-                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""DesiredField"" text;
-                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""EnglishScore"" text;
-                ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""Gpa"" double precision;
-                ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""UniversityId"" uuid;
-                ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""AuthorName"" text;
-                ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""AuthorAvatar"" text;
-                ALTER TABLE ""Reviews"" ALTER COLUMN ""CourseId"" DROP NOT NULL;
-                ALTER TABLE ""Reviews"" ALTER COLUMN ""UserId"" DROP NOT NULL;
-                ALTER TABLE ""StudentApplications"" ADD COLUMN IF NOT EXISTS ""CourseId"" uuid;
-                CREATE TABLE IF NOT EXISTS ""UniversityMedias"" (
-                    ""Id"" uuid PRIMARY KEY,
-                    ""UniversityId"" uuid NOT NULL,
-                    ""MediaType"" text NOT NULL,
-                    ""Url"" text NOT NULL,
-                    ""OrderIndex"" integer NOT NULL DEFAULT 0,
-                    ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
-                    ""LastUpdatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
-                    ""DeletedDate"" timestamp with time zone,
-                    ""IsDeleted"" boolean NOT NULL DEFAULT false
-                );
-                CREATE TABLE IF NOT EXISTS ""CoursePayments"" (
-                    ""Id"" uuid PRIMARY KEY,
-                    ""CourseId"" uuid NOT NULL REFERENCES ""Courses""(""Id""),
-                    ""UserEmail"" text NOT NULL,
-                    ""StudentName"" text NOT NULL DEFAULT '',
-                    ""EpointOrderId"" text NOT NULL DEFAULT '',
-                    ""TransactionId"" text NOT NULL DEFAULT '',
-                    ""Amount"" numeric NOT NULL DEFAULT 0,
-                    ""Currency"" text NOT NULL DEFAULT 'AZN',
-                    ""Status"" text NOT NULL DEFAULT 'Pending',
-                    ""RefundStatus"" text NOT NULL DEFAULT 'None',
-                    ""PaidAt"" timestamp with time zone,
-                    ""RefundRequestedAt"" timestamp with time zone,
-                    ""RefundedAt"" timestamp with time zone,
-                    ""RefundNote"" text,
-                    ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
-                    ""LastUpdatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
-                    ""DeletedDate"" timestamp with time zone,
-                    ""IsDeleted"" boolean NOT NULL DEFAULT false
-                );
-            ");
+            var logs = new List<string>();
+            string[] queries = new[]
+        {
+            @"CREATE TABLE IF NOT EXISTS ""CoursePayments"" (
+                ""Id"" uuid PRIMARY KEY,
+                ""CourseId"" uuid NOT NULL REFERENCES ""Courses""(""Id""),
+                ""UserEmail"" text NOT NULL,
+                ""StudentName"" text NOT NULL DEFAULT '',
+                ""EpointOrderId"" text NOT NULL DEFAULT '',
+                ""TransactionId"" text NOT NULL DEFAULT '',
+                ""Amount"" numeric NOT NULL DEFAULT 0,
+                ""Currency"" text NOT NULL DEFAULT 'AZN',
+                ""Status"" text NOT NULL DEFAULT 'Pending',
+                ""RefundStatus"" text NOT NULL DEFAULT 'None',
+                ""PaidAt"" timestamp with time zone,
+                ""RefundRequestedAt"" timestamp with time zone,
+                ""RefundedAt"" timestamp with time zone,
+                ""RefundNote"" text,
+                ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                ""LastUpdatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                ""DeletedDate"" timestamp with time zone,
+                ""IsDeleted"" boolean NOT NULL DEFAULT false
+            );",
+            @"CREATE TABLE IF NOT EXISTS ""UniversityMedias"" (
+                ""Id"" uuid PRIMARY KEY,
+                ""UniversityId"" uuid NOT NULL,
+                ""MediaType"" text NOT NULL,
+                ""Url"" text NOT NULL,
+                ""OrderIndex"" integer NOT NULL DEFAULT 0,
+                ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                ""LastUpdatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                ""DeletedDate"" timestamp with time zone,
+                ""IsDeleted"" boolean NOT NULL DEFAULT false
+            );",
+            @"ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""UniversityId"" uuid;",
+            @"ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""AuthorName"" text;",
+            @"ALTER TABLE ""Reviews"" ADD COLUMN IF NOT EXISTS ""AuthorAvatar"" text;",
+            @"ALTER TABLE ""Reviews"" ALTER COLUMN ""CourseId"" DROP NOT NULL;",
+            @"ALTER TABLE ""Reviews"" ALTER COLUMN ""UserId"" DROP NOT NULL;",
+            @"ALTER TABLE ""StudentApplications"" ADD COLUMN IF NOT EXISTS ""CourseId"" uuid;",
+            @"ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""UniversityId"" uuid;",
+            @"ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""ProfileImageUrl"" text;",
+            @"ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""Country"" text;",
+            @"ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""DegreeLevel"" text;",
+            @"ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""DesiredField"" text;",
+            @"ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""EnglishScore"" text;",
+            @"ALTER TABLE ""AspNetUsers"" ADD COLUMN IF NOT EXISTS ""Gpa"" double precision;"
+        };
+
+        foreach (var q in queries)
+        {
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(q);
+                logs.Add("Success: " + q.Trim().Split('\n')[0]);
+            }
+            catch (Exception ex)
+            {
+                logs.Add("Ignored error: " + ex.Message);
+            }
+        }
 
             string[] roles = new[] { "SuperAdmin", "Admin", "UniversityAdmin", "Teacher", "CourseCenter", "Student" };
             foreach (var r in roles)
