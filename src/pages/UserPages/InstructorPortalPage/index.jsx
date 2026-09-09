@@ -181,6 +181,8 @@ function InstructorPortalPage() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
   const thumbnailInputRef = useRef(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef(null);
 
   // Profile edit
   const [profileForm, setProfileForm] = useState({
@@ -206,6 +208,38 @@ function InstructorPortalPage() {
     Cookies.remove('userToken');
     localStorage.removeItem('userRole');
     navigate('/signin');
+  };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingAvatar(true);
+    toast.showInfo('Avatar serverə yüklənir... ⏳');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:5207/api' : 'https://api.edusaz.com/api';
+      const res = await fetch(`${baseUrl}/Upload?folder=avatars`, {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const uploadedUrl = json.data?.fileUrl || json.data?.relativeUrl || json.fileUrl;
+        if (uploadedUrl) {
+          setProfileForm(f => ({ ...f, avatarUrl: uploadedUrl }));
+          toast.showSuccess('Profil şəkli uğurla yükləndi! 👤');
+        } else {
+          toast.showError('Şəkil linki alına bilmədi');
+        }
+      } else {
+        toast.showError('Şəkil yüklənərkən xəta baş verdi');
+      }
+    } catch (err) {
+      toast.showError('Şəkil yüklənməsində server xətası');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   const handleThumbnailUpload = async (e) => {
@@ -660,19 +694,56 @@ function InstructorPortalPage() {
               </div>
               <div className="ip__profile-card">
                 <div className="ip__profile-avatar-section">
-                  <div className="ip__profile-avatar">
-                    {profileForm.avatarUrl ? (
-                      <img src={profileForm.avatarUrl} alt="Avatar" />
-                    ) : (
-                      <span>{profileForm.displayName?.[0] || '?'}</span>
-                    )}
+                  <input
+                    type="file"
+                    ref={avatarInputRef}
+                    onChange={handleAvatarUpload}
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                  />
+                  <div
+                    className="ip__profile-avatar-wrapper"
+                    onClick={() => avatarInputRef.current?.click()}
+                    title="Şəkli dəyişmək üçün klikləyin"
+                  >
+                    <div className="ip__profile-avatar">
+                      {profileForm.avatarUrl ? (
+                        <img src={profileForm.avatarUrl} alt="Avatar" />
+                      ) : (
+                        <span>{profileForm.displayName?.[0] || '?'}</span>
+                      )}
+                    </div>
+                    <div className="ip__profile-avatar-overlay">
+                      <span>{isUploadingAvatar ? '⏳' : '📷'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <div className="ip__profile-name">{profile?.displayName || profile?.firstName}</div>
+
+                  <div className="ip__profile-avatar-info">
+                    <div className="ip__profile-name">{profile?.displayName || profile?.firstName || 'Müəllim'}</div>
                     <div className="ip__profile-meta">
                       <span>⭐ {(profile?.rating ?? 0).toFixed(1)} Rating</span>
                       <span>👥 {profile?.totalStudents ?? 0} Students</span>
                       <span>📚 {profile?.totalCourses ?? 0} Courses</span>
+                    </div>
+                    <div className="ip__profile-avatar-btns">
+                      <button
+                        type="button"
+                        className="ip__btn-upload"
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={isUploadingAvatar}
+                      >
+                        <Icon path={icons.plus} size={15} />
+                        <span>{isUploadingAvatar ? 'Yüklənir... ⏳' : '📁 Kompüterdən Şəkil Yüklə'}</span>
+                      </button>
+                      {profileForm.avatarUrl && (
+                        <button
+                          type="button"
+                          className="ip__btn-delete-avatar"
+                          onClick={() => setProfileForm(f => ({ ...f, avatarUrl: '' }))}
+                        >
+                          <Icon path={icons.trash} size={14} /> Şəkli sil
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -684,7 +755,6 @@ function InstructorPortalPage() {
                     { field: 'website', label: i('website'), placeholder: 'https://yoursite.com' },
                     { field: 'linkedin', label: i('linkedin'), placeholder: 'LinkedIn URL' },
                     { field: 'youtube', label: i('youtube'), placeholder: 'YouTube channel URL' },
-                    { field: 'avatarUrl', label: 'Avatar URL', placeholder: 'https://...' },
                   ].map(({ field, label, placeholder }) => (
                     <div key={field} className="ip__form-field">
                       <label>{label}</label>
@@ -695,6 +765,14 @@ function InstructorPortalPage() {
                       />
                     </div>
                   ))}
+                  <div className="ip__form-field">
+                    <label>Avatar URL (və ya yuxarıdan yükləyin)</label>
+                    <input
+                      value={profileForm.avatarUrl || ''}
+                      onChange={e => setProfileForm(f => ({ ...f, avatarUrl: e.target.value }))}
+                      placeholder="https://... və ya fayl seçin"
+                    />
+                  </div>
                 </div>
 
                 <div className="ip__form-field ip__form-field--full">

@@ -1097,32 +1097,94 @@
 .ip__profile-avatar-section {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
   padding-bottom: 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+
+.ip__profile-avatar-wrapper {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover .ip__profile-avatar-overlay {
+    opacity: 1;
+  }
 }
 
 .ip__profile-avatar {
-  width: 80px; height: 80px;
-  border-radius: 20px;
+  width: 90px;
+  height: 90px;
+  border-radius: 24px;
   background: linear-gradient(135deg, var(--ip-accent), var(--ip-accent-light));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 800;
   color: white;
   overflow: hidden;
-  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(122, 92, 255, 0.3);
 
   img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.ip__profile-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ip__profile-avatar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ip__profile-avatar-btns {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.ip__btn-delete-avatar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.3);
+    color: white;
+  }
 }
 
 .ip__profile-name {
   font-size: 20px;
   font-weight: 800;
   color: white;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
 }
 
 .ip__profile-meta {
