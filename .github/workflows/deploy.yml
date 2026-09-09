@@ -85,6 +85,8 @@ jobs:
             sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "EnglishScore" text;' || true
             sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "Gpa" double precision;' || true
             sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "StudentApplications" ADD COLUMN IF NOT EXISTS "CourseId" uuid;' || true
+            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "CoursePayments" OWNER TO postgres;' || true
+            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "CoursePayments" ADD COLUMN IF NOT EXISTS "DeletedDate" timestamp with time zone;' || true
             sudo -u postgres psql -d edusaz_db -c '
               CREATE TABLE IF NOT EXISTS "CoursePayments" (
                 "Id" uuid NOT NULL PRIMARY KEY,

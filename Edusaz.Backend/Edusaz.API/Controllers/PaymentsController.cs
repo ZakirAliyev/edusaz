@@ -74,41 +74,47 @@ public class PaymentsController : ControllerBase
 
     private async Task EnsureCoursePaymentsTableExistsAsync()
     {
-        try
+        string[] sqls = new[]
         {
-            await _context.Database.ExecuteSqlRawAsync(@"
-                CREATE TABLE IF NOT EXISTS ""CoursePayments"" (
-                    ""Id"" uuid PRIMARY KEY,
-                    ""CourseId"" uuid NOT NULL REFERENCES ""Courses""(""Id""),
-                    ""UserEmail"" text NOT NULL,
-                    ""StudentName"" text NOT NULL DEFAULT '',
-                    ""EpointOrderId"" text NOT NULL DEFAULT '',
-                    ""TransactionId"" text NOT NULL DEFAULT '',
-                    ""Amount"" numeric NOT NULL DEFAULT 0,
-                    ""Currency"" text NOT NULL DEFAULT 'AZN',
-                    ""Status"" text NOT NULL DEFAULT 'Pending',
-                    ""RefundStatus"" text NOT NULL DEFAULT 'None',
-                    ""PaidAt"" timestamp with time zone,
-                    ""RefundRequestedAt"" timestamp with time zone,
-                    ""RefundedAt"" timestamp with time zone,
-                    ""RefundNote"" text,
-                    ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
-                    ""LastUpdatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
-                    ""DeletedDate"" timestamp with time zone,
-                    ""IsDeleted"" boolean NOT NULL DEFAULT false
-                );
-                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""DeletedDate"" timestamp with time zone;
-                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundStatus"" text NOT NULL DEFAULT 'None';
-                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundRequestedAt"" timestamp with time zone;
-                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundedAt"" timestamp with time zone;
-                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundNote"" text;
-                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""PaidAt"" timestamp with time zone;
-                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""TransactionId"" text NOT NULL DEFAULT '';
-            ");
-        }
-        catch (Exception ex)
+            @"CREATE TABLE IF NOT EXISTS ""CoursePayments"" (
+                ""Id"" uuid PRIMARY KEY,
+                ""CourseId"" uuid NOT NULL,
+                ""UserEmail"" text NOT NULL,
+                ""StudentName"" text NOT NULL DEFAULT '',
+                ""EpointOrderId"" text NOT NULL DEFAULT '',
+                ""TransactionId"" text NOT NULL DEFAULT '',
+                ""Amount"" numeric NOT NULL DEFAULT 0,
+                ""Currency"" text NOT NULL DEFAULT 'AZN',
+                ""Status"" text NOT NULL DEFAULT 'Pending',
+                ""RefundStatus"" text NOT NULL DEFAULT 'None',
+                ""PaidAt"" timestamp with time zone,
+                ""RefundRequestedAt"" timestamp with time zone,
+                ""RefundedAt"" timestamp with time zone,
+                ""RefundNote"" text,
+                ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                ""LastUpdatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                ""DeletedDate"" timestamp with time zone,
+                ""IsDeleted"" boolean NOT NULL DEFAULT false
+            )",
+            @"ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""DeletedDate"" timestamp with time zone",
+            @"ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundStatus"" text NOT NULL DEFAULT 'None'",
+            @"ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundRequestedAt"" timestamp with time zone",
+            @"ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundedAt"" timestamp with time zone",
+            @"ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundNote"" text",
+            @"ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""PaidAt"" timestamp with time zone",
+            @"ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""TransactionId"" text NOT NULL DEFAULT ''"
+        };
+
+        foreach (var sql in sqls)
         {
-            _logger.LogWarning("[CoursePayments Table Check] {Message}", ex.Message);
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(sql);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("[CoursePayments SQL] {Sql} -> {Error}", sql, ex.Message);
+            }
         }
     }
 
