@@ -60,6 +60,7 @@ function CourseDetailPage() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(null);
   const [activeVideo, setActiveVideo] = useState(null);
+  const [modalLecture, setModalLecture] = useState(null);
   const [isFreeEnrolled, setIsFreeEnrolled] = useState(false);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
@@ -81,7 +82,10 @@ function CourseDetailPage() {
   useEffect(() => {
     if (course?.isFree && isFreeEnrolled && !activeVideo) {
       const firstVideo = course.sections?.[0]?.lectures?.find(l => l.videoUrl);
-      if (firstVideo) setActiveVideo(firstVideo.videoUrl);
+      if (firstVideo) {
+        setActiveVideo(firstVideo.videoUrl);
+        setModalLecture(firstVideo);
+      }
       else if (course.previewVideoUrl) setActiveVideo(course.previewVideoUrl);
     }
   }, [isFreeEnrolled, course, activeVideo]);
@@ -90,30 +94,25 @@ function CourseDetailPage() {
     return (
       <div className="cdp-loading">
         <div className="cdp-spinner" />
-        <p>{t('common.loading', 'Kurs məlumatları yüklənir...')}</p>
+        <p>{t('common.loading', 'Yüklənir...')}</p>
       </div>
     );
   }
 
   if (!course) {
     return (
-      <div className="cdp-empty">
+      <div className="cdp-error">
         <h2>{t('courses.notFound', 'Kurs tapılmadı')}</h2>
-        <p>{t('courses.notFoundDesc', 'Bu kurs mövcud deyil və ya silinib.')}</p>
-        <Link to="/courses" className="cdp-btn">← {t('common.back', 'Kurslara qayıt')}</Link>
+        <p>{t('courses.notFoundDesc', 'Axtardığınız kurs mövcud deyil və ya silinib.')}</p>
+        <Link to="/courses" className="cdp-btn cdp-btn--primary">
+          {t('courses.browseAll', 'Bütün Kurslara Bax')}
+        </Link>
       </div>
     );
   }
 
-  // ── Main CTA Handler ─────────────────────────────────────────────────────────
-
+  // ── Enrollment / Payment Handler ─────────────────────────────────────────────
   const handleEnrollOrBuy = async () => {
-    if (!isLoggedIn) {
-      toast.showError(t('auth.loginRequired', 'Daxil olmaq tələb olunur'));
-      navigate('/signin');
-      return;
-    }
-
     if (isEnrolled) {
       // Already enrolled — scroll to first lecture
       const firstVideo = course.sections?.[0]?.lectures?.find(l => l.videoUrl);
@@ -360,7 +359,18 @@ function CourseDetailPage() {
                             const isPaidLocked = !course.isFree && !hasFullAccess && !lec.isFree;
 
                             return (
-                              <div key={lec.id} className={`cdp-lecture ${isPaidLocked ? 'locked' : ''}`}>
+                              <div
+                                key={lec.id}
+                                className={`cdp-lecture ${isPaidLocked ? 'locked' : 'clickable'}`}
+                                onClick={() => {
+                                  if (canWatch && lec.videoUrl) {
+                                    handleLectureClick(lec);
+                                  } else if (isPaidLocked) {
+                                    handleEnrollOrBuy();
+                                  }
+                                }}
+                                title={canWatch ? 'Videonu izləmək üçün klikləyin' : 'Kursu alaraq izləyin'}
+                              >
                                 <span className="cdp-lecture__icon">
                                   {isPaidLocked ? '🔒' : '▶'}
                                 </span>
@@ -377,8 +387,12 @@ function CourseDetailPage() {
 
                                 {canWatch && lec.videoUrl && (
                                   <button
+                                    type="button"
                                     className="cdp-lecture__btn"
-                                    onClick={() => handleLectureClick(lec)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleLectureClick(lec);
+                                    }}
                                   >
                                     {t('courses.watchVideo', 'Videoya Bax')}
                                   </button>
@@ -386,8 +400,12 @@ function CourseDetailPage() {
 
                                 {isPaidLocked && (
                                   <button
+                                    type="button"
                                     className="cdp-lecture__btn cdp-lecture__btn--buy"
-                                    onClick={handleEnrollOrBuy}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEnrollOrBuy();
+                                    }}
                                     disabled={isPaymentLoading}
                                   >
                                     💳 {t('courses.buyToWatch', 'Al və İzlə')}
@@ -437,6 +455,44 @@ function CourseDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Cinema Video Modal Player ── */}
+      {modalLecture && modalLecture.videoUrl && (
+        <div className="cdp-video-modal-overlay" onClick={() => setModalLecture(null)}>
+          <div className="cdp-video-modal" onClick={e => e.stopPropagation()}>
+            <div className="cdp-video-modal__header">
+              <div className="cdp-video-modal__title-group">
+                <span className="cdp-video-modal__badge">▶ Dərs İzlənir</span>
+                <h3 className="cdp-video-modal__title"><AutoTranslate text={modalLecture.title} /></h3>
+              </div>
+              <button
+                type="button"
+                className="cdp-video-modal__close"
+                onClick={() => setModalLecture(null)}
+                title="Bağla"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="cdp-video-modal__player">
+              <iframe
+                src={getYouTubeEmbedUrl(modalLecture.videoUrl)}
+                title={modalLecture.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+
+            {modalLecture.description && (
+              <div className="cdp-video-modal__desc">
+                <h4>Dərs Haqqında</h4>
+                <p><AutoTranslate text={modalLecture.description} /></p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
