@@ -123,6 +123,19 @@ jobs:
             ' || true
 
             sudo -u postgres psql -d edusaz_db -c "
+              DO \$\$ DECLARE r RECORD;
+              BEGIN
+                EXECUTE 'GRANT ALL ON SCHEMA public TO postgres;';
+                EXECUTE 'GRANT ALL ON SCHEMA public TO PUBLIC;';
+                FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+                  EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres;';
+                  EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO postgres;';
+                  EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO PUBLIC;';
+                END LOOP;
+              END \$\$;
+            " || true
+
+            sudo -u postgres psql -d edusaz_db -c "
               UPDATE \"AspNetUsers\" SET \"UniversityId\" = NULL 
               WHERE \"Id\" NOT IN (
                 SELECT ur.\"UserId\" FROM \"AspNetUserRoles\" ur 
@@ -179,6 +192,18 @@ jobs:
                   GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
                   GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO PUBLIC;
                 ' 2>/dev/null || true
+                docker exec $container psql -U postgres -d edusaz_db -c "
+                  DO \$\$ DECLARE r RECORD;
+                  BEGIN
+                    EXECUTE 'GRANT ALL ON SCHEMA public TO postgres;';
+                    EXECUTE 'GRANT ALL ON SCHEMA public TO PUBLIC;';
+                    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+                      EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres;';
+                      EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO postgres;';
+                      EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO PUBLIC;';
+                    END LOOP;
+                  END \$\$;
+                " 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c "
                   UPDATE \"AspNetUsers\" SET \"UniversityId\" = NULL 
                   WHERE \"Id\" NOT IN (
