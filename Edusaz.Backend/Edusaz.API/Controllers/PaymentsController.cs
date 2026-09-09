@@ -97,6 +97,13 @@ public class PaymentsController : ControllerBase
                     ""DeletedDate"" timestamp with time zone,
                     ""IsDeleted"" boolean NOT NULL DEFAULT false
                 );
+                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""DeletedDate"" timestamp with time zone;
+                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundStatus"" text NOT NULL DEFAULT 'None';
+                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundRequestedAt"" timestamp with time zone;
+                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundedAt"" timestamp with time zone;
+                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""RefundNote"" text;
+                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""PaidAt"" timestamp with time zone;
+                ALTER TABLE ""CoursePayments"" ADD COLUMN IF NOT EXISTS ""TransactionId"" text NOT NULL DEFAULT '';
             ");
         }
         catch (Exception ex)

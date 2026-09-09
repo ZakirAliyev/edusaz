@@ -103,8 +103,16 @@ jobs:
                 "PaidAt" timestamp with time zone,
                 "CreatedDate" timestamp with time zone NOT NULL,
                 "LastUpdatedDate" timestamp with time zone NOT NULL,
+                "DeletedDate" timestamp with time zone,
                 "IsDeleted" boolean NOT NULL DEFAULT false
               );
+              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "DeletedDate" timestamp with time zone;
+              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundStatus" text NOT NULL DEFAULT 'None';
+              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundRequestedAt" timestamp with time zone;
+              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundedAt" timestamp with time zone;
+              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundNote" text;
+              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "PaidAt" timestamp with time zone;
+              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "TransactionId" text NOT NULL DEFAULT '';
             ' || true
 
             sudo -u postgres psql -d edusaz_db -c "
@@ -148,8 +156,16 @@ jobs:
                     "PaidAt" timestamp with time zone,
                     "CreatedDate" timestamp with time zone NOT NULL,
                     "LastUpdatedDate" timestamp with time zone NOT NULL,
+                    "DeletedDate" timestamp with time zone,
                     "IsDeleted" boolean NOT NULL DEFAULT false
                   );
+                  ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "DeletedDate" timestamp with time zone;
+                  ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundStatus" text NOT NULL DEFAULT 'None';
+                  ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundRequestedAt" timestamp with time zone;
+                  ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundedAt" timestamp with time zone;
+                  ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundNote" text;
+                  ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "PaidAt" timestamp with time zone;
+                  ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "TransactionId" text NOT NULL DEFAULT '';
                 ' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c "
                   UPDATE \"AspNetUsers\" SET \"UniversityId\" = NULL 
