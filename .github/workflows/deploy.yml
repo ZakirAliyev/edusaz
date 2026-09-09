@@ -72,22 +72,22 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
             # 1. Execute DB migrations & table ownership as postgres superuser (Host & Docker)
-            sudo -u postgres psql -c 'ALTER USER postgres WITH SUPERUSER;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO postgres;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetRoles" OWNER TO postgres;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUserRoles" OWNER TO postgres;' || true
-            sudo -u postgres psql -d edusaz_db -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "UniversityId" uuid;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "ProfileImageUrl" text;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "Country" text;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "DegreeLevel" text;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "DesiredField" text;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "EnglishScore" text;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "Gpa" double precision;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "StudentApplications" ADD COLUMN IF NOT EXISTS "CourseId" uuid;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "CoursePayments" OWNER TO postgres;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "CoursePayments" ADD COLUMN IF NOT EXISTS "DeletedDate" timestamp with time zone;' || true
-            sudo -u postgres psql -d edusaz_db -c '
+            export PGPASSWORD=postgres
+            psql -h 127.0.0.1 -U postgres -c 'ALTER USER postgres WITH SUPERUSER;' || sudo -u postgres psql -c 'ALTER USER postgres WITH SUPERUSER;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO postgres;' || sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO postgres;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetRoles" OWNER TO postgres;' || sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetRoles" OWNER TO postgres;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUserRoles" OWNER TO postgres;' || sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUserRoles" OWNER TO postgres;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;' || sudo -u postgres psql -d edusaz_db -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "UniversityId" uuid;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "ProfileImageUrl" text;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "Country" text;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "DegreeLevel" text;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "DesiredField" text;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "EnglishScore" text;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "Gpa" double precision;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "StudentApplications" ADD COLUMN IF NOT EXISTS "CourseId" uuid;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'DROP TABLE IF EXISTS "CoursePayments" CASCADE;' || sudo -u postgres psql -d edusaz_db -c 'DROP TABLE IF EXISTS "CoursePayments" CASCADE;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c '
               CREATE TABLE IF NOT EXISTS "CoursePayments" (
                 "Id" uuid NOT NULL PRIMARY KEY,
                 "CourseId" uuid NOT NULL,
@@ -108,13 +108,32 @@ jobs:
                 "DeletedDate" timestamp with time zone,
                 "IsDeleted" boolean NOT NULL DEFAULT false
               );
-              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "DeletedDate" timestamp with time zone;
-              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundStatus" text NOT NULL DEFAULT 'None';
-              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundRequestedAt" timestamp with time zone;
-              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundedAt" timestamp with time zone;
-              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundNote" text;
-              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "PaidAt" timestamp with time zone;
-              ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "TransactionId" text NOT NULL DEFAULT '';
+              ALTER TABLE "CoursePayments" OWNER TO postgres;
+              GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO postgres;
+              GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO PUBLIC;
+              GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
+              GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO PUBLIC;
+            ' || sudo -u postgres psql -d edusaz_db -c '
+              CREATE TABLE IF NOT EXISTS "CoursePayments" (
+                "Id" uuid NOT NULL PRIMARY KEY,
+                "CourseId" uuid NOT NULL,
+                "UserEmail" text NOT NULL,
+                "StudentName" text,
+                "EpointOrderId" text NOT NULL,
+                "TransactionId" text,
+                "Amount" numeric NOT NULL,
+                "Currency" text NOT NULL,
+                "Status" text NOT NULL,
+                "RefundStatus" text,
+                "RefundRequestedAt" timestamp with time zone,
+                "RefundedAt" timestamp with time zone,
+                "RefundNote" text,
+                "PaidAt" timestamp with time zone,
+                "CreatedDate" timestamp with time zone NOT NULL,
+                "LastUpdatedDate" timestamp with time zone NOT NULL,
+                "DeletedDate" timestamp with time zone,
+                "IsDeleted" boolean NOT NULL DEFAULT false
+              );
               ALTER TABLE "CoursePayments" OWNER TO postgres;
               GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO postgres;
               GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO PUBLIC;
@@ -122,7 +141,18 @@ jobs:
               GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO PUBLIC;
             ' || true
 
-            sudo -u postgres psql -d edusaz_db -c "
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c "
+              DO \$\$ DECLARE r RECORD;
+              BEGIN
+                EXECUTE 'GRANT ALL ON SCHEMA public TO postgres;';
+                EXECUTE 'GRANT ALL ON SCHEMA public TO PUBLIC;';
+                FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+                  EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres;';
+                  EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO postgres;';
+                  EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO PUBLIC;';
+                END LOOP;
+              END \$\$;
+            " || sudo -u postgres psql -d edusaz_db -c "
               DO \$\$ DECLARE r RECORD;
               BEGIN
                 EXECUTE 'GRANT ALL ON SCHEMA public TO postgres;';
