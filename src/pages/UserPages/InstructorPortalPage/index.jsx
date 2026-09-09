@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -30,6 +30,19 @@ const CATEGORIES = [
 const LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'All Levels'];
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'AZN', 'TRY', 'RUB'];
+
+export const convertToAZN = (amount, currency) => {
+  const num = parseFloat(amount) || 0;
+  switch ((currency || 'AZN').toUpperCase()) {
+    case 'USD': return (num * 1.70).toFixed(2);
+    case 'EUR': return (num * 1.85).toFixed(2);
+    case 'GBP': return (num * 2.18).toFixed(2);
+    case 'TRY': return (num * 0.05).toFixed(2);
+    case 'RUB': return (num * 0.018).toFixed(2);
+    case 'AZN':
+    default: return num.toFixed(2);
+  }
+};
 
 const LANGS_31 = [
   { code: 'az', name: 'Azərbaycanca', flag: '🇦🇿' },
@@ -166,6 +179,8 @@ function InstructorPortalPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const thumbnailInputRef = useRef(null);
 
   // Profile edit
   const [profileForm, setProfileForm] = useState({
@@ -191,6 +206,38 @@ function InstructorPortalPage() {
     Cookies.remove('userToken');
     localStorage.removeItem('userRole');
     navigate('/signin');
+  };
+
+  const handleThumbnailUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingThumbnail(true);
+    toast.showInfo('Şəkil serverə yüklənir... ⏳');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:5207/api' : 'https://api.edusaz.com/api';
+      const res = await fetch(`${baseUrl}/Upload?folder=courses`, {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const uploadedUrl = json.data?.fileUrl || json.data?.relativeUrl || json.fileUrl;
+        if (uploadedUrl) {
+          handleCourseFormChange('thumbnailUrl', uploadedUrl);
+          toast.showSuccess('Kurs şəkli uğurla yükləndi! 🖼️');
+        } else {
+          toast.showError('Şəkil linki alına bilmədi');
+        }
+      } else {
+        toast.showError('Şəkil yüklənərkən xəta baş verdi');
+      }
+    } catch (err) {
+      toast.showError('Şəkil yüklənməsində server xətası');
+    } finally {
+      setIsUploadingThumbnail(false);
+    }
   };
 
   // ── Course Form Helpers ────────────────────────────────────────────────────
@@ -788,15 +835,47 @@ function InstructorPortalPage() {
               {activeFormTab === 'media' && (
                 <div className="ip__form-section">
                   <div className="ip__form-field ip__form-field--full">
-                    <label>{i('thumbnail')}</label>
-                    <input
-                      value={courseForm.thumbnailUrl}
-                      onChange={e => handleCourseFormChange('thumbnailUrl', e.target.value)}
-                      placeholder="https://example.com/thumbnail.jpg"
-                    />
-                    {courseForm.thumbnailUrl && (
-                      <img src={courseForm.thumbnailUrl} alt="Thumbnail preview" className="ip__thumb-preview" />
-                    )}
+                    <label>{i('thumbnail') || 'Kurs Şəkli (Thumbnail)'}</label>
+                    <div className="ip__thumb-upload-container">
+                      <div className="ip__thumb-upload-actions">
+                        <input
+                          type="file"
+                          ref={thumbnailInputRef}
+                          onChange={handleThumbnailUpload}
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                        />
+                        <button
+                          type="button"
+                          className="ip__btn-upload"
+                          onClick={() => thumbnailInputRef.current?.click()}
+                          disabled={isUploadingThumbnail}
+                        >
+                          <Icon path={icons.plus} size={16} />
+                          <span>{isUploadingThumbnail ? 'Şəkil yüklənir... ⏳' : '📁 Kompüterdən Şəkil Yüklə'}</span>
+                        </button>
+                        <span className="ip__thumb-or">və ya birbaşa URL daxil edin:</span>
+                      </div>
+                      <input
+                        value={courseForm.thumbnailUrl}
+                        onChange={e => handleCourseFormChange('thumbnailUrl', e.target.value)}
+                        placeholder="https://example.com/thumbnail.jpg və ya yuxarıdan fayl seçin"
+                        className="ip__thumb-url-input"
+                      />
+                      {courseForm.thumbnailUrl && (
+                        <div className="ip__thumb-preview-wrap">
+                          <img src={courseForm.thumbnailUrl} alt="Thumbnail preview" className="ip__thumb-preview" />
+                          <button
+                            type="button"
+                            className="ip__thumb-remove-btn"
+                            onClick={() => handleCourseFormChange('thumbnailUrl', '')}
+                            title="Şəkli sil"
+                          >
+                            <Icon path={icons.trash} size={14} /> Şəkli sil
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="ip__form-field ip__form-field--full">
@@ -809,7 +888,7 @@ function InstructorPortalPage() {
                   </div>
 
                   <div className="ip__pricing-section">
-                    <h3>💰 Pricing</h3>
+                    <h3>💰 Pricing & Valyuta</h3>
                     <div className="ip__free-toggle">
                       <label className="ip__toggle-label">
                         <input
@@ -823,40 +902,48 @@ function InstructorPortalPage() {
                     </div>
 
                     {!courseForm.isFree && (
-                      <div className="ip__form-grid">
-                        <div className="ip__form-field">
-                          <label>{i('price')}</label>
-                          <input
-                            type="number" min="0" step="0.01"
-                            value={courseForm.price}
-                            onChange={e => handleCourseFormChange('price', parseFloat(e.target.value) || 0)}
-                          />
+                      <>
+                        <div className="ip__form-grid">
+                          <div className="ip__form-field">
+                            <label>{i('price')}</label>
+                            <input
+                              type="number" min="0" step="0.01"
+                              value={courseForm.price}
+                              onChange={e => handleCourseFormChange('price', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="ip__form-field">
+                            <label>{i('discountPrice')}</label>
+                            <input
+                              type="number" min="0" step="0.01"
+                              value={courseForm.discountPrice}
+                              onChange={e => handleCourseFormChange('discountPrice', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <div className="ip__form-field">
+                            <label>{i('currency')}</label>
+                            <select value={courseForm.currency} onChange={e => handleCourseFormChange('currency', e.target.value)}>
+                              {CURRENCIES.map(c => <option key={c}>{c}</option>)}
+                            </select>
+                          </div>
+                          <div className="ip__form-field">
+                            <label>Publish Status</label>
+                            <select
+                              value={courseForm.isPublished ? 'published' : 'draft'}
+                              onChange={e => handleCourseFormChange('isPublished', e.target.value === 'published')}
+                            >
+                              <option value="draft">Draft</option>
+                              <option value="published">Published</option>
+                            </select>
+                          </div>
                         </div>
-                        <div className="ip__form-field">
-                          <label>{i('discountPrice')}</label>
-                          <input
-                            type="number" min="0" step="0.01"
-                            value={courseForm.discountPrice}
-                            onChange={e => handleCourseFormChange('discountPrice', parseFloat(e.target.value) || 0)}
-                          />
-                        </div>
-                        <div className="ip__form-field">
-                          <label>{i('currency')}</label>
-                          <select value={courseForm.currency} onChange={e => handleCourseFormChange('currency', e.target.value)}>
-                            {CURRENCIES.map(c => <option key={c}>{c}</option>)}
-                          </select>
-                        </div>
-                        <div className="ip__form-field">
-                          <label>Publish Status</label>
-                          <select
-                            value={courseForm.isPublished ? 'published' : 'draft'}
-                            onChange={e => handleCourseFormChange('isPublished', e.target.value === 'published')}
-                          >
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                          </select>
-                        </div>
-                      </div>
+
+                        {courseForm.currency && courseForm.currency.toUpperCase() !== 'AZN' && (
+                          <div className="ip__currency-azn-note">
+                            <span>💳 <strong>ePoint Ödəniş Sistemi (Yalnız AZN):</strong> İstənilən valyutanı ({courseForm.currency}) təyin edə bilərsiniz. Tələbə ePoint ilə ödəniş edərkən məbləğ avtomatik AZN-ə çevrilərək <strong>~{convertToAZN(courseForm.discountPrice > 0 ? courseForm.discountPrice : courseForm.price, courseForm.currency)} AZN</strong> kimi çıxılacaq.</span>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -912,20 +999,24 @@ function InstructorPortalPage() {
                                   placeholder={i('lectureVideo')}
                                 />
                                 <div className="ip__lecture-meta">
-                                  <input
-                                    type="number" min="0"
-                                    value={lecture.durationMinutes}
-                                    onChange={e => updateLecture(sIdx, lIdx, 'durationMinutes', parseInt(e.target.value) || 0)}
-                                    placeholder="Min"
-                                    className="ip__lecture-duration"
-                                  />
-                                  <label className="ip__free-check">
+                                  <div className="ip__duration-field" title="Dərsin müddəti (dəqiqə ilə)">
+                                    <span className="ip__duration-tag">⏱️ Müddət:</span>
+                                    <input
+                                      type="number" min="0"
+                                      value={lecture.durationMinutes}
+                                      onChange={e => updateLecture(sIdx, lIdx, 'durationMinutes', parseInt(e.target.value) || 0)}
+                                      placeholder="0"
+                                      className="ip__lecture-duration"
+                                    />
+                                    <span className="ip__duration-unit">dəq</span>
+                                  </div>
+                                  <label className="ip__free-check" title="İstifadəçi bu dərsi kursu almadan ödənişsiz izləyə bilər">
                                     <input
                                       type="checkbox"
                                       checked={lecture.isFree}
                                       onChange={e => updateLecture(sIdx, lIdx, 'isFree', e.target.checked)}
                                     />
-                                    {i('isFreePreview')}
+                                    {i('isFreePreview') || 'Pulsuz Baxış'}
                                   </label>
                                   <select
                                     value={lecture.lectureType}

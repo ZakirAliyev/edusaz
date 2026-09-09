@@ -40,6 +40,19 @@ function getUserInfo() {
   }
 }
 
+// Convert foreign currency to AZN for ePoint display
+const convertToAznDisplay = (val, curr) => {
+  const num = parseFloat(val) || 0;
+  switch ((curr || 'AZN').toUpperCase()) {
+    case 'USD': return (num * 1.70).toFixed(2);
+    case 'EUR': return (num * 1.85).toFixed(2);
+    case 'GBP': return (num * 2.18).toFixed(2);
+    case 'TRY': return (num * 0.05).toFixed(2);
+    case 'RUB': return (num * 0.018).toFixed(2);
+    default: return num.toFixed(2);
+  }
+};
+
 function CourseDetailPage() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
@@ -258,6 +271,11 @@ function CourseDetailPage() {
                     <span className="price">{price} {course.currency || 'AZN'}</span>
                     {course.discountPrice > 0 && course.discountPrice < course.price && (
                       <span className="original">{course.price} {course.currency || 'AZN'}</span>
+                    )}
+                    {course.currency && course.currency.toUpperCase() !== 'AZN' && (
+                      <div className="cdp-card__azn-rate" style={{ fontSize: '12px', color: '#10b981', marginTop: '4px', fontWeight: 500 }}>
+                        💳 ePoint ilə ödəniş: ~{convertToAznDisplay(price, course.currency)} AZN
+                      </div>
                     )}
                   </>
                 )}

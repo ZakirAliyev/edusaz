@@ -53,10 +53,30 @@ public class PaymentsController : ControllerBase
         return Convert.ToBase64String(hashBytes);
     }
 
+    private static decimal ConvertCurrencyToAzn(decimal amount, string currency)
+    {
+        if (string.IsNullOrWhiteSpace(currency) || currency.Equals("AZN", StringComparison.OrdinalIgnoreCase))
+            return Math.Round(amount, 2);
+
+        decimal rate = currency.ToUpperInvariant() switch
+        {
+            "USD" => 1.70m,
+            "EUR" => 1.85m,
+            "GBP" => 2.18m,
+            "TRY" => 0.05m,
+            "RUB" => 0.018m,
+            "AED" => 0.46m,
+            _ => 1.0m
+        };
+
+        return Math.Round(amount * rate, 2);
+    }
+
     // ── Initiate Payment ──────────────────────────────────────────────────────
 
     /// <summary>
     /// Generate ePoint payment URL for a course purchase.
+    /// Converts any currency (USD, EUR, GBP, TRY, RUB) to AZN for ePoint checkout.
     /// Returns redirect URL for the user to complete payment.
     /// </summary>
     [HttpPost("initiate-course-payment")]
@@ -74,11 +94,13 @@ public class PaymentsController : ControllerBase
         if (course.IsFree)
             return BadRequest(new { success = false, message = "Bu kurs ödənişsizdir." });
 
-        var amount = course.DiscountPrice > 0 && course.DiscountPrice < course.Price
+        var originalAmount = course.DiscountPrice > 0 && course.DiscountPrice < course.Price
             ? course.DiscountPrice
             : course.Price;
 
-        var currency = course.Currency ?? "AZN";
+        var originalCurrency = string.IsNullOrWhiteSpace(course.Currency) ? "AZN" : course.Currency.ToUpperInvariant();
+        var amountAzn = ConvertCurrencyToAzn(originalAmount, originalCurrency);
+        var epointCurrency = "AZN"; // ePoint requires AZN
 
         // Check if already enrolled
         var alreadyEnrolled = await _context.CourseEnrollments
@@ -97,8 +119,8 @@ public class PaymentsController : ControllerBase
             UserEmail = dto.UserEmail,
             StudentName = dto.StudentName ?? dto.UserEmail.Split('@')[0],
             EpointOrderId = orderId,
-            Amount = amount,
-            Currency = currency,
+            Amount = amountAzn,
+            Currency = epointCurrency,
             Status = "Pending"
         };
         _context.CoursePayments.Add(payment);
@@ -114,11 +136,13 @@ public class PaymentsController : ControllerBase
             var reqObj = new
             {
                 public_key = GetMerchantKey(),
-                amount = amount,
-                currency = currency,
+                amount = amountAzn,
+                currency = epointCurrency,
                 language = "az",
                 order_id = orderId,
-                description = $"Kurs: {course.Title}",
+                description = originalCurrency == "AZN"
+                    ? $"Kurs: {course.Title}"
+                    : $"Kurs: {course.Title} ({originalAmount} {originalCurrency} = {amountAzn} AZN)",
                 success_redirect_url = successUrl,
                 error_redirect_url = errorUrl
             };
@@ -162,7 +186,7 @@ public class PaymentsController : ControllerBase
         // Fallback to web checkout URL if API direct redirect wasn't provided
         if (string.IsNullOrEmpty(paymentRedirectUrl))
         {
-            var amountStr = amount.ToString("F2");
+            var amountStr = amountAzn.ToString("F2");
             var signaturePayload = $"{GetMerchantKey()}{amountStr}{orderId}{successUrl}{errorUrl}";
             using var hmac = new HMACSHA1(Encoding.UTF8.GetBytes(GetSecretKey()));
             var hmacSig = Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(signaturePayload)));
@@ -170,7 +194,7 @@ public class PaymentsController : ControllerBase
             paymentRedirectUrl = $"{GetEPointBaseUrl().TrimEnd('/')}/payment/new?" +
                 $"merchant_key={Uri.EscapeDataString(GetMerchantKey())}" +
                 $"&amount={Uri.EscapeDataString(amountStr)}" +
-                $"&currency={Uri.EscapeDataString(currency)}" +
+                $"&currency={Uri.EscapeDataString(epointCurrency)}" +
                 $"&order_id={Uri.EscapeDataString(orderId)}" +
                 $"&description={Uri.EscapeDataString($"Kurs: {course.Title}")}" +
                 $"&success_redirect_url={Uri.EscapeDataString(successUrl)}" +
@@ -178,8 +202,8 @@ public class PaymentsController : ControllerBase
                 $"&signature={Uri.EscapeDataString(hmacSig)}";
         }
 
-        _logger.LogInformation("[ePoint] Initiated payment. OrderId: {OrderId}, Amount: {Amount} {Currency}, User: {Email}",
-            orderId, amount, currency, dto.UserEmail);
+        _logger.LogInformation("[ePoint] Initiated payment. OrderId: {OrderId}, Amount: {AmountAzn} AZN (Original: {OrigAmount} {OrigCurrency}), User: {Email}",
+            orderId, amountAzn, originalAmount, originalCurrency, dto.UserEmail);
 
         return Ok(new
         {
@@ -187,8 +211,10 @@ public class PaymentsController : ControllerBase
             paymentUrl = paymentRedirectUrl,
             orderId = orderId,
             paymentId = payment.Id,
-            amount = amount,
-            currency = currency
+            amount = amountAzn,
+            originalAmount = originalAmount,
+            currency = epointCurrency,
+            originalCurrency = originalCurrency
         });
     }
 
