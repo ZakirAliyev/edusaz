@@ -73,9 +73,9 @@ jobs:
           script: |
             # 1. Execute DB migrations & table ownership as postgres superuser (Host & Docker)
             sudo -u postgres psql -c 'ALTER USER postgres WITH SUPERUSER;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE "AspNetUsers" OWNER TO postgres;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE "AspNetRoles" OWNER TO postgres;' || true
-            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE "AspNetUserRoles" OWNER TO postgres;' || true
+            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO postgres;' || true
+            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetRoles" OWNER TO postgres;' || true
+            sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUserRoles" OWNER TO postgres;' || true
             sudo -u postgres psql -d edusaz_db -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;' || true
             sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "UniversityId" uuid;' || true
             sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "ProfileImageUrl" text;' || true
@@ -85,22 +85,33 @@ jobs:
             sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "EnglishScore" text;' || true
             sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "Gpa" double precision;' || true
             sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "StudentApplications" ADD COLUMN IF NOT EXISTS "CourseId" uuid;' || true
-
-            # 2. Clean all users except SuperAdmin with proper cascade
             sudo -u postgres psql -d edusaz_db -c '
-              DELETE FROM "AspNetUserRoles" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
-              DELETE FROM "AspNetUserTokens" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
-              DELETE FROM "AspNetUserClaims" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
-              DELETE FROM "AspNetUserLogins" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
-              DELETE FROM "Instructors" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
-              DELETE FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27);
+              CREATE TABLE IF NOT EXISTS "CoursePayments" (
+                "Id" uuid NOT NULL PRIMARY KEY,
+                "CourseId" uuid NOT NULL,
+                "UserEmail" text NOT NULL,
+                "StudentName" text,
+                "EpointOrderId" text NOT NULL,
+                "TransactionId" text,
+                "Amount" numeric NOT NULL,
+                "Currency" text NOT NULL,
+                "Status" text NOT NULL,
+                "RefundStatus" text,
+                "RefundRequestedAt" timestamp with time zone,
+                "RefundedAt" timestamp with time zone,
+                "RefundNote" text,
+                "PaidAt" timestamp with time zone,
+                "CreatedDate" timestamp with time zone NOT NULL,
+                "LastUpdatedDate" timestamp with time zone NOT NULL,
+                "IsDeleted" boolean NOT NULL DEFAULT false
+              );
             ' || true
 
             # If PostgreSQL runs inside a docker container on VPS:
             if command -v docker &> /dev/null; then
               for container in $(docker ps -q); do
                 docker exec $container psql -U postgres -c 'ALTER USER postgres WITH SUPERUSER;' 2>/dev/null || true
-                docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE "AspNetUsers" OWNER TO postgres;' 2>/dev/null || true
+                docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO postgres;' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c 'GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres;' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "UniversityId" uuid;' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "ProfileImageUrl" text;' 2>/dev/null || true
@@ -111,10 +122,25 @@ jobs:
                 docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "Gpa" double precision;' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "StudentApplications" ADD COLUMN IF NOT EXISTS "CourseId" uuid;' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c '
-                  DELETE FROM "AspNetUserRoles" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
-                  DELETE FROM "AspNetUserTokens" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
-                  DELETE FROM "Instructors" WHERE "UserId" IN (SELECT "Id" FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27));
-                  DELETE FROM "AspNetUsers" WHERE lower(trim("Email")) NOT IN (\x27superadmin@edu.saz\x27, \x27superadmin@edusaz.com\x27);
+                  CREATE TABLE IF NOT EXISTS "CoursePayments" (
+                    "Id" uuid NOT NULL PRIMARY KEY,
+                    "CourseId" uuid NOT NULL,
+                    "UserEmail" text NOT NULL,
+                    "StudentName" text,
+                    "EpointOrderId" text NOT NULL,
+                    "TransactionId" text,
+                    "Amount" numeric NOT NULL,
+                    "Currency" text NOT NULL,
+                    "Status" text NOT NULL,
+                    "RefundStatus" text,
+                    "RefundRequestedAt" timestamp with time zone,
+                    "RefundedAt" timestamp with time zone,
+                    "RefundNote" text,
+                    "PaidAt" timestamp with time zone,
+                    "CreatedDate" timestamp with time zone NOT NULL,
+                    "LastUpdatedDate" timestamp with time zone NOT NULL,
+                    "IsDeleted" boolean NOT NULL DEFAULT false
+                  );
                 ' 2>/dev/null || true
               done
             fi

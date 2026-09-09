@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useGetPublishedCourseByIdQuery, useCreateStudentApplicationMutation } from '../../../services/apis/userApi';
+import {
+  useGetPublishedCourseByIdQuery,
+  useInitiateCoursePaymentMutation,
+  useCheckCourseEnrollmentQuery,
+} from '../../../services/apis/userApi';
 import { useToast } from '../../../context/ToastContext';
 import { AutoTranslate } from '../../../hooks/useAutoTranslate';
 import Cookies from 'js-cookie';
@@ -22,6 +26,20 @@ function getYouTubeEmbedUrl(url) {
   return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1` : url;
 }
 
+// Get user info from token / localStorage
+function getUserInfo() {
+  const token = Cookies.get('userToken');
+  if (!token) return { email: '', name: '', isLoggedIn: false };
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const email = payload.email || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '';
+    const name = localStorage.getItem('userName') || email.split('@')[0];
+    return { email, name, isLoggedIn: true };
+  } catch {
+    return { email: '', name: '', isLoggedIn: false };
+  }
+}
+
 function CourseDetailPage() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
@@ -30,21 +48,30 @@ function CourseDetailPage() {
   const [activeSection, setActiveSection] = useState(null);
   const [activeVideo, setActiveVideo] = useState(null);
   const [isFreeEnrolled, setIsFreeEnrolled] = useState(false);
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
-  // Application Modal state for Paid courses
-  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const [applySubmitted, setApplySubmitted] = useState(false);
-  const [isApplying, setIsApplying] = useState(false);
-  const [applyFormData, setApplyFormData] = useState({
-    studentName: '',
-    email: '',
-    phone: '',
-    originCountry: 'Azərbaycan',
-    notes: ''
-  });
+  const userInfo = getUserInfo();
+  const isLoggedIn = userInfo.isLoggedIn;
 
   const { data: course, isLoading } = useGetPublishedCourseByIdQuery({ id, lang: i18n.language });
-  const [createApplication] = useCreateStudentApplicationMutation();
+  const [initiateCoursePayment] = useInitiateCoursePaymentMutation();
+
+  // Check enrollment status for logged-in users
+  const { data: enrollmentData, refetch: refetchEnrollment } = useCheckCourseEnrollmentQuery(
+    { courseId: id, userEmail: userInfo.email },
+    { skip: !isLoggedIn || !id }
+  );
+  const isEnrolled = enrollmentData?.isEnrolled === true;
+  const hasFullAccess = isFreeEnrolled || isEnrolled || (course?.isFree && isFreeEnrolled);
+
+  // Auto-open free enrolled courses
+  useEffect(() => {
+    if (course?.isFree && isFreeEnrolled && !activeVideo) {
+      const firstVideo = course.sections?.[0]?.lectures?.find(l => l.videoUrl);
+      if (firstVideo) setActiveVideo(firstVideo.videoUrl);
+      else if (course.previewVideoUrl) setActiveVideo(course.previewVideoUrl);
+    }
+  }, [isFreeEnrolled, course, activeVideo]);
 
   if (isLoading) {
     return (
@@ -65,62 +92,90 @@ function CourseDetailPage() {
     );
   }
 
-  const handleEnrollOrApply = () => {
-    const token = Cookies.get('userToken');
-    if (!token) {
+  // ── Main CTA Handler ─────────────────────────────────────────────────────────
+
+  const handleEnrollOrBuy = async () => {
+    if (!isLoggedIn) {
       toast.showError(t('auth.loginRequired', 'Daxil olmaq tələb olunur'));
       navigate('/signin');
       return;
     }
 
+    if (isEnrolled) {
+      // Already enrolled — scroll to first lecture
+      const firstVideo = course.sections?.[0]?.lectures?.find(l => l.videoUrl);
+      if (firstVideo) setActiveVideo(firstVideo.videoUrl);
+      else if (course.previewVideoUrl) setActiveVideo(course.previewVideoUrl);
+      toast.showSuccess('Kursa artıq qeydiyyatdan keçmisiniz 🎉');
+      return;
+    }
+
     if (course.isFree) {
-      // Free course: automatically grant full access
+      // Free course enrollment
       setIsFreeEnrolled(true);
-      if (course.previewVideoUrl) {
-        setActiveVideo(course.previewVideoUrl);
-      } else if (course.sections?.[0]?.lectures?.[0]?.videoUrl) {
-        setActiveVideo(course.sections[0].lectures[0].videoUrl);
-      }
+      const firstVideo = course.sections?.[0]?.lectures?.find(l => l.videoUrl);
+      if (firstVideo) setActiveVideo(firstVideo.videoUrl);
+      else if (course.previewVideoUrl) setActiveVideo(course.previewVideoUrl);
       toast.showSuccess(t('courses.freeAccessGranted', 'Ödənişsiz kurs dərsləri aktivləşdirildi! 🎉'));
-    } else {
-      // Paid course: open Application / Enrollment modal
-      const userName = localStorage.getItem('userName') || '';
-      const userEmail = localStorage.getItem('userEmail') || '';
-      setApplyFormData({
-        studentName: userName,
-        email: userEmail,
-        phone: '',
-        originCountry: 'Azərbaycan',
-        notes: ''
-      });
-      setApplySubmitted(false);
-      setIsApplyModalOpen(true);
+      return;
     }
-  };
 
-  const handleApplicationSubmit = async (e) => {
-    e.preventDefault();
-    setIsApplying(true);
+    // Paid course — initiate ePoint payment
+    setIsPaymentLoading(true);
     try {
-      await createApplication({
+      const result = await initiateCoursePayment({
         courseId: id,
-        studentName: applyFormData.studentName || 'Tələbə',
-        programName: course.title,
-        email: applyFormData.email || '',
-        phone: applyFormData.phone || '',
-        originCountry: applyFormData.originCountry || 'Azərbaycan',
-        countryFlag: '🌐',
-        matchScore: 100
+        userEmail: userInfo.email,
+        studentName: userInfo.name,
       }).unwrap();
-      setApplySubmitted(true);
-    } catch {
-      setApplySubmitted(true);
+
+      if (result?.paymentUrl) {
+        toast.showSuccess('ePoint ödəniş panelinə yönləndirilirsiniz...');
+        setTimeout(() => {
+          window.location.href = result.paymentUrl;
+        }, 800);
+      } else {
+        toast.showError('Ödəniş URL-i alınmadı. Yenidən cəhd edin.');
+      }
+    } catch (err) {
+      const msg = err?.data?.message || err?.message || 'Ödəniş başlanğıcında xəta';
+      toast.showError(msg);
     } finally {
-      setIsApplying(false);
+      setIsPaymentLoading(false);
     }
   };
 
-  const currentEmbedUrl = activeVideo ? getYouTubeEmbedUrl(activeVideo) : (course.previewVideoUrl ? getYouTubeEmbedUrl(course.previewVideoUrl) : null);
+  // ── Lecture click handler ─────────────────────────────────────────────────────
+  const handleLectureClick = (lec) => {
+    if (!isLoggedIn) {
+      toast.showError(t('auth.loginRequired', 'Daxil olmaq tələb olunur'));
+      navigate('/signin');
+      return;
+    }
+    if (lec.videoUrl) {
+      setActiveVideo(lec.videoUrl);
+    }
+  };
+
+  const currentEmbedUrl = activeVideo
+    ? getYouTubeEmbedUrl(activeVideo)
+    : (course.previewVideoUrl ? getYouTubeEmbedUrl(course.previewVideoUrl) : null);
+
+  const price = course.discountPrice > 0 && course.discountPrice < course.price
+    ? course.discountPrice
+    : course.price;
+
+  // Button label
+  const ctaLabel = () => {
+    if (isPaymentLoading) return '⏳ Emal edilir...';
+    if (isEnrolled) return '▶ Dərslərə Bax';
+    if (course.isFree) {
+      return isFreeEnrolled
+        ? t('courses.accessNow', '▶ Dərslərə Bax')
+        : t('courses.enrollFree', '🎓 İndi Qoşul (Ödənişsiz)');
+    }
+    return `💳 ${t('courses.buyNow', 'Kursu Al')} — ${price} ${course.currency || 'AZN'}`;
+  };
 
   return (
     <div className="course-detail-page">
@@ -151,7 +206,7 @@ function CourseDetailPage() {
               {course.language && <span>🌐 {t('matchedUniversities.labels.language', 'Dil')}: {course.language.toUpperCase()}</span>}
             </div>
 
-            {/* Owner Section — only shown if created by Teacher/Course Center, NOT SuperAdmin */}
+            {/* Owner Section */}
             {!course.isSuperAdminCreated && course.instructorName && (
               <div className="cdp-instructor">
                 <div className="cdp-instructor__avatar">
@@ -196,21 +251,33 @@ function CourseDetailPage() {
               <div className="cdp-card__price">
                 {course.isFree ? (
                   <span className="free">{t('courses.freeCourse', 'Ödənişsiz Kurs')}</span>
+                ) : isEnrolled ? (
+                  <span className="free">✅ Qeydiyyatdan Keçmisiniz</span>
                 ) : (
                   <>
-                    <span className="price">${course.discountPrice || course.price}</span>
+                    <span className="price">{price} {course.currency || 'AZN'}</span>
                     {course.discountPrice > 0 && course.discountPrice < course.price && (
-                      <span className="original">${course.price}</span>
+                      <span className="original">{course.price} {course.currency || 'AZN'}</span>
                     )}
                   </>
                 )}
               </div>
 
-              <button className="cdp-btn cdp-btn--primary" onClick={handleEnrollOrApply}>
-                {course.isFree
-                  ? (isFreeEnrolled ? t('courses.accessNow', 'Dərslərə Bax') : t('courses.enrollFree', 'İndi Qoşul (Ödənişsiz)'))
-                  : t('courses.buyNow', 'Kursu Al / Müraciət Et')}
+              <button
+                className={`cdp-btn cdp-btn--primary ${isPaymentLoading ? 'loading' : ''}`}
+                onClick={handleEnrollOrBuy}
+                disabled={isPaymentLoading}
+              >
+                {ctaLabel()}
               </button>
+
+              {!course.isFree && !isEnrolled && (
+                <div className="cdp-payment-badges">
+                  <span>🔒 Güvənli ödəniş</span>
+                  <span>💳 ePoint</span>
+                  <span>↩️ Geri qaytarıla bilər</span>
+                </div>
+              )}
 
               <div className="cdp-card__includes">
                 <h4>{t('courses.includes', 'Bu kursa daxildir:')}</h4>
@@ -270,29 +337,53 @@ function CourseDetailPage() {
 
                       {(activeSection === sIdx || activeSection === null) && (
                         <div className="cdp-section__body">
-                          {(section.lectures || []).map((lec) => (
-                            <div key={lec.id} className="cdp-lecture">
-                              <span className="cdp-lecture__icon">▶</span>
-                              <span className="cdp-lecture__title">
-                                <AutoTranslate text={lec.title} />
-                              </span>
-                              {lec.videoUrl && (lec.isFree || isFreeEnrolled || course.isFree) ? (
-                                <button
-                                  className="cdp-lecture__btn"
-                                  onClick={() => setActiveVideo(lec.videoUrl)}
-                                >
-                                  {t('courses.watchVideo', 'Videoya Bax')}
-                                </button>
-                              ) : lec.isFree ? (
-                                <span className="cdp-lecture__free">{t('courses.freePreview', 'Ödənişsiz Baxış')}</span>
-                              ) : null}
-                              {lec.durationMinutes > 0 && (
-                                <span className="cdp-lecture__duration">
-                                  {lec.durationMinutes} {t('courses.min', 'dəq')}
+                          {(section.lectures || []).map((lec) => {
+                            const canWatch = lec.isFree || hasFullAccess || course.isFree;
+                            const isPaidLocked = !course.isFree && !hasFullAccess && !lec.isFree;
+
+                            return (
+                              <div key={lec.id} className={`cdp-lecture ${isPaidLocked ? 'locked' : ''}`}>
+                                <span className="cdp-lecture__icon">
+                                  {isPaidLocked ? '🔒' : '▶'}
                                 </span>
-                              )}
-                            </div>
-                          ))}
+                                <span className="cdp-lecture__title">
+                                  <AutoTranslate text={lec.title} />
+                                </span>
+
+                                {/* Lecture action */}
+                                {lec.isFree && !canWatch && (
+                                  <span className="cdp-lecture__free">
+                                    {t('courses.freePreview', 'Ödənişsiz Baxış')}
+                                  </span>
+                                )}
+
+                                {canWatch && lec.videoUrl && (
+                                  <button
+                                    className="cdp-lecture__btn"
+                                    onClick={() => handleLectureClick(lec)}
+                                  >
+                                    {t('courses.watchVideo', 'Videoya Bax')}
+                                  </button>
+                                )}
+
+                                {isPaidLocked && (
+                                  <button
+                                    className="cdp-lecture__btn cdp-lecture__btn--buy"
+                                    onClick={handleEnrollOrBuy}
+                                    disabled={isPaymentLoading}
+                                  >
+                                    💳 {t('courses.buyToWatch', 'Al və İzlə')}
+                                  </button>
+                                )}
+
+                                {lec.durationMinutes > 0 && (
+                                  <span className="cdp-lecture__duration">
+                                    {lec.durationMinutes} {t('courses.min', 'dəq')}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -328,117 +419,6 @@ function CourseDetailPage() {
           </div>
         </div>
       </section>
-
-      {/* ── COURSE APPLICATION MODAL POPUP FOR PAID COURSES ── */}
-      {isApplyModalOpen && (
-        <div className="cdp-modal-backdrop" onClick={() => setIsApplyModalOpen(false)}>
-          <div className="cdp-modal-container" onClick={(e) => e.stopPropagation()}>
-            <button className="cdp-modal-close" onClick={() => setIsApplyModalOpen(false)}>
-              <CloseIcon />
-            </button>
-
-            {applySubmitted ? (
-              <div className="cdp-modal-success">
-                <div className="success-icon">✓</div>
-                <h3>{t('apply.successTitle', 'Müraciətiniz Qəbul Olundu!')}</h3>
-                <p>
-                  {t('apply.successDesc', 'Müraciətiniz qeydə alındı və təlimat elektron ünvanınıza göndərildi.')}
-                </p>
-                <div className="cdp-success-chip">
-                  📚 <AutoTranslate text={course.title} />
-                </div>
-                <button
-                  className="cdp-modal-btn-done"
-                  onClick={() => setIsApplyModalOpen(false)}
-                >
-                  {t('common.close', 'Bağla')}
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleApplicationSubmit} className="cdp-modal-form">
-                <div className="cdp-modal-header">
-                  <span className="cdp-modal-badge">🎓 {t('courses.buyNow', 'Kurs Müraciəti')}</span>
-                  <h2><AutoTranslate text={course.title} /></h2>
-                  <p className="cdp-modal-price">
-                    <strong>{t('matchedUniversities.labels.tuition', 'Qiymət')}:</strong> ${course.discountPrice || course.price}
-                  </p>
-                </div>
-
-                <div className="cdp-modal-fields">
-                  <div className="cdp-form-row">
-                    <label>{t('portal.studentName', 'Ad və Soyad')} *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder={t('portal.studentName', 'Ad və Soyad')}
-                      value={applyFormData.studentName}
-                      onChange={(e) => setApplyFormData({ ...applyFormData, studentName: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="cdp-form-row">
-                    <label>{t('auth.email', 'E-poçt Ünvanı')} *</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="student@example.com"
-                      value={applyFormData.email}
-                      onChange={(e) => setApplyFormData({ ...applyFormData, email: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="cdp-form-row">
-                    <label>{t('partnerModal.phone', 'Əlaqə Nömrəsi')}</label>
-                    <input
-                      type="tel"
-                      placeholder="+994 50 123 45 67"
-                      value={applyFormData.phone}
-                      onChange={(e) => setApplyFormData({ ...applyFormData, phone: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="cdp-form-row">
-                    <label>{t('portal.originCountry', 'Ölkə')}</label>
-                    <input
-                      type="text"
-                      placeholder="Azərbaycan"
-                      value={applyFormData.originCountry}
-                      onChange={(e) => setApplyFormData({ ...applyFormData, originCountry: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="cdp-form-row">
-                    <label>{t('partnerModal.message', 'Əlavə Qeyd')}</label>
-                    <textarea
-                      rows="3"
-                      placeholder="Kurs və tələbəlik haqqında əlavə qeydləriniz..."
-                      value={applyFormData.notes}
-                      onChange={(e) => setApplyFormData({ ...applyFormData, notes: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="cdp-modal-actions">
-                  <button
-                    type="submit"
-                    className="cdp-modal-btn-submit"
-                    disabled={isApplying}
-                  >
-                    {isApplying ? t('profile.saving', 'Göndərilir...') : t('common.apply', 'Müraciəti Təsdiqlə')}
-                  </button>
-                  <button
-                    type="button"
-                    className="cdp-modal-btn-cancel"
-                    onClick={() => setIsApplyModalOpen(false)}
-                  >
-                    {t('common.cancel', 'Ləğv et')}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

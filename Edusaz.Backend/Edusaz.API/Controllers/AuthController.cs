@@ -65,6 +65,26 @@ public class AuthController : ControllerBase
                     ""DeletedDate"" timestamp with time zone,
                     ""IsDeleted"" boolean NOT NULL DEFAULT false
                 );
+                CREATE TABLE IF NOT EXISTS ""CoursePayments"" (
+                    ""Id"" uuid PRIMARY KEY,
+                    ""CourseId"" uuid NOT NULL REFERENCES ""Courses""(""Id""),
+                    ""UserEmail"" text NOT NULL,
+                    ""StudentName"" text NOT NULL DEFAULT '',
+                    ""EpointOrderId"" text NOT NULL DEFAULT '',
+                    ""TransactionId"" text NOT NULL DEFAULT '',
+                    ""Amount"" numeric NOT NULL DEFAULT 0,
+                    ""Currency"" text NOT NULL DEFAULT 'AZN',
+                    ""Status"" text NOT NULL DEFAULT 'Pending',
+                    ""RefundStatus"" text NOT NULL DEFAULT 'None',
+                    ""PaidAt"" timestamp with time zone,
+                    ""RefundRequestedAt"" timestamp with time zone,
+                    ""RefundedAt"" timestamp with time zone,
+                    ""RefundNote"" text,
+                    ""CreatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                    ""LastUpdatedDate"" timestamp with time zone NOT NULL DEFAULT now(),
+                    ""DeletedDate"" timestamp with time zone,
+                    ""IsDeleted"" boolean NOT NULL DEFAULT false
+                );
             ");
 
             string[] roles = new[] { "SuperAdmin", "Admin", "UniversityAdmin", "Teacher", "CourseCenter", "Student" };
@@ -226,10 +246,18 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<System.Collections.Generic.List<UserProfileDto>>.SuccessResponse(result));
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize]
     [HttpPost("admin-create")]
     public async Task<IActionResult> AdminCreateUser([FromBody] AdminCreateUserDto dto)
     {
+        // Manual SuperAdmin check — support both "SuperAdmin" and "superadmin" role claims
+        var userRoles = await _userManager.GetRolesAsync(
+            await _userManager.FindByEmailAsync(User.Identity?.Name ?? "") ?? new User()
+        );
+        var isSuperAdmin = userRoles.Any(r => r.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase));
+        if (!isSuperAdmin)
+            return Forbid();
+
         if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
             return BadRequest(ApiResponse<string>.ErrorResponse("Email və şifrə mütləq daxil edilməlidir."));
 

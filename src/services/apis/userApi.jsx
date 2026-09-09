@@ -414,6 +414,50 @@ export const userApi = createApi({
             query: ({ id, lang = 'en' }) => `/Courses/${id}?lang=${lang}`,
             transformResponse: (response) => response.data,
         }),
+
+        // ── Course Payments & Enrollment ─────────────────────────────────────
+        initiateCoursePayment: builder.mutation({
+            query: (body) => ({
+                url: '/Payments/initiate-course-payment',
+                method: 'POST',
+                body,
+            }),
+        }),
+        checkCourseEnrollment: builder.query({
+            query: ({ courseId, userEmail }) =>
+                `/Payments/enrollment-check?courseId=${courseId}&userEmail=${encodeURIComponent(userEmail)}`,
+            transformResponse: (response) => response,
+        }),
+        getPaymentStatus: builder.query({
+            query: ({ orderId, paymentId } = {}) => {
+                const params = [];
+                if (orderId) params.push(`orderId=${orderId}`);
+                if (paymentId) params.push(`paymentId=${paymentId}`);
+                return `/Payments/status?${params.join('&')}`;
+            },
+            transformResponse: (response) => response.data,
+        }),
+        getCoursePayments: builder.query({
+            query: ({ courseId, email }) =>
+                `/Payments/course/${courseId}/payments?email=${encodeURIComponent(email || '')}`,
+            transformResponse: (response) => response.data,
+            providesTags: ['CoursePayments'],
+        }),
+        requestRefund: builder.mutation({
+            query: ({ paymentId, reason }) => ({
+                url: `/Payments/refund/${paymentId}`,
+                method: 'POST',
+                body: { reason },
+            }),
+            invalidatesTags: ['CoursePayments'],
+        }),
+        enrollFreeCourse: builder.mutation({
+            query: ({ courseId, userEmail, studentName }) => ({
+                url: '/Payments/initiate-course-payment',
+                method: 'POST',
+                body: { courseId, userEmail, studentName, isFree: true },
+            }),
+        }),
         // Hidden Talents & Ideas
         submitHiddenTalent: builder.mutation({
             query: (body) => ({
@@ -531,4 +575,11 @@ export const {
     useGetHiddenTalentByIdQuery,
     useUpdateHiddenTalentStatusMutation,
     useDeleteHiddenTalentMutation,
+    // Payments & Enrollment
+    useInitiateCoursePaymentMutation,
+    useCheckCourseEnrollmentQuery,
+    useGetPaymentStatusQuery,
+    useGetCoursePaymentsQuery,
+    useRequestRefundMutation,
+    useEnrollFreeCourseMutation,
 } = userApi;

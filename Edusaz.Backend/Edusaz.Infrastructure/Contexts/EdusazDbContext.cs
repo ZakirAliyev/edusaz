@@ -36,6 +36,7 @@ public class EdusazDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<CourseSection> CourseSections { get; set; }
     public DbSet<CourseLecture> CourseLectures { get; set; }
     public DbSet<CourseEnrollment> CourseEnrollments { get; set; }
+    public DbSet<CoursePayment> CoursePayments { get; set; }
 
     // Hidden Talents & Ideas
     public DbSet<HiddenTalent> HiddenTalents { get; set; }

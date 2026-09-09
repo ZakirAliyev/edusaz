@@ -564,12 +564,20 @@ function SuperAdminPage() {
       return;
     }
 
+    // Fix: convert empty universityId string to null so backend Guid? parsing works correctly
+    const payload = {
+      ...userFormData,
+      universityId: (userFormData.universityId && userFormData.universityId !== '')
+        ? userFormData.universityId
+        : null,
+    };
+
     try {
       if (editingUser) {
-        await adminUpdateUser({ id: editingUser.id, ...userFormData }).unwrap();
+        await adminUpdateUser({ id: editingUser.id, ...payload }).unwrap();
         toast.showSuccess('İstifadəçi hesabı uğurla yeniləndi! ✅');
       } else {
-        await adminCreateUser(userFormData).unwrap();
+        await adminCreateUser(payload).unwrap();
         toast.showSuccess('Yeni hesab uğurla yaradıldı! 🎉');
       }
       setShowUserModal(false);
@@ -578,6 +586,7 @@ function SuperAdminPage() {
       toast.showError(err?.data?.message || err?.message || 'Xəta baş verdi');
     }
   };
+
 
   const handleDeleteUser = async (id) => {
     if (window.confirm('Bu hesabı silmək istədiyinizə əminsiniz?')) {
