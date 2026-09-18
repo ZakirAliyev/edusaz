@@ -130,7 +130,7 @@ const generateDefault31Translations = (title = '', desc = '', extra = {}) => {
       name: title,
       title: title,
       description: desc,
-      city: extra.city || 'Bakı',
+      city: extra.city || '',
       ...extra
     };
   });

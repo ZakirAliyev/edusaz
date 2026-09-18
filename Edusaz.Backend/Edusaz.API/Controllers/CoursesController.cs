@@ -54,9 +54,12 @@ public class CoursesController : ControllerBase
             .Where(c => !c.IsDeleted)
             .AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(category) && category != "All" && category != "Hamısı")
+        if (!string.IsNullOrWhiteSpace(category) && category != "All" && category != "Hamısı" && category != "all")
         {
-            query = query.Where(c => c.Category.ToLower() == category.ToLower());
+            var catLower = category.ToLower().Trim();
+            query = query.Where(c => c.Category.ToLower().Contains(catLower) || 
+                                     catLower.Contains(c.Category.ToLower()) ||
+                                     (c.SubCategory != null && c.SubCategory.ToLower().Contains(catLower)));
         }
 
         if (!string.IsNullOrWhiteSpace(search))

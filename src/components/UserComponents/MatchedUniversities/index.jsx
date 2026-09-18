@@ -81,9 +81,11 @@ function MatchedUniversities() {
                       }}
                     />
                     <div className="mu-card-tags">
-                      <div className="mu-tag-match">
-                        <SparkleIcon /> 96% {t('matchedUniversities.match')}
-                      </div>
+                      {uni.ranking && (
+                        <div className="mu-tag-match">
+                          <SparkleIcon /> {uni.ranking}
+                        </div>
+                      )}
                       {uni.hasScholarship && (
                         <div className="mu-tag-scholarship">
                           <ScholarshipIcon /> {t('matchedUniversities.scholarship')}
@@ -95,20 +97,22 @@ function MatchedUniversities() {
                   <div className="mu-card-body">
                     <div className="mu-card-header">
                       <h3 className="mu-uni-name">{uni.name}</h3>
-                      <span className="mu-uni-rank">{uni.ranking || (`${t('matchedUniversities.est')} ${uni.establishedYear}`)}</span>
+                      <span className="mu-uni-rank">{uni.ranking || (`${t('matchedUniversities.est')} ${uni.establishedYear || '2000'}`)}</span>
                     </div>
                     
                     <span className="mu-uni-location">{uni.city ? `${uni.city}, ${uni.country}` : uni.country}</span>
-                    <span className="mu-uni-program">{uni.description ? uni.description.substring(0, 50) + "..." : "Bachelor in Computer Science"}</span>
+                    {uni.description && (
+                      <span className="mu-uni-program">{uni.description.length > 50 ? uni.description.substring(0, 50) + "..." : uni.description}</span>
+                    )}
 
                     <div className="mu-uni-stats">
                       <div className="stat-box">
                         <span className="stat-label">{t('matchedUniversities.labels.tuition')}</span>
-                        <span className="stat-val">{uni.tuition || "$6,500/yr"}</span>
+                        <span className="stat-val">{uni.tuition || "Məlumat yoxdur"}</span>
                       </div>
                       <div className="stat-box">
                         <span className="stat-label">{t('matchedUniversities.labels.acceptance')}</span>
-                        <span className="stat-val">{uni.acceptanceRate || "45%"}</span>
+                        <span className="stat-val">{uni.acceptanceRate || "Standart"}</span>
                       </div>
                       <div className="stat-box">
                         <span className="stat-label">{t('matchedUniversities.labels.language')}</span>
@@ -118,7 +122,7 @@ function MatchedUniversities() {
 
                     <div className="mu-card-footer">
                       <div className="mu-deadline">
-                        <CalendarIcon /> {uni.deadline || "Apr 30, 2025"}
+                        <CalendarIcon /> {uni.deadline || t('matchedUniversities.openAdmission', 'Qəbul Açıqdır')}
                       </div>
                       <ChevronIcon />
                     </div>

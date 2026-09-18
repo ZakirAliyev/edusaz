@@ -204,5 +204,13 @@
     "bachelor": "Lisans",
     "master": "Yüksek Lisans",
     "phd": "Doktora"
+  },
+  "forUniversitiesPage": {
+    "titlePart1": "Uluslararası Öğrencileri Çekin",
+    "titlePart2": "EduSaz ile Küresel Ortaklık",
+    "desc": "Üniversitenizi ve akademik programlarınızı dünya çapında 500.000'den fazla öğrenciye tanıtın ve tüm başvuru süreçlerini tek bir panelden yönetin."
+  },
+  "scholarshipsPage": {
+    "subtitle": "Dünyanın önde gelen üniversitelerinde tam ve kısmi finanse edilen 150.000+ burs programını keşfedin ve kabul şansınızı test edin."
   }
 }

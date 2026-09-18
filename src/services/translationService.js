@@ -29,18 +29,27 @@ function hashKey(text, from, to) {
 
 function getCached(text, from, to) {
   const key = hashKey(text, from, to);
-  if (_memCache.has(key)) return _memCache.get(key);
+  if (_memCache.has(key)) {
+    const val = _memCache.get(key);
+    if (isValidTranslation(val)) return val;
+    _memCache.delete(key);
+  }
   try {
     const stored = localStorage.getItem(key);
     if (stored) {
-      _memCache.set(key, stored);
-      return stored;
+      if (isValidTranslation(stored)) {
+        _memCache.set(key, stored);
+        return stored;
+      } else {
+        localStorage.removeItem(key);
+      }
     }
   } catch (_) {}
   return null;
 }
 
 function setCached(text, from, to, translated) {
+  if (!isValidTranslation(translated)) return;
   const key = hashKey(text, from, to);
   _memCache.set(key, translated);
   try {
@@ -119,85 +128,115 @@ export async function detectUserGeoLanguage() {
  * Layer 2: Google Translate Direct Web API (100% free, immediate, accurate)
  * Layer 3: MyMemory API fallback
  */
+const _pendingPromises = new Map();
+
+function isValidTranslation(str) {
+  if (!str || typeof str !== 'string') return false;
+  const upper = str.toUpperCase();
+  if (upper.includes('INVALID SOURCE LANGUAGE')) return false;
+  if (upper.includes('IS AN INVALID')) return false;
+  if (upper.includes('MYMEMORY WARNING')) return false;
+  if (upper.includes('PLEASE SELECT TWO DISTINCT')) return false;
+  if (upper.includes('QUERY LENGTH LIMIT')) return false;
+  return true;
+}
+
 export async function translateText(text, fromLang = 'az', toLang = 'en') {
   if (!text || !text.trim()) return text;
 
-  const normalizedFrom = fromLang.split('-')[0].toLowerCase();
-  const normalizedTo = toLang.split('-')[0].toLowerCase();
+  let normalizedFrom = (fromLang || 'az').split('-')[0].toLowerCase();
+  if (normalizedFrom === 'auto' || !normalizedFrom) {
+    normalizedFrom = 'az';
+  }
+  const normalizedTo = (toLang || 'en').split('-')[0].toLowerCase();
   if (normalizedFrom === normalizedTo) return text;
 
   // Check cache first
   const cached = getCached(text, normalizedFrom, normalizedTo);
-  if (cached) return cached;
+  if (cached && isValidTranslation(cached)) return cached;
 
-  const googleFrom = LANG_CODE_MAP[normalizedFrom] || normalizedFrom;
-  const googleTo = LANG_CODE_MAP[normalizedTo] || normalizedTo;
+  const requestKey = hashKey(text, normalizedFrom, normalizedTo);
+  if (_pendingPromises.has(requestKey)) {
+    return _pendingPromises.get(requestKey);
+  }
 
-  // 1. Google Cloud v2 (if key provided)
-  if (GOOGLE_API_KEY) {
+  const promise = (async () => {
     try {
-      const res = await fetch(
-        `${GOOGLE_TRANSLATE_URL}?key=${GOOGLE_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            q: text,
-            source: googleFrom,
-            target: googleTo,
-            format: 'text'
-          })
-        }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        const translated = data?.data?.translations?.[0]?.translatedText;
-        if (translated && translated.trim()) {
-          setCached(text, normalizedFrom, normalizedTo, translated);
-          return translated;
-        }
-      }
-    } catch (e) {
-      console.warn('Google Cloud v2 failed, using direct API', e);
-    }
-  }
+      const googleFrom = LANG_CODE_MAP[normalizedFrom] || normalizedFrom;
+      const googleTo = LANG_CODE_MAP[normalizedTo] || normalizedTo;
 
-  // 2. Direct Google Translate API
-  try {
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(googleFrom)}&tl=${encodeURIComponent(googleTo)}&dt=t&q=${encodeURIComponent(text)}`;
-    const res = await fetch(url);
-    if (res.ok) {
-      const json = await res.json();
-      if (Array.isArray(json) && Array.isArray(json[0])) {
-        const translated = json[0].map(item => item && item[0] ? item[0] : '').join('');
-        if (translated && translated.trim()) {
-          setCached(text, normalizedFrom, normalizedTo, translated);
-          return translated;
+      // 1. Google Cloud v2 (if key provided)
+      if (GOOGLE_API_KEY) {
+        try {
+          const res = await fetch(
+            `${GOOGLE_TRANSLATE_URL}?key=${GOOGLE_API_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                q: text,
+                source: googleFrom,
+                target: googleTo,
+                format: 'text'
+              })
+            }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const translated = data?.data?.translations?.[0]?.translatedText;
+            if (translated && translated.trim() && isValidTranslation(translated)) {
+              setCached(text, normalizedFrom, normalizedTo, translated);
+              return translated;
+            }
+          }
+        } catch (e) {
+          console.warn('Google Cloud v2 failed, using direct API', e);
         }
       }
-    }
-  } catch (err) {
-    console.warn('Direct Google API translation error:', err);
-  }
 
-  // 3. MyMemory Fallback
-  try {
-    const pair = `${googleFrom}|${googleTo}`;
-    const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(pair)}`;
-    const res = await fetch(myMemoryUrl);
-    if (res.ok) {
-      const json = await res.json();
-      const translated = json?.responseData?.translatedText;
-      if (translated && !translated.includes('MYMEMORY WARNING')) {
-        setCached(text, normalizedFrom, normalizedTo, translated);
-        return translated;
+      // 2. Direct Google Translate API
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(googleFrom)}&tl=${encodeURIComponent(googleTo)}&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json) && Array.isArray(json[0])) {
+            const translated = json[0].map(item => item && item[0] ? item[0] : '').join('');
+            if (translated && translated.trim() && isValidTranslation(translated)) {
+              setCached(text, normalizedFrom, normalizedTo, translated);
+              return translated;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Direct Google API translation error:', err);
       }
-    }
-  } catch (err) {
-    console.error('All translation providers failed:', err);
-  }
 
-  return text;
+      // 3. MyMemory Fallback
+      try {
+        const pair = `${googleFrom}|${googleTo}`;
+        const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(pair)}`;
+        const res = await fetch(myMemoryUrl);
+        if (res.ok) {
+          const json = await res.json();
+          const translated = json?.responseData?.translatedText;
+          if (translated && isValidTranslation(translated)) {
+            setCached(text, normalizedFrom, normalizedTo, translated);
+            return translated;
+          }
+        }
+      } catch (err) {
+        console.error('All translation providers failed:', err);
+      }
+
+      return text;
+    } finally {
+      _pendingPromises.delete(requestKey);
+    }
+  })();
+
+  _pendingPromises.set(requestKey, promise);
+  return promise;
 }
 
 

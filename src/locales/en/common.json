@@ -337,5 +337,13 @@
     "country": "Country",
     "message": "Additional Note / Message",
     "sendBtn": "Submit Application"
+  },
+  "forUniversitiesPage": {
+    "titlePart1": "Attract Top Global Students",
+    "titlePart2": "Partner with EduSaz",
+    "desc": "Showcase your university and academic programs to 500,000+ prospective students worldwide and manage all admissions from a unified portal."
+  },
+  "scholarshipsPage": {
+    "subtitle": "Discover 150,000+ fully and partially funded scholarship opportunities worldwide and evaluate your admission chance."
   }
 }

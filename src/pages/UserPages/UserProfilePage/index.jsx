@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
 import { useGetUserProfileQuery, useUpdateUserProfileMutation } from '../../../services/apis/userApi';
+import { useToast } from '../../../context/ToastContext';
 import './index.scss';
 
 const UserAvatarIcon = () => (
@@ -37,6 +38,7 @@ const CheckBadgeIcon = () => (
 function UserProfilePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const userEmail = localStorage.getItem('userEmail') || 'student@edusaz.com';
   const { data: apiProfile, isLoading: isProfileLoading } = useGetUserProfileQuery(userEmail);
@@ -93,14 +95,14 @@ function UserProfilePage() {
         desiredField: profileData.desiredField
       }).unwrap();
 
-      localStorage.setItem('userName', `${profileData.firstName} ${profileData.lastName}`);
+      localStorage.setItem('userName', `${profileData.firstName} ${profileData.lastName}`.trim());
       localStorage.setItem('userEmail', profileData.email);
       setSavedSuccess(true);
+      toast?.showSuccess?.(t('profile.updatedSuccess', 'Məlumatlarınız yeniləndi!'));
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err) {
       console.error('Profile update error:', err);
-      setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 3000);
+      toast?.showError?.(err?.data?.message || t('profile.updateError', 'Məlumatları yeniləyərkən xəta baş verdi.'));
     }
   };
 

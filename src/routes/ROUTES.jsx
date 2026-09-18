@@ -31,8 +31,9 @@ import PrivateRoute from "../components/Common/PrivateRoute.jsx";
 const SuperAdminRoute = () => {
     const token = Cookies.get('userToken');
     const role = (localStorage.getItem('userRole') || '').toLowerCase();
+    const isSuperAdmin = localStorage.getItem('isSuperAdmin') === 'true';
 
-    if (!token || role !== 'superadmin') {
+    if (!token || (role !== 'superadmin' && !isSuperAdmin)) {
         return <SuperAdminSignInPage />;
     }
 

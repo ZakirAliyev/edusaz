@@ -10,7 +10,7 @@ import { translateText } from '../services/translationService';
  * @param {string} [sourceLang='auto'] - Source language (defaults to 'auto' / 'az').
  * @returns {string} - Translated text in the active language.
  */
-export function useAutoTranslate(text, sourceLang = 'auto') {
+export function useAutoTranslate(text, sourceLang = 'az') {
   const { i18n } = useTranslation();
   const targetLang = (i18n.language || 'az').split('-')[0].toLowerCase();
   const [translated, setTranslated] = useState(text || '');
@@ -22,9 +22,10 @@ export function useAutoTranslate(text, sourceLang = 'auto') {
     }
 
     let isMounted = true;
+    const effectiveSource = (!sourceLang || sourceLang === 'auto') ? 'az' : sourceLang;
 
     // Call translateText
-    translateText(text, sourceLang === 'auto' ? 'auto' : sourceLang, targetLang)
+    translateText(text, effectiveSource, targetLang)
       .then((res) => {
         if (isMounted && res) {
           setTranslated(res);
@@ -48,7 +49,7 @@ export function useAutoTranslate(text, sourceLang = 'auto') {
  * AutoTranslate component for declarative dynamic text translation.
  * Usage: <AutoTranslate text={uni.description} />
  */
-export function AutoTranslate({ text, sourceLang = 'auto', className = '' }) {
+export function AutoTranslate({ text, sourceLang = 'az', className = '' }) {
   const translated = useAutoTranslate(text, sourceLang);
   return className ? <span className={className}>{translated}</span> : <>{translated}</>;
 }

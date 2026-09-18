@@ -80,11 +80,11 @@ function ForUniversitiesPage() {
               {t('nav.forUniversities')}
             </span>
             <h1 className="fu-title">
-              {t('hero.titlePart1')} <br />
-              <span className="fu-highlight">{t('hero.titlePart2')}</span>
+              {t('forUniversitiesPage.titlePart1', 'Beynəlxalq Tələbələri Cəlb Edin')} <br />
+              <span className="fu-highlight">{t('forUniversitiesPage.titlePart2', 'EduSaz ilə Qlobal Tərəfdaşlıq')}</span>
             </h1>
             <p className="fu-desc">
-              {t('hero.subtitle')}
+              {t('forUniversitiesPage.desc', 'Universitetinizi və akademik proqramlarınızı qlobal miqyasda 500,000+ tələbəyə tanıdın, qəbul və təqaüd müraciətlərini vahid portal üzərindən idarə edin.')}
             </p>
             <div className="fu-actions">
               <button className="btn-primary" onClick={() => setIsModalOpen(true)}>

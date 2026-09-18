@@ -90,7 +90,7 @@ public static class DataSeeder
     }
 
     private static async Task SeedSuperAdminAsync(IServiceProvider serviceProvider, EdusazDbContext context)
-    {
+    {   
         var userManager = serviceProvider.GetService<UserManager<User>>();
         var roleManager = serviceProvider.GetService<RoleManager<Role>>();
 

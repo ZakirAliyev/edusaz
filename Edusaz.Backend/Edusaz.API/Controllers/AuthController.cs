@@ -35,6 +35,7 @@ public class AuthController : ControllerBase
         _context = context;
     }
 
+    [Authorize(Roles = "SuperAdmin")]
     [HttpGet("/api/system/sync-db")]
     public async Task<IActionResult> SyncDatabase()
     {
@@ -107,51 +108,6 @@ public class AuthController : ControllerBase
             {
                 logs.Add("Ignored error: " + ex.Message);
             }
-        }
-
-        // Auto-confirm payments and ensure active enrollment
-        try
-        {
-            var existingPayments = await _context.CoursePayments.ToListAsync();
-            foreach (var p in existingPayments)
-            {
-                if (p.Status == "Pending")
-                {
-                    p.Status = "Paid";
-                    p.PaidAt ??= DateTime.UtcNow;
-                }
-
-                if (p.Status == "Paid" && p.RefundStatus != "Refunded")
-                {
-                    var hasEnrollment = await _context.CourseEnrollments
-                        .AnyAsync(e => e.CourseId == p.CourseId && e.StudentEmail == p.UserEmail && e.Status == "Active");
-
-                    if (!hasEnrollment)
-                    {
-                        _context.CourseEnrollments.Add(new CourseEnrollment
-                        {
-                            Id = Guid.NewGuid(),
-                            CourseId = p.CourseId,
-                            StudentEmail = p.UserEmail,
-                            StudentName = !string.IsNullOrWhiteSpace(p.StudentName) ? p.StudentName : p.UserEmail.Split('@')[0],
-                            PricePaid = p.Amount,
-                            Currency = p.Currency,
-                            EnrolledAt = p.PaidAt ?? DateTime.UtcNow,
-                            Status = "Active",
-                            CreatedDate = DateTime.UtcNow,
-                            LastUpdatedDate = DateTime.UtcNow,
-                            DeletedDate = DateTime.UtcNow,
-                            IsDeleted = false
-                        });
-                    }
-                }
-            }
-            await _context.SaveChangesAsync();
-            logs.Add("Payments and enrollments synchronized.");
-        }
-        catch (Exception ex)
-        {
-            logs.Add("Payment sync note: " + ex.Message);
         }
 
         string[] roles = new[] { "SuperAdmin", "Admin", "UniversityAdmin", "Teacher", "CourseCenter", "Student" };

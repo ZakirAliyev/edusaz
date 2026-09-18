@@ -289,9 +289,9 @@ public class ScholarshipService : IScholarshipService
             Email = dto.Email,
             Type = "EligibilityCheck",
             MatchScore = score,
-            AnalysisSummary = $"Profil analizi nəticəsində {score}% yüksək uyğunluq müəyyən edildi.",
+            AnalysisSummary = $"Profil analizi nəticəsində {score}% uyğunluq müəyyən edildi.",
             RequirementBreakdown = string.Join("; ", highlights),
-            IsEmailSent = true
+            IsEmailSent = false
         };
 
         await _context.ScholarshipSubscriptions.AddAsync(subscription);
@@ -304,8 +304,8 @@ public class ScholarshipService : IScholarshipService
             MatchScore = score,
             Summary = $"Təbrik edirik! Profilinizin təhlili nəticəsində {scholarship.Name} proqramı üzrə {score}% yüksək qəbul şansı müəyyən edildi.",
             Highlights = highlights,
-            IsEmailSent = true,
-            EmailMessage = $"Detallı analitik hesabat və müraciət təlimatları {dto.Email} e-poçt ünvanına göndərildi."
+            IsEmailSent = false,
+            EmailMessage = $"Profil təhlili tamamlandı. Müraciət tələblərinə cavab verirsiniz və qeydiyyatdan keçə bilərsiniz."
         };
     }
 
@@ -324,9 +324,9 @@ public class ScholarshipService : IScholarshipService
             Email = dto.Email,
             Type = "Notification",
             MatchScore = 100,
-            AnalysisSummary = $"Xəbərdarlıq aktivləşdirildi: {scholarship.Name}",
-            RequirementBreakdown = $"E-poçt bildirişi {dto.Email} ünvanına göndəriləcək.",
-            IsEmailSent = true
+            AnalysisSummary = $"Xəbərdarlıq qeydiyyata alındı: {scholarship.Name}",
+            RequirementBreakdown = $"{dto.Email} ünvanı üçün bildiriş abunəliyi qeydə alındı.",
+            IsEmailSent = false
         };
 
         await _context.ScholarshipSubscriptions.AddAsync(subscription);

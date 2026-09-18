@@ -24,33 +24,29 @@ const ChevronIcon = () => (
   </svg>
 );
 
-const FlagIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-    <line x1="4" x2="4" y1="22" y2="15"/>
-  </svg>
-);
-
 const MapPinIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A5CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
     <circle cx="12" cy="10" r="3"/>
   </svg>
 );
 
-const BookIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+const LanguageIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A5CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="2" y1="12" x2="22" y2="12"/>
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
   </svg>
 );
 
-const GradCapIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
-    <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
-  </svg>
-);
+const TEACHING_LANGUAGES = [
+  { id: 'All', key: 'all', name: 'Bütün Dillər' },
+  { id: 'en', key: 'english', name: 'İngilis dili' },
+  { id: 'tr', key: 'turkish', name: 'Türk dili' },
+  { id: 'az', key: 'azerbaijani', name: 'Azərbaycan dili' },
+  { id: 'de', key: 'german', name: 'Alman dili' },
+  { id: 'ru', key: 'russian', name: 'Rus dili' }
+];
 
 function Hero() {
   const { t } = useTranslation();
@@ -58,16 +54,13 @@ function Hero() {
   const navigate = useNavigate();
   const { data: countries = [] } = useGetCountriesQuery(language);
 
-  const [fromCountry, setFromCountry] = useState('');
-  const [toCountry, setToCountry] = useState('');
-  const [fieldOfStudy, setFieldOfStudy] = useState('');
-  const [degreeLevel, setDegreeLevel] = useState('');
+  const [toCountry, setToCountry] = useState('All');
+  const [teachingLanguage, setTeachingLanguage] = useState('All');
 
   const handleSearch = () => {
     const queryParams = new URLSearchParams();
-    if (toCountry) queryParams.set('country', toCountry);
-    if (fieldOfStudy) queryParams.set('field', fieldOfStudy);
-    if (degreeLevel) queryParams.set('level', degreeLevel);
+    if (toCountry && toCountry !== 'All') queryParams.set('country', toCountry);
+    if (teachingLanguage && teachingLanguage !== 'All') queryParams.set('lang', teachingLanguage);
     
     navigate(`/universities?${queryParams.toString()}`);
   };
@@ -86,60 +79,34 @@ function Hero() {
 
         {/* Search Card */}
         <div className="search-card">
-          <div className="search-grid">
+          <div className="search-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
 
+            {/* Field 1: Country */}
             <div className="search-field">
-              <span className="field-label">{t('hero.labels.from')}</span>
-              <div className="field-row">
-                <FlagIcon />
-                <select className="field-select" value={fromCountry} onChange={(e) => setFromCountry(e.target.value)}>
-                  <option value="" disabled hidden>{t('hero.placeholders.from')}</option>
-                  {countries.map(c => (
-                    <option key={c.id} value={c.code}>{c.flagEmoji} {c.name}</option>
-                  ))}
-                </select>
-                <ChevronIcon />
-              </div>
-            </div>
-
-            <div className="search-field">
-              <span className="field-label">{t('hero.labels.to')}</span>
+              <span className="field-label">{t('hero.labels.from', 'TƏHSİL ALMAQ İSTƏYİRƏM')}</span>
               <div className="field-row">
                 <MapPinIcon />
                 <select className="field-select" value={toCountry} onChange={(e) => setToCountry(e.target.value)}>
-                  <option value="" disabled hidden>{t('hero.placeholders.to')}</option>
+                  <option value="All">{t('hero.placeholders.from', 'Ölkəni seçin')}</option>
                   {countries.map(c => (
-                    <option key={c.id} value={c.id}>{c.flagEmoji} {c.name}</option>
+                    <option key={c.id} value={c.id}>{c.flagEmoji || '🌍'} {c.name}</option>
                   ))}
                 </select>
                 <ChevronIcon />
               </div>
             </div>
 
+            {/* Field 2: Teaching Language */}
             <div className="search-field">
-              <span className="field-label">{t('hero.labels.field')}</span>
+              <span className="field-label">{t('matchedUniversities.labels.language', 'TƏDRİS DİLİ').toUpperCase()}</span>
               <div className="field-row">
-                <BookIcon />
-                <select className="field-select" value={fieldOfStudy} onChange={(e) => setFieldOfStudy(e.target.value)}>
-                  <option value="" disabled hidden>{t('hero.placeholders.field')}</option>
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Business">Business</option>
-                  <option value="Medicine">Medicine</option>
-                </select>
-                <ChevronIcon />
-              </div>
-            </div>
-
-            <div className="search-field">
-              <span className="field-label">{t('hero.labels.level')}</span>
-              <div className="field-row">
-                <GradCapIcon />
-                <select className="field-select" value={degreeLevel} onChange={(e) => setDegreeLevel(e.target.value)}>
-                  <option value="" disabled hidden>{t('hero.placeholders.level')}</option>
-                  <option value="Bachelor">Bachelor</option>
-                  <option value="Master">Master</option>
-                  <option value="PhD">PhD</option>
+                <LanguageIcon />
+                <select className="field-select" value={teachingLanguage} onChange={(e) => setTeachingLanguage(e.target.value)}>
+                  {TEACHING_LANGUAGES.map(lang => (
+                    <option key={lang.id} value={lang.id}>
+                      {t(`aiDiscovery.languages.${lang.key}`, lang.name)}
+                    </option>
+                  ))}
                 </select>
                 <ChevronIcon />
               </div>
@@ -151,11 +118,11 @@ function Hero() {
           <div className="search-actions">
             <button className="btn-find" onClick={handleSearch}>
               <SearchIcon />
-              <span>{t('hero.buttons.find')}</span>
+              <span>{t('hero.buttons.find', 'Universitetləri Tap')}</span>
             </button>
             <button className="btn-ai" onClick={() => navigate('/ai-discovery')}>
               <SparklesIcon />
-              <span>{t('hero.buttons.ai')}</span>
+              <span>{t('hero.buttons.ai', 'AI Axtarış')}</span>
             </button>
           </div>
         </div>

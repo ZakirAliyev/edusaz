@@ -1,35 +1,37 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Step1 from './Steps/Step1';
 import Step2 from './Steps/Step2';
-import Step3 from './Steps/Step3';
-import Step4 from './Steps/Step4';
-import Step5 from './Steps/Step5';
-import Step6 from './Steps/Step6';
 import AnalyzingScreen from './AnalyzingScreen';
 import './index.scss';
 
 function AiDiscoveryPage() {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const totalSteps = 6;
+  const totalSteps = 2;
   const navigate = useNavigate();
 
-  // State to hold all selections
+  // State to hold country & teaching language selections
   const [selections, setSelections] = useState({
-    countryFrom: '',
     countryTo: '',
-    fieldOfStudy: '',
-    educationLevel: '',
-    budget: '',
-    finalStepData: ''
+    countryName: '',
+    teachingLanguage: '',
+    languageName: ''
   });
 
+  const canContinue = currentStep === 1 
+    ? Boolean(selections.countryTo)
+    : Boolean(selections.teachingLanguage);
+
   const handleNext = () => {
+    if (!canContinue) return;
+
     if (currentStep < totalSteps) {
       setCurrentStep(prev => prev + 1);
     } else {
-      // Finished all steps, start analyzing
+      // Finished all 2 steps, start analyzing
       setIsAnalyzing(true);
     }
   };
@@ -40,8 +42,12 @@ function AiDiscoveryPage() {
     }
   };
 
-  const updateSelection = (key, value) => {
-    setSelections(prev => ({ ...prev, [key]: value }));
+  const updateCountry = (id, name) => {
+    setSelections(prev => ({ ...prev, countryTo: id, countryName: name }));
+  };
+
+  const updateLanguage = (id, name) => {
+    setSelections(prev => ({ ...prev, teachingLanguage: id, languageName: name }));
   };
   
   const handleAnalyzingComplete = () => {
@@ -53,19 +59,26 @@ function AiDiscoveryPage() {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <Step1 selection={selections.countryFrom} onSelect={(val) => updateSelection('countryFrom', val)} />;
+        return (
+          <Step1 
+            selection={selections.countryTo} 
+            onSelect={(id, name) => updateCountry(id, name)} 
+          />
+        );
       case 2:
-        return <Step2 selection={selections.countryTo} onSelect={(val) => updateSelection('countryTo', val)} />;
-      case 3:
-        return <Step3 selection={selections.fieldOfStudy} onSelect={(val) => updateSelection('fieldOfStudy', val)} />;
-      case 4:
-        return <Step4 selection={selections.educationLevel} onSelect={(val) => updateSelection('educationLevel', val)} />;
-      case 5:
-        return <Step5 selection={selections.budget} onSelect={(val) => updateSelection('budget', val)} />;
-      case 6:
-        return <Step6 selection={selections.finalStepData} onSelect={(val) => updateSelection('finalStepData', val)} />;
+        return (
+          <Step2 
+            selection={selections.teachingLanguage} 
+            onSelect={(id, name) => updateLanguage(id, name)} 
+          />
+        );
       default:
-        return <Step1 selection={selections.countryFrom} onSelect={(val) => updateSelection('countryFrom', val)} />;
+        return (
+          <Step1 
+            selection={selections.countryTo} 
+            onSelect={(id, name) => updateCountry(id, name)} 
+          />
+        );
     }
   };
 
@@ -83,12 +96,14 @@ function AiDiscoveryPage() {
           <div className="ad-header-left">
             {currentStep > 1 ? (
               <button className="btn-back" onClick={handleBack}>
-                &lsaquo; Back
+                &lsaquo; {t('common.back', 'Geri')}
               </button>
             ) : (
               <div className="btn-back-placeholder"></div>
             )}
-            <span className="step-label">Step {currentStep} of {totalSteps}</span>
+            <span className="step-label">
+              {t('aiDiscovery.stepLabel', { current: currentStep, total: totalSteps, defaultValue: `Addım ${currentStep} / ${totalSteps}` })}
+            </span>
           </div>
           <div className="ad-progress-container">
             <div className="ad-progress-bar">
@@ -99,7 +114,7 @@ function AiDiscoveryPage() {
             </div>
           </div>
           <div className="ad-header-right">
-            <span className="completion-label">{Math.round(progressPercentage)}% complete</span>
+            <span className="completion-label">{Math.round(progressPercentage)}% {t('aiDiscovery.complete', 'tamamlandı')}</span>
           </div>
         </div>
       </header>
@@ -112,11 +127,19 @@ function AiDiscoveryPage() {
       {/* Footer Area */}
       <footer className="ad-footer">
         <div className="ad-footer-content">
-          <button className="btn-primary-continue" onClick={handleNext}>
-            {currentStep === totalSteps ? 'Find My Universities' : 'Continue'} <span>&rarr;</span>
-          </button>
-          <button className="btn-skip" onClick={handleNext}>
-            Skip
+          <button 
+            className="btn-primary-continue" 
+            onClick={handleNext}
+            disabled={!canContinue}
+            style={{
+              opacity: canContinue ? 1 : 0.45,
+              cursor: canContinue ? 'pointer' : 'not-allowed'
+            }}
+          >
+            {currentStep === totalSteps 
+              ? (t('aiDiscovery.btnFind', 'Universitetləri Tap') || 'Find My Universities')
+              : (t('aiDiscovery.btnContinue', 'Davam Et') || 'Continue')
+            } <span>&rarr;</span>
           </button>
         </div>
       </footer>

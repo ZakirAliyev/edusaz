@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../../context/LanguageContext';
-import { useGetUniversitiesQuery, useGetCountriesQuery, useGetProgramsQuery } from '../../../services/apis/userApi';
+import { useGetUniversitiesQuery, useGetCountriesQuery } from '../../../services/apis/userApi';
+import { checkCountryMatch, checkLanguageMatch } from '../../../utils/filterUtils';
 import './index.scss';
 
 const UniversityIcon = () => (
@@ -14,13 +15,6 @@ const UniversityIcon = () => (
   </svg>
 );
 
-const BookOpenIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-  </svg>
-);
-
 const FilterIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
@@ -28,23 +22,8 @@ const FilterIcon = () => (
 );
 
 const SparkleIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
     <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
-  </svg>
-);
-
-const ScholarshipIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-  </svg>
-);
-
-const CalendarIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-    <line x1="16" y1="2" x2="16" y2="6"/>
-    <line x1="8" y1="2" x2="8" y2="6"/>
-    <line x1="3" y1="10" x2="21" y2="10"/>
   </svg>
 );
 
@@ -60,13 +39,6 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
-const SearchIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8"/>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-  </svg>
-);
-
 const SearchXIcon = () => (
   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8"/>
@@ -76,308 +48,222 @@ const SearchXIcon = () => (
   </svg>
 );
 
+const TEACHING_LANGUAGES = [
+  { id: 'All', key: 'all', name: 'Bütün Dillər' },
+  { id: 'en', key: 'english', name: 'İngilis dili' },
+  { id: 'tr', key: 'turkish', name: 'Türk dili' },
+  { id: 'az', key: 'azerbaijani', name: 'Azərbaycan dili' },
+  { id: 'de', key: 'german', name: 'Alman dili' },
+  { id: 'ru', key: 'russian', name: 'Rus dili' }
+];
+
 function BrowseUniversitiesPage() {
   const { t } = useTranslation();
   const { language } = useLanguage();
+  const [searchParams] = useSearchParams();
   const { data: universities = [], isLoading: isLoadingUnis } = useGetUniversitiesQuery(language);
   const { data: countries = [] } = useGetCountriesQuery(language);
-  const { data: programs = [] } = useGetProgramsQuery({ lang: language });
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState('All');
-  const [appliedFilters, setAppliedFilters] = useState({ country: 'All', query: '' });
-  const [showDropdown, setShowDropdown] = useState(false);
+  const initialCountry = searchParams.get('country') || 'All';
+  const initialLang = searchParams.get('lang') || 'All';
 
-  const searchContainerRef = useRef(null);
+  const [selectedCountry, setSelectedCountry] = useState(initialCountry);
+  const [selectedLanguage, setSelectedLanguage] = useState(initialLang);
+  const [appliedFilters, setAppliedFilters] = useState({ country: initialCountry, language: initialLang });
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    const cParam = searchParams.get('country') || 'All';
+    const lParam = searchParams.get('lang') || 'All';
+    setSelectedCountry(cParam);
+    setSelectedLanguage(lParam);
+    setAppliedFilters({ country: cParam, language: lParam });
+  }, [searchParams]);
 
   const handleSearch = () => {
-    setShowDropdown(false);
     setAppliedFilters({
       country: selectedCountry,
-      query: searchQuery
-    });
-  };
-
-  const selectAutocompleteItem = (value) => {
-    setSearchQuery(value);
-    setShowDropdown(false);
-    setAppliedFilters({
-      country: selectedCountry,
-      query: value
+      language: selectedLanguage
     });
   };
 
   const resetFilters = () => {
     setSelectedCountry('All');
-    setSearchQuery('');
-    setShowDropdown(false);
-    setAppliedFilters({ country: 'All', query: '' });
+    setSelectedLanguage('All');
+    setAppliedFilters({ country: 'All', language: 'All' });
   };
 
-  // Filter matching programs & universities for live autocomplete dropdown
-  const queryLower = searchQuery.toLowerCase().trim();
-  const matchingPrograms = queryLower ? programs.filter(p => 
-    p.title?.toLowerCase().includes(queryLower) ||
-    p.fieldOfStudy?.toLowerCase().includes(queryLower) ||
-    p.universityName?.toLowerCase().includes(queryLower)
-  ).slice(0, 5) : [];
+  // Universities filtered by selected Country and selected Teaching Language
+  const filteredUniversities = useMemo(() => {
+    return universities.filter(uni => {
+      const activeCountry = appliedFilters.country;
+      const activeLang = appliedFilters.language;
 
-  const matchingUnis = queryLower ? universities.filter(u =>
-    u.name?.toLowerCase().includes(queryLower) ||
-    u.country?.toLowerCase().includes(queryLower)
-  ).slice(0, 3) : [];
+      const matchesCountry = checkCountryMatch(uni, activeCountry, countries);
+      const matchesLang = checkLanguageMatch(uni, activeLang);
 
-  // Universities linked with programs matching search query
-  const filteredUniversities = universities.filter(uni => {
-    const activeCountry = appliedFilters.country;
-    const activeQuery = appliedFilters.query.toLowerCase().trim();
-
-    const matchesCountry = activeCountry === 'All' || 
-                           uni.country.toLowerCase() === activeCountry.toLowerCase() ||
-                           uni.countryCode?.toLowerCase() === activeCountry.toLowerCase() ||
-                           uni.countryId === activeCountry;
-
-    // Check if university matches name, country, or any associated programs in programs API
-    const uniPrograms = programs.filter(p => p.universityId === uni.id);
-    const matchesProgram = uniPrograms.some(p => 
-      p.title?.toLowerCase().includes(activeQuery) ||
-      p.fieldOfStudy?.toLowerCase().includes(activeQuery) ||
-      p.degreeLevel?.toLowerCase().includes(activeQuery)
-    );
-
-    const matchesQuery = !activeQuery || 
-                         uni.name.toLowerCase().includes(activeQuery) || 
-                         uni.country.toLowerCase().includes(activeQuery) ||
-                         matchesProgram;
-
-    return matchesCountry && matchesQuery;
-  });
+      return matchesCountry && matchesLang;
+    });
+  }, [universities, countries, appliedFilters]);
 
   return (
     <main id="browse-universities-page">
       <div className="bu-header">
         <div className="bu-badge">
           <UniversityIcon />
-          {t('matchedUniversities.badge')}
+          {t('matchedUniversities.badge', 'UNİVERSİTETLƏR')}
         </div>
         
         <h1 className="bu-title">
-          {t('matchedUniversities.title')}
+          {t('matchedUniversities.title', 'Bütün Universitetlər')}
         </h1>
         
         <p className="bu-subtitle">
-          {t('hero.subtitle')}
+          {t('hero.subtitle', 'Bizə özünüz haqqında danışın. Süni İntellektimiz sizi dünyanın ən yaxşı universitetləri ilə uyğunlaşdırır.')}
         </p>
       </div>
 
+      {/* Filter Card: Country & Teaching Language */}
       <div className="bu-filter-card">
         <div className="filter-group">
+          {/* Field 1: Country */}
           <div className="filter-field">
-            <span className="filter-label">{t('hero.labels.to')}</span>
+            <span className="filter-label">{t('hero.labels.from', 'TƏHSİL ALMAQ İSTƏYİRƏM')}</span>
             <div className="filter-input-wrap">
               <select 
                 className="filter-select" 
                 value={selectedCountry} 
                 onChange={(e) => setSelectedCountry(e.target.value)}
               >
-                <option value="All">{t('hero.placeholders.to')}</option>
+                <option value="All">{t('hero.placeholders.from', 'Ölkəni seçin')}</option>
                 {countries.map(c => (
-                  <option key={c.id} value={c.id}>{c.flagEmoji} {c.name}</option>
+                  <option key={c.id} value={c.id}>{c.flagEmoji || '🌍'} {c.name}</option>
                 ))}
               </select>
               <ChevronDownIcon />
             </div>
           </div>
           
-          <div className="filter-field" ref={searchContainerRef}>
-            <span className="filter-label">{t('hero.labels.field')}</span>
+          {/* Field 2: Teaching Language */}
+          <div className="filter-field">
+            <span className="filter-label">{t('matchedUniversities.labels.language', 'TƏDRİS DİLİ').toUpperCase()}</span>
             <div className="filter-input-wrap">
-              <input 
-                type="text" 
+              <select 
                 className="filter-select" 
-                placeholder={t('hero.placeholders.field')} 
-                value={searchQuery}
-                onFocus={() => setShowDropdown(true)}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowDropdown(true);
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                style={{ cursor: 'text' }}
-              />
-              <SearchIcon />
-
-              {/* Live Autocomplete Dropdown List */}
-              {showDropdown && queryLower.length > 0 && (
-                <div className="autocomplete-dropdown">
-                  {matchingPrograms.length > 0 && (
-                    <div style={{ padding: '4px 14px', fontSize: '0.65rem', fontWeight: '700', color: '#94a3b8', letterSpacing: '0.5px' }}>
-                      {t('portal.programs', 'İXTİSASLAR').toUpperCase()} ({matchingPrograms.length})
-                    </div>
-                  )}
-
-                  {matchingPrograms.map((prog) => (
-                    <div 
-                      key={prog.id} 
-                      className="autocomplete-item" 
-                      onClick={() => selectAutocompleteItem(prog.title || prog.fieldOfStudy)}
-                    >
-                      <div className="ac-icon">
-                        <BookOpenIcon />
-                      </div>
-                      <div className="ac-content">
-                        <span className="ac-title">{prog.title}</span>
-                        <span className="ac-sub">{prog.universityName ? `${prog.universityName} • ` : ''}{prog.degreeLevel}</span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {matchingUnis.length > 0 && (
-                    <div style={{ padding: '8px 14px 4px', fontSize: '0.65rem', fontWeight: '700', color: '#94a3b8', letterSpacing: '0.5px' }}>
-                      {t('matchedUniversities.badge', 'UNİVERSİTETLƏR').toUpperCase()} ({matchingUnis.length})
-                    </div>
-                  )}
-
-                  {matchingUnis.map((uni) => (
-                    <div 
-                      key={uni.id} 
-                      className="autocomplete-item" 
-                      onClick={() => selectAutocompleteItem(uni.name)}
-                    >
-                      <div className="ac-icon">
-                        <UniversityIcon />
-                      </div>
-                      <div className="ac-content">
-                        <span className="ac-title">{uni.name}</span>
-                        <span className="ac-sub">{uni.country}</span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {matchingPrograms.length === 0 && matchingUnis.length === 0 && (
-                    <div className="ac-empty">
-                      {t('search.noMatchesFound', 'Uyğun ixtisas və ya universitet tapılmadı')}
-                    </div>
-                  )}
-                </div>
-              )}
+                value={selectedLanguage} 
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+              >
+                {TEACHING_LANGUAGES.map(lang => (
+                  <option key={lang.id} value={lang.id}>
+                    {t(`aiDiscovery.languages.${lang.key}`, lang.name)}
+                  </option>
+                ))}
+              </select>
+              <ChevronDownIcon />
             </div>
           </div>
         </div>
         
         <div className="filter-actions">
           <button className="btn-apply-filters" onClick={handleSearch}>
-            <FilterIcon /> {t('hero.buttons.find')} ({filteredUniversities.length})
+            <FilterIcon /> {t('hero.buttons.find', 'Universitetləri Tap')} ({filteredUniversities.length})
           </button>
+          <Link to="/ai-discovery" style={{ textDecoration: 'none' }}>
+            <button className="btn-use-ai">
+              <SparkleIcon /> {t('hero.buttons.ai', 'AI Axtarış')}
+            </button>
+          </Link>
         </div>
       </div>
 
       <div className="bu-grid-container">
         {isLoadingUnis ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>{t('profile.saving', 'Loading...')}</div>
+          <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>
+            {t('common.loading', 'Universitetlər yüklənir...')}
+          </div>
         ) : filteredUniversities.length === 0 ? (
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '20px',
-            padding: '50px 30px',
-            textAlign: 'center',
-            maxWidth: '600px',
-            margin: '40px auto',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
-            border: '1px solid #e2e8f0'
-          }}>
-            <div style={{ display: 'inline-flex', padding: '16px', borderRadius: '50%', background: '#f1f5f9', marginBottom: '20px' }}>
-              <SearchXIcon />
-            </div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>
-              {t('search.noResultsTitle', 'Axtarışınıza uyğun universitet tapılmadı')}
-            </h3>
-            <p style={{ color: '#64748b', fontSize: '0.925rem', lineHeight: '1.6', marginBottom: '24px' }}>
-              {t('search.noResultsDesc', 'Seçilmiş ölkə və ya ixtisas meyarlarına cavab verən universitet tapılmadı. Filtrləri sıfırlayaraq bütün universitetləri nəzərdən keçirə bilərsiniz.')}
+          <div style={{ textAlign: 'center', padding: '60px', color: '#64748b' }}>
+            <SearchXIcon />
+            <p style={{ marginTop: '16px', fontSize: '1.1rem' }}>
+              {t('matchedUniversities.noResults', 'Seçilmiş filtrlərə uyğun universitet tapılmadı.')}
             </p>
             <button 
-              onClick={resetFilters}
+              onClick={resetFilters} 
               style={{
-                background: '#4f46e5',
-                color: '#ffffff',
-                border: 'none',
-                padding: '12px 28px',
-                borderRadius: '100px',
-                fontWeight: '600',
-                fontSize: '0.875rem',
+                marginTop: '12px',
+                padding: '8px 20px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                background: '#ffffff',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)'
+                fontWeight: 600,
+                color: '#7A5CFF'
               }}
             >
-              {t('search.resetFiltersBtn', 'Filtrləri Sıfırla')}
+              {t('portal.all', 'Bütün Universitetləri Göstər')}
             </button>
           </div>
         ) : (
           <div className="bu-grid">
-            {filteredUniversities.map(uni => (
-              <Link to={`/universities/${uni.id}`} key={uni.id} className="mu-card-link">
+            {filteredUniversities.map((uni) => (
+              <Link 
+                to={`/universities/${uni.id}`} 
+                key={uni.id} 
+                className="mu-card-link"
+              >
                 <div className="mu-card">
                   <div className="mu-card-img-wrapper">
                     <img 
-                      src={uni.logoUrl || uni.imageUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80"} 
+                      src={uni.logoUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80'} 
                       alt={uni.name} 
                       className="mu-card-img" 
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=600&q=80";
-                      }}
+                      loading="lazy"
                     />
                     <div className="mu-card-tags">
-                      <div className="mu-tag-match" style={{ backgroundColor: "#10b981" }}>
-                        <SparkleIcon /> 96% {t('matchedUniversities.match')}
-                      </div>
                       {uni.hasScholarship && (
-                        <div className="mu-tag-scholarship">
-                          <ScholarshipIcon /> {t('matchedUniversities.scholarship')}
-                        </div>
+                        <span className="mu-tag-scholarship">
+                          🎓 {t('matchedUniversities.tags.scholarship', 'Təqaüdlü')}
+                        </span>
                       )}
                     </div>
                   </div>
 
                   <div className="mu-card-body">
                     <div className="mu-card-header">
-                      <h3 className="mu-uni-name">{uni.name}</h3>
-                      <span className="mu-uni-rank">{uni.ranking || (`${t('matchedUniversities.est')} ${uni.establishedYear}`)}</span>
+                      <h3 className="mu-uni-name" title={uni.name}>{uni.name}</h3>
+                      {uni.ranking && (
+                        <span className="mu-uni-rank">#{uni.ranking}</span>
+                      )}
                     </div>
 
-                    <span className="mu-uni-location">{uni.city ? `${uni.city}, ${uni.country}` : uni.country}</span>
-                    <span className="mu-uni-program">{uni.description ? uni.description.substring(0, 50) + '...' : 'Bachelor in Computer Science'}</span>
+                    <span className="mu-uni-location">
+                      📍 {[uni.city, uni.country].filter(Boolean).join(', ')}
+                    </span>
+
+                    {uni.teachingLanguage && (
+                      <span className="mu-uni-program">
+                        🗣️ {uni.teachingLanguage}
+                      </span>
+                    )}
 
                     <div className="mu-uni-stats">
                       <div className="stat-box">
-                        <span className="stat-label">{t('matchedUniversities.labels.tuition')}</span>
-                        <span className="stat-val">{uni.tuition || '$6,500/yr'}</span>
+                        <span className="stat-label">{t('matchedUniversities.labels.tuition', 'Təhsil Haqqı')}</span>
+                        <span className="stat-val">{uni.tuition || '$3,000'}</span>
                       </div>
                       <div className="stat-box">
-                        <span className="stat-label">{t('matchedUniversities.labels.acceptance')}</span>
+                        <span className="stat-label">{t('matchedUniversities.labels.acceptance', 'Qəbul')}</span>
                         <span className="stat-val">{uni.acceptanceRate || '45%'}</span>
                       </div>
                       <div className="stat-box">
-                        <span className="stat-label">{t('matchedUniversities.labels.language')}</span>
-                        <span className="stat-val">{uni.teachingLanguage || 'English'}</span>
+                        <span className="stat-label">{t('matchedUniversities.labels.language', 'Dil')}</span>
+                        <span className="stat-val">{uni.teachingLanguage ? uni.teachingLanguage.split(',')[0] : 'English'}</span>
                       </div>
                     </div>
 
                     <div className="mu-card-footer">
-                      <div className="mu-deadline">
-                        <CalendarIcon /> {uni.deadline || 'Apr 30, 2025'}
-                      </div>
+                      <span className="mu-deadline">
+                        📅 {uni.establishedYear ? `${t('matchedUniversities.est', 'Qurulma')}: ${uni.establishedYear}` : '2026/2027'}
+                      </span>
                       <ChevronRightIcon />
                     </div>
                   </div>

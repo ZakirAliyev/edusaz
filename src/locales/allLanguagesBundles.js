@@ -688,6 +688,289 @@ const commonTranslations = {
   }
 };
 
+const aiDiscoveryTranslations = {
+  az: {
+    stepBadge: "ADDIM 1 / 2",
+    stepBadge2: "ADDIM 2 / 2",
+    stepLabel: "Addım {{current}} / {{total}}",
+    complete: "tamamlandı",
+    btnContinue: "Davam Et",
+    btnFind: "Universitetləri Tap",
+    step1Title: "Harada təhsil almaq istəyirsiniz?",
+    step1Subtitle: "Sistemimizdə olan ölkələrdən birini seçin. Yalnız seçdiyiniz ölkənin universitetləri təhlil ediləcək.",
+    step2Title: "Hansı dildə təhsil almaq istəyirsiniz?",
+    step2Subtitle: "Tədris dilini seçin ki, sizə ən uyğun universitet və proqramları təqdim edək.",
+    analyzed: "AI sizin profilinizi analiz etdi",
+    refine: "Yenidən Seç",
+    foundCountPrefix: "Sizin üçün",
+    foundCountSuffix: "tapıldı",
+    bestMatch: "Ən Yüksək Uyğunluq",
+    scholarshipOpportunities: "Təqaüd İmkanları",
+    sortMatch: "AI Uyğunluq Balı",
+    sortRanking: "Reytinq üzrə",
+    languages: {
+      all: "Bütün Dillər",
+      english: "İngilis dili",
+      turkish: "Türk dili",
+      azerbaijani: "Azərbaycan dili",
+      german: "Alman dili",
+      russian: "Rus dili"
+    }
+  },
+  en: {
+    stepBadge: "STEP 1 OF 2",
+    stepBadge2: "STEP 2 OF 2",
+    stepLabel: "Step {{current}} of {{total}}",
+    complete: "complete",
+    btnContinue: "Continue",
+    btnFind: "Find My Universities",
+    step1Title: "Where would you like to study?",
+    step1Subtitle: "Select one of our partner countries. Only universities from your chosen destination will be analyzed.",
+    step2Title: "Which language would you like to study in?",
+    step2Subtitle: "Select your preferred teaching language to discover matching academic programs.",
+    analyzed: "AI analyzed your profile",
+    refine: "Change Criteria",
+    foundCountPrefix: "Found",
+    foundCountSuffix: "for your profile",
+    bestMatch: "Highest Match",
+    scholarshipOpportunities: "Scholarship Opportunities",
+    sortMatch: "By AI Match Score",
+    sortRanking: "By Global Ranking",
+    languages: {
+      all: "All Languages",
+      english: "English",
+      turkish: "Turkish",
+      azerbaijani: "Azerbaijani",
+      german: "German",
+      russian: "Russian"
+    }
+  },
+  tr: {
+    stepBadge: "ADIM 1 / 2",
+    stepBadge2: "ADIM 2 / 2",
+    stepLabel: "Adım {{current}} / {{total}}",
+    complete: "tamamlandı",
+    btnContinue: "Devam Et",
+    btnFind: "Üniversiteleri Bul",
+    step1Title: "Nerede eğitim almak istersiniz?",
+    step1Subtitle: "Sistemimizde yer alan ülkelerden birini seçin. Yalnızca seçtiğiniz ülkenin üniversiteleri incelenecektir.",
+    step2Title: "Hangi dilde eğitim almak istersiniz?",
+    step2Subtitle: "Size en uygun akademik programları keşfetmek için eğitim dilini seçin.",
+    analyzed: "Yapay zeka profilinizi analiz etti",
+    refine: "Filtreleri Değiştir",
+    foundCountPrefix: "Sizin için",
+    foundCountSuffix: "bulundu",
+    bestMatch: "En Yüksek Eşleşme",
+    scholarshipOpportunities: "Burs İmkânları",
+    sortMatch: "AI Eşleşme Puanına Göre",
+    sortRanking: "Sıralamaya Göre",
+    languages: {
+      all: "Tüm Diller",
+      english: "İngilizce",
+      turkish: "Türkçe",
+      azerbaijani: "Azerbaycanca",
+      german: "Almanca",
+      russian: "Rusça"
+    }
+  },
+  ru: {
+    stepBadge: "ШАГ 1 ИЗ 2",
+    stepBadge2: "ШАГ 2 ИЗ 2",
+    stepLabel: "Шаг {{current}} из {{total}}",
+    complete: "завершено",
+    btnContinue: "Продолжить",
+    btnFind: "Найти Университеты",
+    step1Title: "Где вы хотите учиться?",
+    step1Subtitle: "Выберите страну из нашей системы. Будут показаны только университеты выбранной страны.",
+    step2Title: "На каком языке вы хотите учиться?",
+    step2Subtitle: "Выберите язык обучения для подбора подходящих академических программ.",
+    analyzed: "ИИ проанализировал ваш профиль",
+    refine: "Изменить параметры",
+    foundCountPrefix: "Найдено",
+    foundCountSuffix: "для вас",
+    bestMatch: "Лучшее совпадение",
+    scholarshipOpportunities: "Стипендиальные возможности",
+    sortMatch: "По соответствию ИИ",
+    sortRanking: "По рейтингу",
+    languages: {
+      all: "Все Языки",
+      english: "Английский",
+      turkish: "Турецкий",
+      azerbaijani: "Азербайджанский",
+      german: "Немецкий",
+      russian: "Русский"
+    }
+  },
+  de: {
+    stepBadge: "SCHRITT 1 VON 2",
+    stepBadge2: "SCHRITT 2 VON 2",
+    stepLabel: "Schritt {{current}} von {{total}}",
+    complete: "abgeschlossen",
+    btnContinue: "Weiter",
+    btnFind: "Universitäten Finden",
+    step1Title: "Wo möchten Sie studieren?",
+    step1Subtitle: "Wählen Sie ein Land aus unserem System. Es werden nur Hochschulen des Ziellandes angezeigt.",
+    step2Title: "In welcher Sprache möchten Sie studieren?",
+    step2Subtitle: "Wählen Sie die Unterrichtssprache für passende Studiengänge.",
+    analyzed: "KI hat Ihr Profil analysiert",
+    refine: "Kriterien anpassen",
+    foundCountPrefix: "Gefunden:",
+    foundCountSuffix: "für Sie",
+    bestMatch: "Beste Übereinstimmung",
+    scholarshipOpportunities: "Stipendienmöglichkeiten",
+    sortMatch: "Nach KI-Übereinstimmung",
+    sortRanking: "Nach Ranking",
+    languages: {
+      all: "Alle Sprachen",
+      english: "Englisch",
+      turkish: "Türkisch",
+      azerbaijani: "Aserbaidschanisch",
+      german: "Deutsch",
+      russian: "Russisch"
+    }
+  },
+  fr: {
+    stepBadge: "ÉTAPE 1 SUR 2",
+    stepBadge2: "ÉTAPE 2 SUR 2",
+    stepLabel: "Étape {{current}} sur {{total}}",
+    complete: "terminé",
+    btnContinue: "Continuer",
+    btnFind: "Trouver mes universités",
+    step1Title: "Où aimeriez-vous étudier ?",
+    step1Subtitle: "Sélectionnez un pays partenaire. Seules les universités de cette destination seront analysées.",
+    step2Title: "Dans quelle langue souhaitez-vous étudier ?",
+    step2Subtitle: "Choisissez la langue d'enseignement pour découvrir les programmes correspondants.",
+    analyzed: "L'IA a analysé votre profil",
+    refine: "Modifier les critères",
+    foundCountPrefix: "Trouvé",
+    foundCountSuffix: "pour vous",
+    bestMatch: "Meilleure correspondance",
+    scholarshipOpportunities: "Bourses disponibles",
+    sortMatch: "Par score IA",
+    sortRanking: "Par classement",
+    languages: {
+      all: "Toutes les langues",
+      english: "Anglais",
+      turkish: "Turc",
+      azerbaijani: "Azerbaïdjanais",
+      german: "Allemand",
+      russian: "Russe"
+    }
+  },
+  es: {
+    stepBadge: "PASO 1 DE 2",
+    stepBadge2: "PASO 2 DE 2",
+    stepLabel: "Paso {{current}} de {{total}}",
+    complete: "completado",
+    btnContinue: "Continuar",
+    btnFind: "Buscar Universidades",
+    step1Title: "¿Dónde le gustaría estudiar?",
+    step1Subtitle: "Seleccione un país de nuestro sistema. Solo se analizarán universidades del destino elegido.",
+    step2Title: "¿En qué idioma prefiere estudiar?",
+    step2Subtitle: "Seleccione el idioma de enseñanza para ver los programas adecuados.",
+    analyzed: "La IA analizó su perfil",
+    refine: "Cambiar criterios",
+    foundCountPrefix: "Encontradas",
+    foundCountSuffix: "para ti",
+    bestMatch: "Mejor coincidencia",
+    scholarshipOpportunities: "Oportunidades de becas",
+    sortMatch: "Por puntuación IA",
+    sortRanking: "Por clasificación",
+    languages: {
+      all: "Todos los idiomas",
+      english: "Inglés",
+      turkish: "Turco",
+      azerbaijani: "Azerbaiyano",
+      german: "Alemán",
+      russian: "Ruso"
+    }
+  },
+  it: {
+    stepBadge: "PASSO 1 DI 2",
+    stepBadge2: "PASSO 2 DI 2",
+    stepLabel: "Passo {{current}} di {{total}}",
+    complete: "completato",
+    btnContinue: "Continua",
+    btnFind: "Trova Università",
+    step1Title: "Dove vorresti studiare?",
+    step1Subtitle: "Seleziona uno dei paesi del nostro sistema per trovare le università disponibili.",
+    step2Title: "In quale lingua vorresti studiare?",
+    step2Subtitle: "Seleziona la lingua di insegnamento per trovare i corsi più adatti.",
+    analyzed: "L'IA ha analizzato il tuo profilo",
+    refine: "Modifica criteri",
+    foundCountPrefix: "Trovate",
+    foundCountSuffix: "per te",
+    bestMatch: "Miglior corrispondenza",
+    scholarshipOpportunities: "Opportunità di borse",
+    sortMatch: "Per punteggio IA",
+    sortRanking: "Per classifica",
+    languages: {
+      all: "Tutte le lingue",
+      english: "Inglese",
+      turkish: "Turco",
+      azerbaijani: "Azero",
+      german: "Tedesco",
+      russian: "Russo"
+    }
+  },
+  ar: {
+    stepBadge: "الخطوة 1 من 2",
+    stepBadge2: "الخطوة 2 من 2",
+    stepLabel: "الخطوة {{current}} من {{total}}",
+    complete: "مكتمل",
+    btnContinue: "متابعة",
+    btnFind: "البحث عن الجامعات",
+    step1Title: "أين ترغب في الدراسة؟",
+    step1Subtitle: "اختر دولة من نظامنا لعرض الجامعات المتوفرة بها.",
+    step2Title: "بأي لغة تفضل الدراسة؟",
+    step2Subtitle: "اختر لغة التدريس لاكتشاف البرامج الأكاديمية المناسبة.",
+    analyzed: "قام الذكاء الاصطناعي بتحليل ملفك",
+    refine: "تعديل المعايير",
+    foundCountPrefix: "تم العثور على",
+    foundCountSuffix: "لك",
+    bestMatch: "أعلى توافق",
+    scholarshipOpportunities: "فرص المنح الدراسية",
+    sortMatch: "حسب مطابقة الذكاء الاصطناعي",
+    sortRanking: "حسب التصنيف",
+    languages: {
+      all: "جميع اللغات",
+      english: "الإنجليزية",
+      turkish: "التركية",
+      azerbaijani: "الأذربيجانية",
+      german: "الألمانية",
+      russian: "الروسية"
+    }
+  },
+  zh: {
+    stepBadge: "第 1 步 / 共 2 步",
+    stepBadge2: "第 2 步 / 共 2 步",
+    stepLabel: "第 {{current}} 步 / 共 {{total}} 步",
+    complete: "完成",
+    btnContinue: "继续",
+    btnFind: "查找大学",
+    step1Title: "您想去哪里留学？",
+    step1Subtitle: "选择我们系统中的合作国家，将精准匹配该国大学。",
+    step2Title: "您想用哪种语言授课？",
+    step2Subtitle: "选择授课语言以探索最适合您的专业课程。",
+    analyzed: "AI 已完成对您背景的分析",
+    refine: "修改条件",
+    foundCountPrefix: "为您找到",
+    foundCountSuffix: "所大学",
+    bestMatch: "最佳匹配",
+    scholarshipOpportunities: "奖学金机会",
+    sortMatch: "按 AI 匹配度",
+    sortRanking: "按全球排名",
+    languages: {
+      all: "全部语言",
+      english: "英语",
+      turkish: "土耳其语",
+      azerbaijani: "阿塞拜疆语",
+      german: "德语",
+      russian: "俄语"
+    }
+  }
+};
+
 export function buildAllResourceBundles() {
   const resources = {};
 
@@ -709,6 +992,10 @@ export function buildAllResourceBundles() {
       || commonTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en']
       || commonTranslations.en;
 
+    const aiDict = aiDiscoveryTranslations[code]
+      || aiDiscoveryTranslations[code === 'ge' || code === 'ua' || code === 'am' ? 'ru' : code === 'kz' || code === 'uz' ? 'tr' : 'en']
+      || aiDiscoveryTranslations.en;
+
     resources[code] = {
       translation: {
         ...en,
@@ -716,6 +1003,14 @@ export function buildAllResourceBundles() {
         common: {
           ...(commonTranslations.en || {}),
           ...cDict
+        },
+        aiDiscovery: {
+          ...(aiDiscoveryTranslations.en || {}),
+          ...aiDict,
+          languages: {
+            ...(aiDiscoveryTranslations.en?.languages || {}),
+            ...(aiDict.languages || {})
+          }
         },
         hero: {
           ...(en.hero || {}),

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './index.scss';
 
@@ -46,6 +47,27 @@ function AiAdvisor() {
               {t('aiAdvisorSection.feature3')}
             </li>
           </ul>
+
+          <div style={{ marginTop: '24px' }}>
+            <Link to="/ai-discovery" style={{ textDecoration: 'none' }}>
+              <button style={{
+                background: 'linear-gradient(135deg, #7b4dff, #6366f1)',
+                color: '#ffffff',
+                border: 'none',
+                padding: '14px 28px',
+                borderRadius: '12px',
+                fontWeight: 600,
+                fontSize: '1rem',
+                cursor: 'pointer',
+                boxShadow: '0 8px 20px rgba(123, 77, 255, 0.35)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <AiIcon /> {t('hero.buttons.ai', 'AI ilə Universitetləri Tap')} <span>&rarr;</span>
+              </button>
+            </Link>
+          </div>
         </div>
 
         <div className="ai-visual">

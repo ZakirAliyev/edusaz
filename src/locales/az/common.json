@@ -337,5 +337,13 @@
     "country": "Ölkə",
     "message": "Əlavə Qeyd / Mesaj",
     "sendBtn": "Müraciəti Göndər"
+  },
+  "forUniversitiesPage": {
+    "titlePart1": "Beynəlxalq Tələbələri Cəlb Edin",
+    "titlePart2": "EduSaz ilə Qlobal Tərəfdaşlıq",
+    "desc": "Universitetinizi və akademik proqramlarınızı qlobal miqyasda 500,000+ tələbəyə tanıdın, qəbul və təqaüd müraciətlərini vahid portal üzərindən idarə edin."
+  },
+  "scholarshipsPage": {
+    "subtitle": "Dünyanın aparıcı universitetlərində tam və ya qismən maliyyələşdirilən 150,000+ təqaüd proqramına müraciət et və qəbul şansını yoxla."
   }
 }

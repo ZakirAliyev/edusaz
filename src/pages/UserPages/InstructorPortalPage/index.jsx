@@ -138,10 +138,12 @@ function InstructorPortalPage() {
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      userEmail = payload.email || payload.http1 || '';
+      userEmail = payload.email || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || localStorage.getItem('userEmail') || '';
     } catch (e) {
-      console.error(e);
+      userEmail = localStorage.getItem('userEmail') || '';
     }
+  } else {
+    userEmail = localStorage.getItem('userEmail') || '';
   }
 
   const instructorEmail = userEmail; // Keep using instructorEmail variable for backward compatibility with queries

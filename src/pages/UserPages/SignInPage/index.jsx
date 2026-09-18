@@ -49,6 +49,11 @@ function SignInPage() {
       Cookies.set('userToken', token, { expires: 1 });
       localStorage.setItem('userRole', role.toLowerCase());
       localStorage.setItem('userEmail', tokenData?.email || formData.email);
+      if (role.toLowerCase() === 'superadmin') {
+        localStorage.setItem('isSuperAdmin', 'true');
+      } else {
+        localStorage.removeItem('isSuperAdmin');
+      }
       if (tokenData?.firstName) {
         localStorage.setItem('userName', `${tokenData.firstName} ${tokenData.lastName || ''}`.trim());
       }
@@ -58,7 +63,7 @@ function SignInPage() {
 
       toast.showSuccess(t('auth.loginSuccess'));
 
-      if (role === 'SuperAdmin') {
+      if (role.toLowerCase() === 'superadmin') {
         navigate('/superadmin');
       } else if (role === 'UniversityAdmin') {
         navigate('/university-portal');

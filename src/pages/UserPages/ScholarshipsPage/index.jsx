@@ -62,8 +62,16 @@ function ScholarshipsPage() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [notificationSaved, setNotificationSaved] = useState(false);
   const [applicationSubmitted, setApplicationSubmitted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
-  const scholarshipsList = Array.isArray(apiScholarships) ? apiScholarships : (apiScholarships?.data || []);
+  const rawList = Array.isArray(apiScholarships) ? apiScholarships : (apiScholarships?.data || []);
+  const scholarshipsList = rawList.filter(sch => {
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch = !q || (sch.name || '').toLowerCase().includes(q) || (sch.location || '').toLowerCase().includes(q) || (sch.eligible || '').toLowerCase().includes(q);
+    const matchesStatus = statusFilter === 'All' || (sch.status || '').toLowerCase() === statusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
 
   const handleButtonClick = async (sch) => {
     const token = Cookies.get('userToken');
@@ -147,7 +155,7 @@ function ScholarshipsPage() {
         </h1>
         
         <p className="sp-subtitle">
-          {t('hero.subtitle')}
+          {t('scholarshipsPage.subtitle', 'Dünyanın aparıcı universitetlərində tam və ya qismən maliyyələşdirilən 150,000+ təqaüd proqramına müraciət et və qəbul şansını yoxla.')}
         </p>
 
         <Link to="/ai-discovery" style={{ textDecoration: 'none' }}>
@@ -157,9 +165,52 @@ function ScholarshipsPage() {
         </Link>
       </div>
 
+      <div className="sp-filter-section" style={{ maxWidth: '1000px', margin: '0 auto 30px', padding: '0 20px', display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ flex: '1 1 300px', position: 'relative' }}>
+          <input
+            type="text"
+            placeholder={t('scholarshipsSection.searchPlaceholder', 'Təqaüd adı, ölkə və ya tələblər üzrə axtar...')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 18px',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              fontSize: '0.95rem',
+              outline: 'none',
+              backgroundColor: '#ffffff'
+            }}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {['All', 'Open', 'Closed'].map(st => (
+            <button
+              key={st}
+              onClick={() => setStatusFilter(st)}
+              style={{
+                padding: '10px 18px',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                backgroundColor: statusFilter === st ? '#6366f1' : '#f1f5f9',
+                color: statusFilter === st ? '#ffffff' : '#475569',
+                transition: 'all 0.2s'
+              }}
+            >
+              {st === 'All' ? t('common.all', 'Hamısı') : (st === 'Open' ? t('scholarshipsSection.open', 'Açıq') : t('scholarshipsSection.closed', 'Yaxında'))}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="sp-grid-container">
         {isLoading ? (
           <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>Loading scholarships from backend...</div>
+        ) : scholarshipsList.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>{t('scholarshipsSection.notFound', 'Axtarışa uyğun təqaüd tapılmadı.')}</div>
         ) : (
           <div className="sp-grid">
             {scholarshipsList.map(sch => (

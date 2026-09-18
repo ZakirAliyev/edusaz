@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../../context/LanguageContext';
-import { useGetUniversitiesQuery } from '../../../services/apis/userApi';
+import { useGetUniversitiesQuery, useGetCountriesQuery } from '../../../services/apis/userApi';
+import { checkCountryMatch, checkLanguageMatch } from '../../../utils/filterUtils';
 import ScrollToTop from '../../../components/Common/ScrollToTop';
 import './index.scss';
 
@@ -25,25 +26,44 @@ function AiDiscoveryResultsPage() {
   const [sortBy, setSortBy] = useState('match');
 
   const { data: universities = [], isLoading } = useGetUniversitiesQuery(language);
+  const { data: countries = [] } = useGetCountriesQuery(language);
 
-  // Compute matched score and format summary
-  const summaryParts = [
-    savedSelections.fieldOfStudy || 'General',
-    savedSelections.countryTo || savedSelections.countryFrom || 'Global',
-    savedSelections.educationLevel || 'Bachelor',
-    savedSelections.budget || 'Flexible Budget',
-  ].filter(Boolean);
+  // Find country details if selected
+  const selectedCountryObj = useMemo(() => {
+    if (!savedSelections.countryTo) return null;
+    return countries.find(c => 
+      c.id === savedSelections.countryTo || 
+      c.code === savedSelections.countryTo || 
+      c.name?.toLowerCase() === (savedSelections.countryName || savedSelections.countryTo).toLowerCase()
+    );
+  }, [countries, savedSelections]);
 
+  const targetCountryName = selectedCountryObj?.name || savedSelections.countryName || savedSelections.countryTo || '';
+  const targetLanguageKey = savedSelections.teachingLanguage || 'all';
+
+  // Compute matched score and filter universities
   const matchedUniversities = useMemo(() => {
     if (!universities || universities.length === 0) return [];
 
-    let list = universities.map((uni, idx) => {
-      let score = 98 - idx * 4;
-      if (savedSelections.countryTo && uni.country?.toLowerCase().includes(savedSelections.countryTo.toLowerCase())) {
-        score += 5;
-      }
-      if (uni.hasScholarship) score += 3;
-      score = Math.min(99, Math.max(70, score));
+    let list = universities;
+
+    // 1. Strict Country Filter (If user chose a country in step 1)
+    if (savedSelections.countryTo) {
+      list = list.filter(uni => checkCountryMatch(uni, savedSelections.countryTo, countries));
+    }
+
+    // 2. Teaching Language Filter (If user chose a specific language in step 2)
+    if (targetLanguageKey && targetLanguageKey !== 'all') {
+      list = list.filter(uni => checkLanguageMatch(uni, targetLanguageKey));
+    }
+
+    // Calculate match score
+    list = list.map((uni) => {
+      let score = 88; // baseline compatibility
+
+      if (uni.hasScholarship) score += 6;
+      if (uni.ranking && parseInt(uni.ranking) < 500) score += 4;
+      score = Math.min(99, Math.max(75, Math.round(score)));
 
       return {
         ...uni,
@@ -51,11 +71,11 @@ function AiDiscoveryResultsPage() {
       };
     });
 
-    // Filter pills
+    // Secondary Filter pills
     if (activeFilter === 'scholarship') {
       list = list.filter((u) => u.hasScholarship);
     } else if (activeFilter === 'english') {
-      list = list.filter((u) => u.teachingLanguage?.toLowerCase().includes('eng') || !u.teachingLanguage);
+      list = list.filter((u) => (u.teachingLanguage || '').toLowerCase().includes('eng') || (u.teachingLanguage || '').toLowerCase().includes('ingilis'));
     }
 
     // Sort
@@ -66,10 +86,10 @@ function AiDiscoveryResultsPage() {
     }
 
     return list;
-  }, [universities, savedSelections, activeFilter, sortBy]);
+  }, [universities, savedSelections, selectedCountryObj, targetLanguageKey, activeFilter, sortBy]);
 
   const bestMatch = matchedUniversities[0];
-  const scholarshipCount = universities.filter((u) => u.hasScholarship).length;
+  const scholarshipCount = matchedUniversities.filter((u) => u.hasScholarship).length;
 
   return (
     <div className="results-page">
@@ -79,21 +99,23 @@ function AiDiscoveryResultsPage() {
       <section className="results-header-section">
         <div className="results-header-content">
           <div className="ai-label">
-            <span className="brain-icon">🧠</span> {t('aiDiscovery.analyzed') || 'AI sizin profilinizi analiz etdi'}
+            <span className="brain-icon">🧠</span> {t('aiDiscovery.analyzed', 'AI sizin profilinizi analiz etdi')}
           </div>
           <div className="header-title-row">
             <h1>
               {isLoading ? (
-                'Universitetlər hesablanır...'
+                t('common.loading', 'Universitetlər hesablanır...')
               ) : (
-                <>Sizin üçün <span>{matchedUniversities.length} universitet</span> tapıldı</>
+                <>{t('aiDiscovery.foundCountPrefix', 'Sizin üçün')} <span>{matchedUniversities.length} {t('topDestinations.countSuffix', 'universitet')}</span> {t('aiDiscovery.foundCountSuffix', 'tapıldı')}</>
               )}
             </h1>
             <button className="btn-refine" onClick={() => navigate('/ai-discovery')}>
-              <span className="filter-icon">⚙️</span> {t('aiDiscovery.refine') || 'Yenidən Seç'}
+              <span className="filter-icon">⚙️</span> {t('aiDiscovery.refine', 'Yenidən Seç')}
             </button>
           </div>
-          <p className="summary-text">{summaryParts.join(' · ')}</p>
+          <p className="summary-text">
+            {[targetCountryName, savedSelections.languageName || (targetLanguageKey === 'all' ? t('aiDiscovery.languages.all', 'Bütün Dillər') : targetLanguageKey)].filter(Boolean).join(' · ')}
+          </p>
 
           {/* Highlights Row */}
           {!isLoading && matchedUniversities.length > 0 && (
@@ -102,7 +124,7 @@ function AiDiscoveryResultsPage() {
                 <div className="highlight-item">
                   <div className="hl-icon">🏆</div>
                   <div className="hl-text">
-                    <span className="hl-title">Ən Yüksək Uyğunluq</span>
+                    <span className="hl-title">{t('aiDiscovery.bestMatch', 'Ən Yüksək Uyğunluq')}</span>
                     <span className="hl-value">{bestMatch.name} · {bestMatch.matchScore}%</span>
                   </div>
                 </div>
@@ -110,22 +132,24 @@ function AiDiscoveryResultsPage() {
               <div className="highlight-item">
                 <div className="hl-icon">🎓</div>
                 <div className="hl-text">
-                  <span className="hl-title">Təqaüd İmkanları</span>
-                  <span className="hl-value">{scholarshipCount} universitetdə mövcuddur</span>
+                  <span className="hl-title">{t('aiDiscovery.scholarshipOpportunities', 'Təqaüd İmkanları')}</span>
+                  <span className="hl-value">{scholarshipCount} {t('topDestinations.countSuffix', 'universitetdə mövcuddur')}</span>
                 </div>
               </div>
-              <div className="highlight-item">
-                <div className="hl-icon">🌍</div>
-                <div className="hl-text">
-                  <span className="hl-title">Ölkə Seçimi</span>
-                  <span className="hl-value">{savedSelections.countryTo || 'Beynəlxalq'}</span>
+              {targetCountryName && (
+                <div className="highlight-item">
+                  <div className="hl-icon">🌍</div>
+                  <div className="hl-text">
+                    <span className="hl-title">{t('common.country', 'Ölkə')}</span>
+                    <span className="hl-value">{targetCountryName}</span>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="highlight-item">
-                <div className="hl-icon">⚡</div>
+                <div className="hl-icon">🗣️</div>
                 <div className="hl-text">
-                  <span className="hl-title">Tədris Dərəcəsi</span>
-                  <span className="hl-value">{savedSelections.educationLevel || 'Bakalavr'}</span>
+                  <span className="hl-title">{t('matchedUniversities.labels.language', 'Tədris Dili')}</span>
+                  <span className="hl-value">{savedSelections.languageName || t('aiDiscovery.languages.all', 'Bütün Dillər')}</span>
                 </div>
               </div>
             </div>
@@ -136,7 +160,7 @@ function AiDiscoveryResultsPage() {
       {/* Main Content Layout */}
       <section className="results-main-section">
         <div className="results-layout">
-          {/* Left Column - List */}
+          {/* List Column */}
           <div className="results-list-column">
             {/* Filter Pills */}
             <div className="filters-bar">
@@ -145,26 +169,26 @@ function AiDiscoveryResultsPage() {
                   className={`pill ${activeFilter === 'all' ? 'active' : ''}`}
                   onClick={() => setActiveFilter('all')}
                 >
-                  Hamısı
+                  {t('portal.all', 'Hamısı')}
                 </button>
                 <button
                   className={`pill ${activeFilter === 'scholarship' ? 'active' : ''}`}
                   onClick={() => setActiveFilter('scholarship')}
                 >
-                  <span className="emoji">🎓</span> Təqaüdlü
+                  <span className="emoji">🎓</span> {t('matchedUniversities.tags.scholarship', 'Təqaüdlü')}
                 </button>
                 <button
                   className={`pill ${activeFilter === 'english' ? 'active' : ''}`}
                   onClick={() => setActiveFilter('english')}
                 >
-                  <span className="emoji">🇬🇧</span> İngilis Dili
+                  <span className="emoji">🇬🇧</span> {t('aiDiscovery.languages.english', 'İngilis Dili')}
                 </button>
               </div>
               <div className="sort-by">
-                <label>Sırala:</label>
+                <label>{t('matchedUniversities.sortBy', 'Sırala')}:</label>
                 <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                  <option value="match">AI Uyğunluq Balı</option>
-                  <option value="ranking">Reytinq üzrə</option>
+                  <option value="match">{t('aiDiscovery.sortMatch', 'AI Uyğunluq Balı')}</option>
+                  <option value="ranking">{t('aiDiscovery.sortRanking', 'Reytinq üzrə')}</option>
                 </select>
               </div>
             </div>
@@ -172,11 +196,11 @@ function AiDiscoveryResultsPage() {
             {/* University Cards */}
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '60px', color: '#64748b' }}>
-                Universitetlər yüklənir...
+                {t('common.loading', 'Universitetlər yüklənir...')}
               </div>
             ) : matchedUniversities.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px', color: '#64748b' }}>
-                Seçilmiş filtrlərə uyğun universitet tapılmadı.
+                {t('matchedUniversities.noResults', 'Seçilmiş filtrlərə uyğun universitet tapılmadı.')}
               </div>
             ) : (
               <div className="university-cards-list">
@@ -197,42 +221,42 @@ function AiDiscoveryResultsPage() {
                         }}
                       >
                         {uni.hasScholarship && (
-                          <div className="badge-scholarship">🎓 Təqaüd var</div>
+                          <div className="badge-scholarship">🎓 {t('matchedUniversities.tags.scholarship', 'Təqaüd var')}</div>
                         )}
                       </div>
                       <div className="uni-info">
                         <div className="uni-top-row">
                           <div className="match-badge">
-                            ⭐ {uni.matchScore}% Uyğunluq <span className="rank-num">#{idx + 1}</span>
+                            ⭐ {uni.matchScore}% {t('matchedUniversities.matchBadge', 'Uyğunluq')} <span className="rank-num">#{idx + 1}</span>
                           </div>
                         </div>
                         <h3>{uni.name}</h3>
                         <p className="location">
                           {[uni.city, uni.country].filter(Boolean).join(', ')}
-                          {uni.ranking ? ` · ${uni.ranking}` : ''}
+                          {uni.ranking ? ` · #${uni.ranking}` : ''}
                         </p>
                         {uni.description && (
                           <div className="program-name">
-                            {uni.description.slice(0, 80)}...
+                            {uni.description.slice(0, 85)}...
                           </div>
                         )}
 
                         <div className="uni-stats">
                           {uni.tuition && (
                             <div className="stat">
-                              <span className="label">Ödəniş</span>
+                              <span className="label">{t('matchedUniversities.labels.tuition', 'Ödəniş')}</span>
                               <span className="val">{uni.tuition}</span>
                             </div>
                           )}
                           {uni.acceptanceRate && (
                             <div className="stat">
-                              <span className="label">Qəbul</span>
+                              <span className="label">{t('matchedUniversities.labels.acceptance', 'Qəbul')}</span>
                               <span className="val">{uni.acceptanceRate}</span>
                             </div>
                           )}
                           {uni.teachingLanguage && (
                             <div className="stat">
-                              <span className="label">Tədris Dili</span>
+                              <span className="label">{t('matchedUniversities.labels.language', 'Tədris Dili')}</span>
                               <span className="val">{uni.teachingLanguage}</span>
                             </div>
                           )}
@@ -240,9 +264,9 @@ function AiDiscoveryResultsPage() {
 
                         <div className="uni-tags">
                           {uni.teachingLanguage && <span className="tag">{uni.teachingLanguage}</span>}
-                          {uni.hasScholarship && <span className="tag">Təqaüd proqramı</span>}
+                          {uni.hasScholarship && <span className="tag">{t('matchedUniversities.tags.scholarship', 'Təqaüd proqramı')}</span>}
                           {uni.establishedYear && (
-                            <span className="tag">Qurulma: {uni.establishedYear}</span>
+                            <span className="tag">{t('matchedUniversities.est', 'Qurulma')}: {uni.establishedYear}</span>
                           )}
                         </div>
                       </div>
