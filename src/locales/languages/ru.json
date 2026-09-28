@@ -38,7 +38,7 @@
     }
   },
   "howItWorks": {
-    "badge": "Как Работает EDUSAZ",
+    "badge": "Как Работает Edusaz",
     "titlePart1": "От профиля к списку за",
     "titlePart2": "3 минуты",
     "step1": {
@@ -75,9 +75,9 @@
   },
   "auth": {
     "signInTitle": "Войти",
-    "welcomeBack": "С возвращением в EDUSAZ",
+    "welcomeBack": "С возвращением в Edusaz",
     "subtitle": "Ваш путь к лучшим университетам мира продолжается здесь.",
-    "newToEdusaz": "Впервые в EDUSAZ?",
+    "newToEdusaz": "Впервые в Edusaz?",
     "createAccount": "Создать аккаунт",
     "emailLabel": "Эл. почта",
     "passwordLabel": "Пароль",

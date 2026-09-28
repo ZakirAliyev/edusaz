@@ -1,54 +1,65 @@
 import { useTranslation } from 'react-i18next';
+import { Check, Globe } from 'lucide-react';
 import './Step2.scss';
 
+// `native` is the language's own name (an endonym), shown as a quiet secondary line.
 const languagesList = [
-  { id: 'all', key: 'all', code: 'all', name: 'Bütün Dillər', flag: '🌐', tag: 'Global' },
-  { id: 'en', key: 'english', code: 'en', name: 'İngilis dili', flag: '🇬🇧', tag: 'International' },
-  { id: 'tr', key: 'turkish', code: 'tr', name: 'Türk dili', flag: '🇹🇷', tag: 'Bilingual' },
-  { id: 'az', key: 'azerbaijani', code: 'az', name: 'Azərbaycan dili', flag: '🇦🇿', tag: 'National' },
-  { id: 'de', key: 'german', code: 'de', name: 'Alman dili', flag: '🇩🇪', tag: 'DAAD & EU' },
-  { id: 'ru', key: 'russian', code: 'ru', name: 'Rus dili', flag: '🇷🇺', tag: 'Regional' }
+  { id: 'all', key: 'all', code: 'all', name: 'Bütün Dillər', native: null },
+  { id: 'en', key: 'english', code: 'en', name: 'İngilis dili', native: 'English' },
+  { id: 'tr', key: 'turkish', code: 'tr', name: 'Türk dili', native: 'Türkçe' },
+  { id: 'az', key: 'azerbaijani', code: 'az', name: 'Azərbaycan dili', native: 'Azərbaycanca' },
+  { id: 'de', key: 'german', code: 'de', name: 'Alman dili', native: 'Deutsch' },
+  { id: 'ru', key: 'russian', code: 'ru', name: 'Rus dili', native: 'Русский' }
 ];
 
 function Step2({ selection, onSelect }) {
   const { t } = useTranslation();
 
   return (
-    <div className="ad-step-container step2-container">
-      <div className="ad-step-header">
-        <span className="ad-step-subtitle-top">
-          {t('aiDiscovery.stepBadge2', 'ADDIM 2 / 2')}
-        </span>
-        <h1>{t('aiDiscovery.step2Title', 'Hansı dildə təhsil almaq istəyirsiniz?')}</h1>
-        <p className="ad-step-subtitle">
+    <div className="gq-step">
+      <div className="gq-step__head">
+        <h1 className="gq-step__title" id="gq-step2-title">
+          {t('aiDiscovery.step2Title', 'Hansı dildə təhsil almaq istəyirsiniz?')}
+        </h1>
+        <p className="gq-step__lead" id="gq-step2-desc">
           {t('aiDiscovery.step2Subtitle', 'Tədris dilini seçin ki, sizə ən uyğun universitet və proqramları təqdim edək.')}
         </p>
       </div>
 
-      <div className="destination-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+      <div
+        className="gq-options gq-options--languages"
+        role="radiogroup"
+        aria-labelledby="gq-step2-title"
+        aria-describedby="gq-step2-desc"
+      >
         {languagesList.map(lang => {
           const isSelected = selection === lang.id || selection === lang.key || selection === lang.name;
           const translatedName = t(`aiDiscovery.languages.${lang.key}`, lang.name);
+          const secondary = lang.native || t('pages.matchQuiz.anyLanguageHint', 'Tədris dili fərq etmir');
 
           return (
-            <div 
-              key={lang.id} 
-              className={`ad-option-card destination-card ${isSelected ? 'selected' : ''}`}
-              onClick={() => onSelect(lang.id, lang.name)}
-              style={{ padding: '20px 24px', cursor: 'pointer' }}
-            >
-              <div className="dest-image" style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>
-                {lang.flag}
-              </div>
-              <div className="dest-info" style={{ marginLeft: '12px' }}>
-                <div className="dest-title">
-                  <span className="name" style={{ fontSize: '16px', fontWeight: 600 }}>{translatedName}</span>
-                </div>
-                <div className="dest-tag" style={{ marginTop: '4px', fontSize: '12px', color: '#7c6ee8', fontWeight: 500 }}>
-                  {lang.tag}
-                </div>
-              </div>
-            </div>
+            <label key={lang.id} className="gq-option">
+              <input
+                type="radio"
+                name="gq-language"
+                className="gq-option__input"
+                value={lang.id}
+                checked={isSelected}
+                onChange={() => onSelect(lang.id, lang.name)}
+              />
+              <span className="gq-option__box">
+                <span className="gq-option__mark" aria-hidden>
+                  {lang.id === 'all' ? <Globe /> : lang.code.toUpperCase()}
+                </span>
+                <span className="gq-option__text">
+                  <span className="gq-option__name">{translatedName}</span>
+                  <span className="gq-option__meta" lang={lang.native ? lang.code : undefined}>{secondary}</span>
+                </span>
+                <span className="gq-option__check" aria-hidden>
+                  <Check />
+                </span>
+              </span>
+            </label>
           );
         })}
       </div>

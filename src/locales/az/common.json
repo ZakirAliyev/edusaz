@@ -43,7 +43,7 @@
     }
   },
   "howItWorks": {
-    "badge": "EDUSAZ Necə İşləyir",
+    "badge": "Edusaz Necə İşləyir",
     "titlePart1": "Profilinizdən uyğun siyahınıza",
     "titlePart2": "3 dəqiqədən az vaxtda",
     "step1": {
@@ -70,7 +70,7 @@
     "feature1": "Hər universitet üçün qəbul olunma ehtimalı",
     "feature2": "Profilinizə uyğun gələn mövcud təqaüdlər",
     "feature3": "Viza tələbləri və addım-addım rəhbərlik",
-    "chatTitle": "EDUSAZ AI Məsləhətçi",
+    "chatTitle": "Edusaz AI Məsləhətçi",
     "chatSubtitle": "2,500+ universitet analiz edilir",
     "userMsg": "Mən Nigeriyadanam. Azərbaycanda Tibb təhsili almaq istəyirəm. Büdcə: $5,000/il.",
     "botResponse": "Profilinizə uyğun gələn 8 universitet tapıldı:",
@@ -81,7 +81,7 @@
     "badge": "Universitetlər Üçün",
     "titlePart1": "500,000+ qlobal tələbə cəlb edin",
     "titlePart2": "AI dəqiqliyi ilə",
-    "subtitle": "Tələbələrə çatmaq üçün EDUSAZ platformasından istifadə edən 180+ universitetə qoşulun. Təsdiqlənmiş profil, prioritet görünürlük və detallı analitika.",
+    "subtitle": "Tələbələrə çatmaq üçün Edusaz platformasından istifadə edən 180+ universitetə qoşulun. Təsdiqlənmiş profil, prioritet görünürlük və detallı analitika.",
     "monthlyLeads": "Aylıq tələbə müraciəti",
     "leadScore": "Keyfiyyət göstəricisi",
     "sourceCountries": "Tələbə gələn ölkə",
@@ -94,7 +94,7 @@
     "feature3Desc": "İxtisaslarınıza, tələblərinizə və büdcənizə uyğun tələbələrlə əlaqə qurun",
     "feature4Title": "Tələbə Cəlb Etmə Analitikası",
     "feature4Desc": "Baxışları, sorğuları və müraciət nəticələrini real vaxtda izləyin",
-    "partnerBtn": "EDUSAZ ilə Tərəfdaş Olun"
+    "partnerBtn": "Edusaz ilə Tərəfdaş Olun"
   },
   "scholarshipsSection": {
     "titleSuffix": "xarici tələbələr üçün",
@@ -194,9 +194,9 @@
   },
   "auth": {
     "signInTitle": "Daxil Ol",
-    "welcomeBack": "EDUSAZ-a yenidən xoş gəlmisiniz",
+    "welcomeBack": "Edusaz-a yenidən xoş gəlmisiniz",
     "subtitle": "Dünyanın ən yaxşı universitetlərinə gedən yolunuz burada davam edir.",
-    "newToEdusaz": "EDUSAZ-da yenisiniz?",
+    "newToEdusaz": "Edusaz-da yenisiniz?",
     "createAccount": "Hesab yaradın",
     "emailLabel": "E-poçt ünvanı",
     "passwordLabel": "Şifrə",
@@ -329,7 +329,7 @@
   },
   "partnerModal": {
     "successTitle": "Tərəfdaşlıq Müraciətiniz Qəbul Olundu!",
-    "subtitle": "Universitetinizi EDUSAZ platformasında qeydiyyatdan keçirin və qlobal tələbələrə çatın.",
+    "subtitle": "Universitetinizi Edusaz platformasında qeydiyyatdan keçirin və qlobal tələbələrə çatın.",
     "institutionName": "Universitet / Müəssisə Adı",
     "contactName": "Nümayəndənin Adı Soyadı",
     "email": "Rəsmi E-poçt",
@@ -340,7 +340,7 @@
   },
   "forUniversitiesPage": {
     "titlePart1": "Beynəlxalq Tələbələri Cəlb Edin",
-    "titlePart2": "EduSaz ilə Qlobal Tərəfdaşlıq",
+    "titlePart2": "Edusaz ilə Qlobal Tərəfdaşlıq",
     "desc": "Universitetinizi və akademik proqramlarınızı qlobal miqyasda 500,000+ tələbəyə tanıdın, qəbul və təqaüd müraciətlərini vahid portal üzərindən idarə edin."
   },
   "scholarshipsPage": {

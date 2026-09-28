@@ -41,7 +41,7 @@
     }
   },
   "howItWorks": {
-    "badge": "Wie EDUSAZ funktioniert",
+    "badge": "Wie Edusaz funktioniert",
     "titlePart1": "Vom Profil zur passenden Liste",
     "titlePart2": "in unter 3 Minuten",
     "step1": {
@@ -68,7 +68,7 @@
     "feature1": "Zulassungswahrscheinlichkeit für jede Universität",
     "feature2": "Verfügbare Stipendien passend zu deinem Profil",
     "feature3": "Visumsanforderungen und Schritt-für-Schritt-Anleitung",
-    "chatTitle": "EDUSAZ KI Berater",
+    "chatTitle": "Edusaz KI Berater",
     "chatSubtitle": "Analysiert 2.500+ Universitäten",
     "userMsg": "Ich komme aus Nigeria. Ich möchte Medizin in Aserbaidschan studieren. Budget: 5.000 $/Jahr.",
     "botResponse": "8 passende Universitäten für Ihr Profil gefunden:",
@@ -79,7 +79,7 @@
     "badge": "Für Universitäten",
     "titlePart1": "Gewinne 500.000+ globale Studenten",
     "titlePart2": "mit KI-Präzision",
-    "subtitle": "Schließe dich 180+ Universitäten an, die EDUSAZ nutzen, um qualifizierte internationale Studenten zu erreichen.",
+    "subtitle": "Schließe dich 180+ Universitäten an, die Edusaz nutzen, um qualifizierte internationale Studenten zu erreichen.",
     "monthlyLeads": "Monatliche Anfragen",
     "leadScore": "Qualitäts-Score",
     "sourceCountries": "Herkunftsländer",
@@ -92,7 +92,7 @@
     "feature3Desc": "Verbinde dich mit Studenten, die genau zu deinen Programmen passen",
     "feature4Title": "Recruiting-Analytics-Dashboard",
     "feature4Desc": "Verfolge Aufrufe, Anfragen und Bewerbungen in Echtzeit",
-    "partnerBtn": "Partner von EDUSAZ werden"
+    "partnerBtn": "Partner von Edusaz werden"
   },
   "scholarshipsSection": {
     "titleSuffix": "für internationale Studenten",
@@ -192,9 +192,9 @@
   },
   "auth": {
     "signInTitle": "Anmelden",
-    "welcomeBack": "Willkommen zurück bei EDUSAZ",
+    "welcomeBack": "Willkommen zurück bei Edusaz",
     "subtitle": "Dein Weg zu den besten Universitäten der Welt geht hier weiter.",
-    "newToEdusaz": "Neu bei EDUSAZ?",
+    "newToEdusaz": "Neu bei Edusaz?",
     "createAccount": "Konto erstellen",
     "emailLabel": "E-Mail-Adresse",
     "passwordLabel": "Passwort",

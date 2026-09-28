@@ -1,61 +1,89 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ArrowRight, Compass, GraduationCap, MapPin, RotateCcw, SearchX } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useGetUniversitiesQuery, useGetCountriesQuery } from '../../../services/apis/userApi';
 import { checkCountryMatch, checkLanguageMatch } from '../../../utils/filterUtils';
+import { resolveMediaUrl } from '../../../config/env';
 import './index.scss';
 
-const UniversityIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 10v12" />
-    <path d="M20 10v12" />
-    <path d="M4 10l8-8 8 8" />
-    <path d="M12 22v-8" />
-  </svg>
-);
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=70';
 
-const FilterIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-  </svg>
-);
-
-const SparkleIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-    <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
-  </svg>
-);
-
-const ChevronDownIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9"/>
-  </svg>
-);
-
-const ChevronRightIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m9 18 6-6-6-6"/>
-  </svg>
-);
-
-const SearchXIcon = () => (
-  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8"/>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-    <line x1="8" y1="8" x2="14" y2="14"/>
-    <line x1="14" y1="8" x2="8" y2="14"/>
-  </svg>
-);
+const onImgError = (e) => {
+  if (e.currentTarget.src !== FALLBACK_IMAGE) e.currentTarget.src = FALLBACK_IMAGE;
+};
 
 const TEACHING_LANGUAGES = [
-  { id: 'All', key: 'all', name: 'Bütün Dillər' },
+  { id: 'All', key: 'all', name: 'Bütün dillər' },
   { id: 'en', key: 'english', name: 'İngilis dili' },
   { id: 'tr', key: 'turkish', name: 'Türk dili' },
   { id: 'az', key: 'azerbaijani', name: 'Azərbaycan dili' },
   { id: 'de', key: 'german', name: 'Alman dili' },
   { id: 'ru', key: 'russian', name: 'Rus dili' }
 ];
+
+const SKELETON_COUNT = 6;
+
+function UniversityCard({ uni, index }) {
+  const { t } = useTranslation();
+  const cover = resolveMediaUrl(uni.images?.[0] || uni.logoUrl) || FALLBACK_IMAGE;
+  const location = [uni.city, uni.country].filter(Boolean).join(', ');
+  const mainLanguage = uni.teachingLanguage ? uni.teachingLanguage.split(/[,/]/)[0].trim() : '';
+
+  return (
+    <li className="bu-grid__item" data-reveal style={{ '--delay': `${Math.min(index % 6, 5) * 60}ms` }}>
+      <Link to={`/universities/${uni.id}`} className="bu-card ds-card ds-card--interactive">
+        <span className="bu-card__media">
+          <img src={cover} onError={onImgError} alt="" loading="lazy" />
+          {uni.hasScholarship && (
+            <span className="bu-card__badge">
+              <GraduationCap aria-hidden />
+              {t('matchedUniversities.tags.scholarship', 'Təqaüdlü')}
+            </span>
+          )}
+        </span>
+
+        <span className="bu-card__body">
+          <span className="bu-card__name">{uni.name}</span>
+          {location && (
+            <span className="bu-card__place">
+              <MapPin aria-hidden />
+              {location}
+            </span>
+          )}
+
+          {(uni.ranking || uni.establishedYear) && (
+            <span className="bu-card__meta">
+              {uni.ranking && <span className="bu-card__rank">{uni.ranking}</span>}
+              {uni.establishedYear && (
+                <span>
+                  {t('matchedUniversities.est', 'Əsası qoyulub:')} {uni.establishedYear}
+                </span>
+              )}
+            </span>
+          )}
+
+          <span className="bu-card__spacer" aria-hidden />
+          <span className="bu-card__facts">
+            <span className="bu-card__fact">
+              <small>{t('matchedUniversities.labels.tuition', 'Təhsil haqqı')}</small>
+              <span>{uni.tuition || '—'}</span>
+            </span>
+            <span className="bu-card__fact">
+              <small>{t('matchedUniversities.labels.acceptance', 'Qəbul faizi')}</small>
+              <span>{uni.acceptanceRate || '—'}</span>
+            </span>
+            <span className="bu-card__fact">
+              <small>{t('matchedUniversities.labels.language', 'Tədris dili')}</small>
+              <span title={uni.teachingLanguage || undefined}>{mainLanguage || '—'}</span>
+            </span>
+          </span>
+        </span>
+      </Link>
+    </li>
+  );
+}
 
 function BrowseUniversitiesPage() {
   const { t } = useTranslation();
@@ -67,30 +95,34 @@ function BrowseUniversitiesPage() {
   const initialCountry = searchParams.get('country') || 'All';
   const initialLang = searchParams.get('lang') || 'All';
 
-  const [selectedCountry, setSelectedCountry] = useState(initialCountry);
-  const [selectedLanguage, setSelectedLanguage] = useState(initialLang);
   const [appliedFilters, setAppliedFilters] = useState({ country: initialCountry, language: initialLang });
 
+  // Keep filters in sync with ?country=&lang= (e.g. coming from the landing search).
   useEffect(() => {
     const cParam = searchParams.get('country') || 'All';
     const lParam = searchParams.get('lang') || 'All';
-    setSelectedCountry(cParam);
-    setSelectedLanguage(lParam);
     setAppliedFilters({ country: cParam, language: lParam });
   }, [searchParams]);
 
-  const handleSearch = () => {
-    setAppliedFilters({
-      country: selectedCountry,
-      language: selectedLanguage
-    });
+  const setFilter = (key, value) => {
+    setAppliedFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const resetFilters = () => {
-    setSelectedCountry('All');
-    setSelectedLanguage('All');
     setAppliedFilters({ country: 'All', language: 'All' });
   };
+
+  const hasActiveFilters = appliedFilters.country !== 'All' || appliedFilters.language !== 'All';
+
+  // The URL may carry a country id or code; show the matching option in the select.
+  const countryValue = useMemo(() => {
+    const active = String(appliedFilters.country);
+    if (active === 'All') return 'All';
+    const match = countries.find(
+      (c) => String(c.id) === active || (c.code && c.code.toLowerCase() === active.toLowerCase())
+    );
+    return match ? match.id : 'All';
+  }, [appliedFilters.country, countries]);
 
   // Universities filtered by selected Country and selected Teaching Language
   const filteredUniversities = useMemo(() => {
@@ -106,51 +138,49 @@ function BrowseUniversitiesPage() {
   }, [universities, countries, appliedFilters]);
 
   return (
-    <main id="browse-universities-page">
-      <div className="bu-header">
-        <div className="bu-badge">
-          <UniversityIcon />
-          {t('matchedUniversities.badge', 'UNİVERSİTETLƏR')}
-        </div>
-        
-        <h1 className="bu-title">
-          {t('matchedUniversities.title', 'Bütün Universitetlər')}
-        </h1>
-        
-        <p className="bu-subtitle">
-          {t('hero.subtitle', 'Bizə özünüz haqqında danışın. Süni İntellektimiz sizi dünyanın ən yaxşı universitetləri ilə uyğunlaşdırır.')}
-        </p>
-      </div>
+    <main className="ds-page bu-page" id="browse-universities-page">
+      <div className="ds-container">
+        <header className="ds-page-header bu-header">
+          <p className="ds-eyebrow">{t('matchedUniversities.badge', 'Universitetlər')}</p>
+          <h1 className="ds-title">{t('pages.universities.title', 'Xaricdə təhsil üçün universitetlər')}</h1>
+          <p className="ds-lead">
+            {t(
+              'pages.universities.lead',
+              'Ölkəyə və tədris dilinə görə seçin, təhsil haqqını və qəbul faizini müqayisə edin, bəyəndiyiniz universitetə birbaşa müraciət edin.'
+            )}
+          </p>
+        </header>
 
-      {/* Filter Card: Country & Teaching Language */}
-      <div className="bu-filter-card">
-        <div className="filter-group">
-          {/* Field 1: Country */}
-          <div className="filter-field">
-            <span className="filter-label">{t('hero.labels.from', 'TƏHSİL ALMAQ İSTƏYİRƏM')}</span>
-            <div className="filter-input-wrap">
-              <select 
-                className="filter-select" 
-                value={selectedCountry} 
-                onChange={(e) => setSelectedCountry(e.target.value)}
+        <section className="bu-filters" aria-label={t('pages.universities.filters', 'Filtrlər')} data-reveal>
+          <div className="bu-filters__fields">
+            <div className="ds-field bu-filters__field">
+              <label className="ds-label" htmlFor="bu-country">
+                {t('pages.universities.country', 'Ölkə')}
+              </label>
+              <select
+                id="bu-country"
+                className="ds-select"
+                value={countryValue}
+                onChange={(e) => setFilter('country', e.target.value)}
               >
-                <option value="All">{t('hero.placeholders.from', 'Ölkəni seçin')}</option>
+                <option value="All">{t('pages.universities.allCountries', 'Bütün ölkələr')}</option>
                 {countries.map(c => (
-                  <option key={c.id} value={c.id}>{c.flagEmoji || '🌍'} {c.name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.flagEmoji ? `${c.flagEmoji} ` : ''}{c.name}
+                  </option>
                 ))}
               </select>
-              <ChevronDownIcon />
             </div>
-          </div>
-          
-          {/* Field 2: Teaching Language */}
-          <div className="filter-field">
-            <span className="filter-label">{t('matchedUniversities.labels.language', 'TƏDRİS DİLİ').toUpperCase()}</span>
-            <div className="filter-input-wrap">
-              <select 
-                className="filter-select" 
-                value={selectedLanguage} 
-                onChange={(e) => setSelectedLanguage(e.target.value)}
+
+            <div className="ds-field bu-filters__field">
+              <label className="ds-label" htmlFor="bu-language">
+                {t('matchedUniversities.labels.language', 'Tədris dili')}
+              </label>
+              <select
+                id="bu-language"
+                className="ds-select"
+                value={appliedFilters.language}
+                onChange={(e) => setFilter('language', e.target.value)}
               >
                 {TEACHING_LANGUAGES.map(lang => (
                   <option key={lang.id} value={lang.id}>
@@ -158,119 +188,65 @@ function BrowseUniversitiesPage() {
                   </option>
                 ))}
               </select>
-              <ChevronDownIcon />
             </div>
           </div>
-        </div>
-        
-        <div className="filter-actions">
-          <button className="btn-apply-filters" onClick={handleSearch}>
-            <FilterIcon /> {t('hero.buttons.find', 'Universitetləri Tap')} ({filteredUniversities.length})
-          </button>
-          <Link to="/ai-discovery" style={{ textDecoration: 'none' }}>
-            <button className="btn-use-ai">
-              <SparkleIcon /> {t('hero.buttons.ai', 'AI Axtarış')}
-            </button>
-          </Link>
-        </div>
-      </div>
 
-      <div className="bu-grid-container">
-        {isLoadingUnis ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>
-            {t('common.loading', 'Universitetlər yüklənir...')}
-          </div>
-        ) : filteredUniversities.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#64748b' }}>
-            <SearchXIcon />
-            <p style={{ marginTop: '16px', fontSize: '1.1rem' }}>
-              {t('matchedUniversities.noResults', 'Seçilmiş filtrlərə uyğun universitet tapılmadı.')}
+          <div className="bu-filters__side">
+            <p className="bu-filters__count" aria-live="polite">
+              {isLoadingUnis ? (
+                <span className="ds-skeleton bu-filters__count-skeleton" aria-hidden />
+              ) : (
+                t('pages.universities.count', '{{count}} universitet', { count: filteredUniversities.length })
+              )}
             </p>
-            <button 
-              onClick={resetFilters} 
-              style={{
-                marginTop: '12px',
-                padding: '8px 20px',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                background: '#ffffff',
-                cursor: 'pointer',
-                fontWeight: 600,
-                color: '#7A5CFF'
-              }}
-            >
-              {t('portal.all', 'Bütün Universitetləri Göstər')}
-            </button>
+            {hasActiveFilters && (
+              <button type="button" className="ds-btn ds-btn--ghost ds-btn--sm" onClick={resetFilters}>
+                <RotateCcw aria-hidden />
+                {t('pages.universities.reset', 'Sıfırla')}
+              </button>
+            )}
+            <Link to="/ai-discovery" className="ds-btn ds-btn--soft ds-btn--sm">
+              <Compass aria-hidden />
+              {t('pages.universities.discovery', 'Mənə uyğun olanı tap')}
+            </Link>
+          </div>
+        </section>
+
+        {isLoadingUnis ? (
+          <ul className="bu-grid" aria-busy="true" aria-label={t('common.loading', 'Yüklənir...')}>
+            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+              <li key={i} className="bu-grid__item">
+                <div className="bu-card bu-card--skeleton ds-card" aria-hidden>
+                  <span className="bu-card__media ds-skeleton" />
+                  <span className="bu-card__body">
+                    <span className="ds-skeleton bu-sk bu-sk--title" />
+                    <span className="ds-skeleton bu-sk bu-sk--line" />
+                    <span className="ds-skeleton bu-sk bu-sk--facts" />
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : filteredUniversities.length === 0 ? (
+          <div className="ds-empty bu-empty">
+            <SearchX aria-hidden />
+            <strong>{t('matchedUniversities.noResults', 'Seçilmiş filtrlərə uyğun universitet tapılmadı.')}</strong>
+            {hasActiveFilters && (
+              <p>{t('pages.universities.emptyHint', 'Başqa ölkə və ya tədris dili seçin.')}</p>
+            )}
+            {hasActiveFilters && (
+              <button type="button" className="ds-btn ds-btn--secondary" onClick={resetFilters}>
+                {t('pages.universities.showAll', 'Bütün universitetləri göstər')}
+                <ArrowRight aria-hidden className="bu-flip" />
+              </button>
+            )}
           </div>
         ) : (
-          <div className="bu-grid">
-            {filteredUniversities.map((uni) => (
-              <Link 
-                to={`/universities/${uni.id}`} 
-                key={uni.id} 
-                className="mu-card-link"
-              >
-                <div className="mu-card">
-                  <div className="mu-card-img-wrapper">
-                    <img 
-                      src={uni.logoUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80'} 
-                      alt={uni.name} 
-                      className="mu-card-img" 
-                      loading="lazy"
-                    />
-                    <div className="mu-card-tags">
-                      {uni.hasScholarship && (
-                        <span className="mu-tag-scholarship">
-                          🎓 {t('matchedUniversities.tags.scholarship', 'Təqaüdlü')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mu-card-body">
-                    <div className="mu-card-header">
-                      <h3 className="mu-uni-name" title={uni.name}>{uni.name}</h3>
-                      {uni.ranking && (
-                        <span className="mu-uni-rank">#{uni.ranking}</span>
-                      )}
-                    </div>
-
-                    <span className="mu-uni-location">
-                      📍 {[uni.city, uni.country].filter(Boolean).join(', ')}
-                    </span>
-
-                    {uni.teachingLanguage && (
-                      <span className="mu-uni-program">
-                        🗣️ {uni.teachingLanguage}
-                      </span>
-                    )}
-
-                    <div className="mu-uni-stats">
-                      <div className="stat-box">
-                        <span className="stat-label">{t('matchedUniversities.labels.tuition', 'Təhsil Haqqı')}</span>
-                        <span className="stat-val">{uni.tuition || '$3,000'}</span>
-                      </div>
-                      <div className="stat-box">
-                        <span className="stat-label">{t('matchedUniversities.labels.acceptance', 'Qəbul')}</span>
-                        <span className="stat-val">{uni.acceptanceRate || '45%'}</span>
-                      </div>
-                      <div className="stat-box">
-                        <span className="stat-label">{t('matchedUniversities.labels.language', 'Dil')}</span>
-                        <span className="stat-val">{uni.teachingLanguage ? uni.teachingLanguage.split(',')[0] : 'English'}</span>
-                      </div>
-                    </div>
-
-                    <div className="mu-card-footer">
-                      <span className="mu-deadline">
-                        📅 {uni.establishedYear ? `${t('matchedUniversities.est', 'Qurulma')}: ${uni.establishedYear}` : '2026/2027'}
-                      </span>
-                      <ChevronRightIcon />
-                    </div>
-                  </div>
-                </div>
-              </Link>
+          <ul className="bu-grid">
+            {filteredUniversities.map((uni, i) => (
+              <UniversityCard key={uni.id} uni={uni} index={i} />
             ))}
-          </div>
+          </ul>
         )}
       </div>
     </main>

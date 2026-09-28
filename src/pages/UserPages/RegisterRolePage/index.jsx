@@ -1,37 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Check, GraduationCap } from 'lucide-react';
+import { AuthShell, AuthSteps } from '../SignInPage/AuthShell';
 import './index.scss';
 
-const GradCapIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-    <path d="M6 12v5c3 3 9 3 12 0v-5" />
-  </svg>
-);
-
-const BuildingIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
-    <path d="M9 22v-4h6v4" />
-    <path d="M8 6h.01" />
-    <path d="M16 6h.01" />
-    <path d="M12 6h.01" />
-    <path d="M12 10h.01" />
-    <path d="M12 14h.01" />
-    <path d="M16 10h.01" />
-    <path d="M16 14h.01" />
-    <path d="M8 10h.01" />
-    <path d="M8 14h.01" />
-  </svg>
-);
-
-const BriefcaseIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-  </svg>
-);
+// Only the student account can be created from the public site.
+const ROLES = [
+  { value: 'student', icon: GraduationCap, titleKey: 'auth.studentRole', descKey: 'auth.studentDesc' },
+];
 
 function RegisterRolePage() {
   const { t } = useTranslation();
@@ -50,51 +27,57 @@ function RegisterRolePage() {
   };
 
   return (
-    <div className="register-role-page">
-      <div className="register-container">
-        {/* Stepper */}
-        <div className="stepper">
-          <div className="step active">1</div>
-          <div className="step-line"></div>
-          <div className="step">2</div>
-        </div>
+    <AuthShell className="rr-page">
+      <AuthSteps current={1} total={2} />
 
-        {/* Card */}
-        <div className="register-card">
-          <div className="rc-header">
-            <h2>{t('auth.whoAreYou')}</h2>
-            <p>{t('auth.selectRole')}</p>
-          </div>
+      <header className="au-head">
+        <h1 id="rr-title" className="au-title">{t('auth.whoAreYou')}</h1>
+        <p className="au-sub">{t('auth.selectRole')}</p>
+      </header>
 
-          <div className="role-options">
-            <div
-              className={`role-option ${selectedRole === 'student' ? 'selected' : ''}`}
-              onClick={() => handleSelect('student')}
-            >
-              <div className="role-icon">
-                <GradCapIcon />
-              </div>
-              <div className="role-text">
-                <h4>{t('auth.studentRole')}</h4>
-                <p>{t('auth.studentDesc')}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="register-actions">
-            <button
-              className={`btn-continue ${selectedRole ? 'active' : ''}`}
-              onClick={handleContinue}
-              disabled={!selectedRole}
-            >
-              {t('auth.continue')}
-            </button>
-          </div>
-        </div>
+      <div className="rr-options" role="radiogroup" aria-labelledby="rr-title">
+        {ROLES.map(({ value, icon: Icon, titleKey, descKey }) => {
+          const checked = selectedRole === value;
+          return (
+            <label key={value} className="rr-option" data-checked={checked ? 'true' : 'false'}>
+              <input
+                type="radio"
+                name="account-role"
+                value={value}
+                className="rr-option__input"
+                checked={checked}
+                onChange={() => handleSelect(value)}
+              />
+              <span className="rr-option__icon" aria-hidden>
+                <Icon />
+              </span>
+              <span className="rr-option__text">
+                <span className="rr-option__title">{t(titleKey)}</span>
+                <span className="rr-option__desc">{t(descKey)}</span>
+              </span>
+              <span className="rr-option__check" aria-hidden>
+                <Check />
+              </span>
+            </label>
+          );
+        })}
       </div>
-    </div>
+
+      <button
+        type="button"
+        className="ds-btn ds-btn--primary ds-btn--lg ds-btn--block rr-continue"
+        onClick={handleContinue}
+        disabled={!selectedRole}
+      >
+        {t('auth.continue')}
+      </button>
+
+      <p className="au-switch">
+        {t('pages.auth.haveAccount', 'Artıq hesabınız var?')}
+        <Link to="/signin" className="ds-link">{t('auth.signInTitle')}</Link>
+      </p>
+    </AuthShell>
   );
 }
 
 export default RegisterRolePage;
-

@@ -1,67 +1,66 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Check } from 'lucide-react';
 import './AnalyzingScreen.scss';
 
+const STEP_MS = 600;
+const FINAL_MS = 500;
+
 function AnalyzingScreen({ onComplete }) {
+  const { t } = useTranslation();
   const [activeStep, setActiveStep] = useState(0);
-  
+
+  // Plain description of what actually happens with the answers.
   const steps = [
-    "Matching university programs",
-    "Calculating admission probability",
-    "Finding relevant scholarships",
-    "Checking visa requirements by nationality",
-    "Estimating living and tuition costs"
+    t('pages.matchQuiz.checkCountry', 'Seçdiyiniz ölkənin universitetləri yoxlanılır'),
+    t('pages.matchQuiz.checkLanguage', 'Tədris dili uyğunluğu yoxlanılır'),
+    t('pages.matchQuiz.checkSort', 'Nəticələr uyğunluğa görə sıralanır')
   ];
 
   useEffect(() => {
-    // Step through the analyzing items one by one
+    // Step through the items one by one
     if (activeStep < steps.length) {
       const timer = setTimeout(() => {
         setActiveStep(prev => prev + 1);
-      }, 800); // Wait 800ms between each step
+      }, STEP_MS);
       return () => clearTimeout(timer);
-    } else {
-      // Once all steps are done, wait a little bit then call onComplete
-      const finalTimer = setTimeout(() => {
-        onComplete();
-      }, 1000);
-      return () => clearTimeout(finalTimer);
     }
+    // Once all steps are done, wait a little bit then call onComplete
+    const finalTimer = setTimeout(() => {
+      onComplete();
+    }, FINAL_MS);
+    return () => clearTimeout(finalTimer);
   }, [activeStep, steps.length, onComplete]);
 
+  const pct = Math.round((activeStep / steps.length) * 100);
+
   return (
-    <div className="analyzing-screen-container">
-      <div className="analyzing-content">
-        <div className="icon-container">
-           {/* Brain icon representation */}
-           <div className="brain-icon-wrapper">
-             <span className="brain-icon">🧠</span>
-           </div>
-        </div>
-        
-        <h2>Analyzing your profile...</h2>
-        <p className="subtitle">Cross-referencing 2,500+ universities and 150,000+ scholarships</p>
-        
-        <div className="analyzing-steps">
-          {steps.map((step, index) => (
-            <div 
-              key={index} 
-              className={`analyzing-step ${index < activeStep ? 'completed' : index === activeStep ? 'active' : 'pending'}`}
-            >
-              <div className="step-icon">
-                {index < activeStep ? (
-                   <span className="check-icon">✓</span>
-                ) : index === activeStep ? (
-                   <div className="spinner"></div>
-                ) : (
-                   <span className="pending-icon">✓</span>
-                )}
-              </div>
-              <span className="step-text">{step}</span>
-            </div>
-          ))}
-        </div>
+    <section className="ds-card gq-analyzing" role="status" aria-live="polite" aria-busy="true">
+      <h1 className="gq-analyzing__title">
+        {t('pages.matchQuiz.analyzingTitle', 'Uyğun universitetlər seçilir')}
+      </h1>
+      <p className="gq-analyzing__lead">
+        {t('pages.matchQuiz.analyzingLead', 'Cavablarınız əsasında siyahı hazırlanır. Bu bir neçə saniyə çəkir.')}
+      </p>
+
+      <div className="gq-analyzing__track" aria-hidden>
+        <div className="gq-analyzing__fill" style={{ width: `${pct}%` }} />
       </div>
-    </div>
+
+      <ol className="gq-analyzing__list">
+        {steps.map((step, index) => {
+          const state = index < activeStep ? 'done' : index === activeStep ? 'active' : 'pending';
+          return (
+            <li key={index} className="gq-analyzing__item" data-state={state}>
+              <span className="gq-analyzing__icon" aria-hidden>
+                {state === 'done' ? <Check /> : null}
+              </span>
+              <span>{step}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 

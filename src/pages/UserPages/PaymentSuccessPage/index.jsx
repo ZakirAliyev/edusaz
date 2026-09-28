@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ArrowRight, BookOpen, Check, Mail } from 'lucide-react';
 import { useConfirmOrderPaymentMutation, useGetPaymentStatusQuery } from '../../../services/apis/userApi.jsx';
 import './index.scss';
 
@@ -11,7 +12,8 @@ function PaymentSuccessPage() {
   const orderId = searchParams.get('order_id') || searchParams.get('orderId') || searchParams.get('id') || '';
   const paymentId = searchParams.get('paymentId') || searchParams.get('payment_id') || '';
   const transactionId = searchParams.get('transaction') || searchParams.get('transaction_id') || '';
-  const displayOrderId = orderId || paymentId || transactionId || 'EDU-' + Math.floor(100000 + Math.random() * 900000);
+  // Only show a receipt number that actually came from the gateway (no invented numbers).
+  const displayOrderId = orderId || paymentId || transactionId;
   const amount = searchParams.get('amount') || '';
   const currency = searchParams.get('currency') || 'AZN';
 
@@ -35,81 +37,92 @@ function PaymentSuccessPage() {
 
   const courseId = statusData?.courseId;
   const courseTitle = statusData?.courseTitle;
+  const shownAmount = amount || statusData?.amount;
 
   return (
-    <div className="payment-result-page success-page">
-      <div className="payment-result-container">
-        <div className="status-badge-wrapper">
-          <div className="status-icon-outer success">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 6L9 17l-5-5"/>
-            </svg>
+    <main className="ds-page pr-page">
+      <div className="ds-container">
+        <section className="ds-card pr-card" data-tone="success" data-reveal aria-labelledby="pr-title">
+          <div className="pr-icon" aria-hidden="true">
+            <Check strokeWidth={2.25} />
           </div>
-        </div>
 
-        <span className="payment-chip success">
-          {t('payment.successChip', 'Ödəniş Təsdiqləndi')}
-        </span>
+          <span className="ds-badge ds-badge--success pr-chip">
+            {t('payment.successChip', 'Ödəniş Təsdiqləndi')}
+          </span>
 
-        <h1 className="payment-title">
-          {t('payment.successTitle', 'Ödəniş Uğurla Tamamlandı!')}
-        </h1>
+          <h1 id="pr-title" className="ds-h2 pr-title">
+            {t('payment.successTitle', 'Ödəniş Uğurla Tamamlandı!')}
+          </h1>
 
-        <p className="payment-subtitle">
-          {courseTitle 
-            ? `Təbriklər! "${courseTitle}" kursuna qeydiyyatınız uğurla tamamlandı və dərslər aktivləşdirildi.`
-            : t('payment.successDesc', 'Əməliyyatınız uğurla icra olundu. Qeydiyyat və ya müraciətiniz sistemdə aktivləşdirildi.')}
-        </p>
-
-        <div className="payment-details-card">
-          <div className="detail-row">
-            <span className="detail-label">{t('payment.orderId', 'Sifariş / Qəbz Nömrəsi')}:</span>
-            <span className="detail-value order-id">{displayOrderId}</span>
-          </div>
-          {(amount || statusData?.amount) && (
-            <div className="detail-row">
-              <span className="detail-label">{t('payment.amount', 'Məbləğ')}:</span>
-              <span className="detail-value amount-value">{amount || statusData?.amount} {currency || statusData?.currency || 'AZN'}</span>
-            </div>
-          )}
-          <div className="detail-row">
-            <span className="detail-label">{t('payment.status', 'Status')}:</span>
-            <span className="detail-value status-tag success">
-              ● {t('payment.statusSuccess', 'Uğurlu (Ödənilib)')}
-            </span>
-          </div>
-          <div className="detail-row">
-            <span className="detail-label">{t('payment.method', 'Ödəniş Şlüzü')}:</span>
-            <span className="detail-value">ePoint Payment Gateway</span>
-          </div>
-          <div className="detail-row">
-            <span className="detail-label">{t('payment.date', 'Tarix')}:</span>
-            <span className="detail-value">{new Date().toLocaleString('az-AZ')}</span>
-          </div>
-        </div>
-
-        <div className="payment-actions">
-          {courseId ? (
-            <Link to={`/courses/${courseId}`} className="btn-primary" style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', fontWeight: 600 }}>
-              🎓 Kursa Keçin və Dərslərə Başlayın ▶
-            </Link>
-          ) : (
-            <Link to="/courses" className="btn-primary">
-              📚 Kurslara Bax
-            </Link>
-          )}
-          <Link to="/" className="btn-secondary">
-            {t('payment.backHome', 'Əsas Səhifə')}
-          </Link>
-        </div>
-
-        <div className="payment-support-hint">
-          <p>
-            {t('payment.supportHint', 'Hər hansı sualınız yaranarsa,')} <a href="mailto:support@edusaz.com">support@edusaz.com</a> {t('payment.supportHint2', 'ilə əlaqə saxlaya bilərsiniz.')}
+          <p className="pr-lead">
+            {courseTitle
+              ? t('pages.paymentSuccess.courseEnrolled', {
+                  course: courseTitle,
+                  defaultValue: 'Təbriklər! "{{course}}" kursuna qeydiyyatınız uğurla tamamlandı və dərslər aktivləşdirildi.'
+                })
+              : t('payment.successDesc', 'Əməliyyatınız uğurla icra olundu. Qeydiyyat və ya müraciətiniz sistemdə aktivləşdirildi.')}
           </p>
-        </div>
+
+          <dl className="pr-summary">
+            {displayOrderId && (
+              <div className="pr-row">
+                <dt>{t('payment.orderId', 'Sifariş / Qəbz Nömrəsi')}</dt>
+                <dd className="pr-code">{displayOrderId}</dd>
+              </div>
+            )}
+            {shownAmount && (
+              <div className="pr-row">
+                <dt>{t('payment.amount', 'Məbləğ')}</dt>
+                <dd className="pr-amount">{shownAmount} {currency || statusData?.currency || 'AZN'}</dd>
+              </div>
+            )}
+            <div className="pr-row">
+              <dt>{t('payment.status', 'Status')}</dt>
+              <dd>
+                <span className="ds-badge ds-badge--success pr-status">
+                  {t('payment.statusSuccess', 'Uğurlu (Ödənilib)')}
+                </span>
+              </dd>
+            </div>
+            <div className="pr-row">
+              <dt>{t('payment.method', 'Ödəniş Şlüzü')}</dt>
+              <dd>ePoint Payment Gateway</dd>
+            </div>
+            <div className="pr-row">
+              <dt>{t('payment.date', 'Tarix')}</dt>
+              <dd>{new Date().toLocaleString('az-AZ')}</dd>
+            </div>
+          </dl>
+
+          <div className="pr-actions">
+            {courseId ? (
+              <Link to={`/courses/${courseId}`} className="ds-btn ds-btn--primary ds-btn--lg">
+                {t('pages.paymentSuccess.goToCourse', 'Kursa keçin və dərslərə başlayın')}
+                <ArrowRight aria-hidden="true" className="pr-dir-icon" />
+              </Link>
+            ) : (
+              <Link to="/courses" className="ds-btn ds-btn--primary ds-btn--lg">
+                <BookOpen aria-hidden="true" />
+                {t('pages.paymentSuccess.browseCourses', 'Kurslara bax')}
+              </Link>
+            )}
+            <Link to="/" className="ds-btn ds-btn--secondary ds-btn--lg">
+              {t('payment.backHome', 'Əsas Səhifə')}
+            </Link>
+          </div>
+
+          <p className="pr-support">
+            <Mail aria-hidden="true" />
+            <span>
+              {t('payment.supportHint', 'Hər hansı sualınız yaranarsa,')}{' '}
+              <a href="mailto:support@edusaz.com" className="ds-link">support@edusaz.com</a>{' '}
+              {t('payment.supportHint2', 'ilə əlaqə saxlaya bilərsiniz.')}
+            </span>
+          </p>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -1,0 +1,510 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Edusaz public design system (derived from the landing page).
+// Tokens live on :root with a `--ds-` prefix; shared building blocks use `.ds-*`.
+// Pages should compose these instead of inventing new colors, radii or shadows.
+// ─────────────────────────────────────────────────────────────────────────────
+
+:root {
+  --ds-font: 'Poppins', system-ui, sans-serif;
+
+  --ds-bg: #fbfaf7;
+  --ds-surface: #ffffff;
+  --ds-surface-2: #f6f4fa;
+  --ds-ink: #17142a;
+  --ds-ink-2: #3d3950;
+  --ds-muted: #666279;
+  --ds-subtle: #8a8699;
+  --ds-line: #ebe7f0;
+  --ds-line-strong: #dcd6e6;
+
+  --ds-brand: #7a5cff;
+  --ds-brand-btn: #6b4eff; // button fill with AA contrast for white text
+  --ds-brand-ink: #5b3df0; // brand tone for text/links on white
+  --ds-brand-soft: #f2eeff;
+  --ds-dark: #15122a;
+
+  --ds-success: #15803d;
+  --ds-success-soft: #ecfdf3;
+  --ds-warning: #b45309;
+  --ds-warning-soft: #fffbeb;
+  --ds-danger: #dc2626;
+  --ds-danger-soft: #fef2f2;
+  --ds-info: #1d4ed8;
+  --ds-info-soft: #eff6ff;
+
+  --ds-r-sm: 10px;
+  --ds-r: 14px;
+  --ds-r-lg: 20px;
+  --ds-r-xl: 28px;
+
+  --ds-shadow-sm: 0 1px 2px rgba(23, 20, 42, 0.05);
+  --ds-shadow: 0 1px 2px rgba(23, 20, 42, 0.04), 0 12px 32px -16px rgba(23, 20, 42, 0.18);
+  --ds-shadow-lg: 0 2px 4px rgba(23, 20, 42, 0.04), 0 24px 48px -20px rgba(23, 20, 42, 0.25);
+
+  --ds-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ds-nav-h: 72px;
+}
+
+// ── Layout ──────────────────────────────────────────────────────────────────
+.ds-page {
+  min-height: 70vh;
+  padding-top: calc(var(--ds-nav-h) + clamp(32px, 5vw, 56px));
+  padding-bottom: clamp(56px, 8vw, 96px);
+  background: var(--ds-bg);
+  color: var(--ds-ink);
+}
+
+.ds-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 20px;
+
+  @media (min-width: 768px) {
+    padding-inline: 32px;
+  }
+}
+
+.ds-section {
+  padding-block: clamp(40px, 6vw, 72px);
+}
+
+// ── Typography ──────────────────────────────────────────────────────────────
+.ds-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--ds-line);
+  border-radius: 999px;
+  background: var(--ds-surface);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ds-ink-2);
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ds-brand);
+  }
+}
+
+.ds-title {
+  font-size: clamp(2rem, 4.2vw, 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  color: var(--ds-ink);
+  text-wrap: balance;
+}
+
+.ds-h2 {
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  color: var(--ds-ink);
+}
+
+.ds-h3 {
+  font-size: 1.125rem;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--ds-ink);
+}
+
+.ds-lead {
+  max-width: 40rem;
+  font-size: clamp(1rem, 1.3vw, 1.125rem);
+  line-height: 1.65;
+  color: var(--ds-muted);
+}
+
+.ds-muted {
+  color: var(--ds-muted);
+}
+
+.ds-page-header {
+  display: grid;
+  gap: 14px;
+  margin-bottom: clamp(28px, 4vw, 44px);
+
+  &--center {
+    justify-items: center;
+    text-align: center;
+
+    .ds-lead {
+      margin-inline: auto;
+    }
+  }
+}
+
+.ds-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--ds-brand-ink) !important;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+// ── Buttons ─────────────────────────────────────────────────────────────────
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding-inline: 18px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-family: var(--ds-font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s var(--ds-ease);
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  &--primary {
+    background: var(--ds-brand-btn);
+    color: #fff !important;
+
+    &:hover:not(:disabled) {
+      background: var(--ds-brand-ink);
+      box-shadow: 0 8px 20px -10px rgba(91, 61, 240, 0.65);
+    }
+  }
+
+  &--secondary {
+    background: var(--ds-surface);
+    border-color: var(--ds-line);
+    color: var(--ds-ink) !important;
+
+    &:hover:not(:disabled) {
+      border-color: var(--ds-line-strong);
+      background: var(--ds-surface-2);
+    }
+  }
+
+  &--soft {
+    background: var(--ds-brand-soft);
+    color: var(--ds-brand-ink) !important;
+
+    &:hover:not(:disabled) {
+      background: #e8e1ff;
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--ds-ink-2) !important;
+
+    &:hover:not(:disabled) {
+      background: rgba(23, 20, 42, 0.05);
+      color: var(--ds-ink) !important;
+    }
+  }
+
+  &--dark {
+    background: var(--ds-dark);
+    color: #fff !important;
+
+    &:hover:not(:disabled) {
+      background: #25203f;
+    }
+  }
+
+  &--danger {
+    background: var(--ds-danger);
+    color: #fff !important;
+
+    &:hover:not(:disabled) {
+      background: #b91c1c;
+    }
+  }
+
+  &--sm {
+    height: 36px;
+    padding-inline: 14px;
+    border-radius: 10px;
+    font-size: 0.875rem;
+  }
+
+  &--lg {
+    height: 52px;
+    padding-inline: 24px;
+    border-radius: 14px;
+    font-size: 1rem;
+  }
+
+  &--block {
+    width: 100%;
+  }
+}
+
+// ── Surfaces ────────────────────────────────────────────────────────────────
+.ds-card {
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-r-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-sm);
+
+  &--pad {
+    padding: clamp(20px, 3vw, 28px);
+  }
+
+  // Clickable cards lift slightly on hover.
+  &--interactive {
+    transition: transform 0.3s var(--ds-ease), box-shadow 0.3s var(--ds-ease), border-color 0.2s;
+
+    &:hover {
+      transform: translateY(-3px);
+      border-color: rgba(122, 92, 255, 0.3);
+      box-shadow: var(--ds-shadow);
+    }
+  }
+}
+
+.ds-divider {
+  height: 1px;
+  border: 0;
+  background: var(--ds-line);
+}
+
+// ── Forms ───────────────────────────────────────────────────────────────────
+.ds-field {
+  display: grid;
+  gap: 6px;
+}
+
+.ds-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ds-ink);
+}
+
+.ds-input,
+.ds-select,
+.ds-textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid var(--ds-line-strong);
+  border-radius: 12px;
+  background: var(--ds-surface);
+  font-family: var(--ds-font);
+  font-size: 0.9375rem;
+  color: var(--ds-ink);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &::placeholder {
+    color: var(--ds-subtle);
+  }
+
+  &:hover {
+    border-color: #c9c1d8;
+  }
+
+  &:focus {
+    border-color: var(--ds-brand);
+    box-shadow: 0 0 0 4px rgba(122, 92, 255, 0.14);
+  }
+
+  &[aria-invalid='true'] {
+    border-color: var(--ds-danger);
+  }
+
+  &:disabled {
+    background: var(--ds-surface-2);
+    cursor: not-allowed;
+  }
+}
+
+.ds-select {
+  appearance: none;
+  padding-inline-end: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23666279' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+
+html[dir='rtl'] .ds-select {
+  background-position: left 14px center;
+}
+
+.ds-textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.ds-help {
+  font-size: 0.8125rem;
+  color: var(--ds-muted);
+}
+
+.ds-error {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ds-danger);
+}
+
+// ── Badges & chips ──────────────────────────────────────────────────────────
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--ds-surface-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ds-ink-2);
+  white-space: nowrap;
+
+  &--brand { background: var(--ds-brand-soft); color: var(--ds-brand-ink); }
+  &--success { background: var(--ds-success-soft); color: var(--ds-success); }
+  &--warning { background: var(--ds-warning-soft); color: var(--ds-warning); }
+  &--danger { background: var(--ds-danger-soft); color: var(--ds-danger); }
+  &--info { background: var(--ds-info-soft); color: var(--ds-info); }
+}
+
+.ds-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding-inline: 14px;
+  border: 1px solid var(--ds-line);
+  border-radius: 999px;
+  background: var(--ds-surface);
+  font-family: var(--ds-font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ds-ink-2);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+
+  &:hover {
+    border-color: var(--ds-line-strong);
+    color: var(--ds-ink);
+  }
+
+  &.is-active,
+  &[aria-pressed='true'] {
+    border-color: var(--ds-ink);
+    background: var(--ds-ink);
+    color: #fff;
+  }
+}
+
+// ── States ──────────────────────────────────────────────────────────────────
+.ds-empty {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: clamp(40px, 6vw, 64px) 24px;
+  border: 1px dashed var(--ds-line-strong);
+  border-radius: var(--ds-r-lg);
+  background: var(--ds-surface);
+  text-align: center;
+  color: var(--ds-muted);
+
+  svg {
+    width: 28px;
+    height: 28px;
+    color: var(--ds-subtle);
+  }
+
+  strong {
+    font-size: 1rem;
+    color: var(--ds-ink);
+  }
+}
+
+.ds-skeleton {
+  border-radius: var(--ds-r-sm);
+  background: linear-gradient(90deg, #f1eef6 25%, #f8f6fb 37%, #f1eef6 63%);
+  background-size: 400% 100%;
+  animation: ds-shimmer 1.4s ease infinite;
+}
+
+@keyframes ds-shimmer {
+  from { background-position: 100% 50%; }
+  to { background-position: 0 50%; }
+}
+
+// ── Motion (subtle, site-wide) ──────────────────────────────────────────────
+// Route change: the page content fades in.
+// Opacity only — a transform here would become the containing block for `position: fixed`
+// modals/overlays inside pages and trap them within the page.
+.ds-route {
+  animation: ds-route-in 0.3s ease-out both;
+}
+
+@keyframes ds-route-in {
+  from {
+    opacity: 0;
+  }
+}
+
+// Scroll reveal: only hides elements once JS is ready (see hooks/useScrollReveal),
+// so content never stays invisible if scripts fail.
+html.ds-reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s var(--ds-ease), transform 0.6s var(--ds-ease);
+  transition-delay: var(--delay, 0ms);
+
+  &.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:focus-visible {
+  outline: 3px solid rgba(122, 92, 255, 0.45);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html.ds-reveal-ready [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}

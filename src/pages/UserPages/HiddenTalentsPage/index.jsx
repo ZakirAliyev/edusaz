@@ -1,41 +1,125 @@
 import { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Building2,
+  Check,
+  CheckCircle2,
+  FileText,
+  GraduationCap,
+  Handshake,
+  Info,
+  Laptop,
+  Lightbulb,
+  LineChart,
+  MailCheck,
+  Megaphone,
+  MessageCircleQuestion,
+  Mic,
+  Palette,
+  RotateCcw,
+  Scale,
+  Send,
+  ShieldCheck,
+  Square,
+  Upload,
+  User,
+  Users,
+  Wallet,
+  Wrench,
+  X,
+} from 'lucide-react';
 import { useSubmitHiddenTalentMutation, useUploadTalentFileMutation } from '../../../services/apis/userApi';
 import { useToast } from '../../../context/ToastContext';
 import ScrollToTop from '../../../components/Common/ScrollToTop';
 import './index.scss';
 
+// Several translation strings still carry emoji / arrows (e.g. "🎙️ Start", "← Back").
+// The new design uses real icons, so strip those characters at render time.
+const plain = (str) =>
+  String(str ?? '')
+    .replace(/\p{Extended_Pictographic}|\u{FE0F}|\u{200D}|[\u{2713}\u{2190}\u{2192}]/gu, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+// "1. Share your idea" → "Share your idea" (the list already numbers the steps).
+const stripNumber = (str) => plain(str).replace(/^\d+\.\s*/, '');
+
+const INITIAL_FORM = {
+  // Step 1
+  firstName: '',
+  lastName: '',
+  phone: '',
+  email: '',
+  age: '',
+  cityCountry: '',
+  socialLinks: '',
+  // Step 2
+  skillName: '',
+  experienceDuration: '',
+  skillLevel: 'Orta',
+  whereUsed: '',
+  whatCreated: '',
+  // Step 3
+  ideaDescription: '',
+  problemSolved: '',
+  targetAudience: '',
+  currentProgress: '',
+  mainGoal: '',
+  dynamicCategoryQuestion: '',
+  dynamicCategoryAnswer: '',
+  // Step 4
+  voiceNoteUrl: '',
+  videoUrl: '',
+  uploadedFiles: [], // [{ name, url, size, type }]
+  // Step 5
+  estimatedInvestment: 'Bilmirəm',
+  customInvestmentAmount: '',
+  neededSupportTypes: ['Mentor', 'Maliyyə'],
+  otherNeeds: '',
+  // Step 6
+  teamStatus: 'Solo',
+  teamSize: '',
+  teamRoles: '',
+  teamNotes: '',
+  oneYearVision: '',
+  wantIncome: 'Bəli',
+  wantBusiness: 'Bəli',
+  ultimateAmbition: ''
+};
+
 function HiddenTalentsPage() {
-  const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
+  const { t } = useTranslation();
   const toast = useToast();
 
   const [submitTalent, { isLoading: isSubmitting }] = useSubmitHiddenTalentMutation();
   const [uploadFileApi] = useUploadTalentFileMutation();
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errors, setErrors] = useState({});
 
   // Steps definition with reactive translations
   const steps = [
-    { id: 1, title: t('talents.step1.title', 'Əvvəlcə səni tanıyaq'), short: t('talents.stepShort.1', 'Şəxsi'), icon: '👤' },
-    { id: 2, title: t('talents.step2.title', 'İndi isə sənin bacarığın haqqında danışaq'), short: t('talents.stepShort.2', 'Bacarıq'), icon: '✨' },
-    { id: 3, title: t('talents.step3.title', 'Bunu reallaşdırsaydın, nə edərdin?'), short: t('talents.stepShort.3', 'İdeya'), icon: '💡' },
-    { id: 4, title: t('talents.step4.title', 'Bacardığını bizə göstər'), short: t('talents.stepShort.4', 'Fayllar'), icon: '📁' },
-    { id: 5, title: t('talents.step5.title', 'Bunu reallaşdırmaq üçün sənə nə lazımdır?'), short: t('talents.stepShort.5', 'Resurs'), icon: '🎯' },
-    { id: 6, title: t('talents.step6.title', 'Bu bacarığın gələcəyini necə görürsən?'), short: t('talents.stepShort.6', 'Gələcək'), icon: '🚀' },
-    { id: 7, title: t('talents.step7.title', 'Bəlkə də axtardığımız insan sənsən.'), short: t('talents.stepShort.7', 'Təsdiq'), icon: '🤝' },
+    { id: 1, title: t('talents.step1.title', 'Əvvəlcə səni tanıyaq'), short: t('talents.stepShort.1', 'Şəxsi') },
+    { id: 2, title: t('talents.step2.title', 'İndi isə sənin bacarığın haqqında danışaq'), short: t('talents.stepShort.2', 'Bacarıq') },
+    { id: 3, title: t('talents.step3.title', 'Bunu reallaşdırsaydın, nə edərdin?'), short: t('talents.stepShort.3', 'İdeya') },
+    { id: 4, title: t('talents.step4.title', 'Bacardığını bizə göstər'), short: t('talents.stepShort.4', 'Fayllar') },
+    { id: 5, title: t('talents.step5.title', 'Bunu reallaşdırmaq üçün sənə nə lazımdır?'), short: t('talents.stepShort.5', 'Resurs') },
+    { id: 6, title: t('talents.step6.title', 'Bu bacarığın gələcəyini necə görürsən?'), short: t('talents.stepShort.6', 'Gələcək') },
+    { id: 7, title: t('talents.step7.title', 'Bəlkə də axtardığımız insan sənsən.'), short: t('talents.stepShort.7', 'Təsdiq') },
   ];
 
   const skillLevels = [
-    { id: 'Yeni başlayıram', label: t('talents.skillLevels.1.label', 'Yeni başlayıram'), icon: '🌱', desc: t('talents.skillLevels.1.desc', 'Sadəcə öyrənməyə və kəşf etməyə başlamışam') },
-    { id: 'Başlanğıc', label: t('talents.skillLevels.2.label', 'Başlanğıc'), icon: '🚀', desc: t('talents.skillLevels.2.desc', 'Baza anlayışım və ilk təcrübələrim var') },
-    { id: 'Orta', label: t('talents.skillLevels.3.label', 'Orta səviyyə'), icon: '⚡', desc: t('talents.skillLevels.3.desc', 'Müstəqil nələrsə yarada və tətbiq edə bilirəm') },
-    { id: 'Yaxşı', label: t('talents.skillLevels.4.label', 'Yaxşı'), icon: '🌟', desc: t('talents.skillLevels.4.desc', 'Sahəmi yaxşı bilirəm və keyfiyyətli işlər çıxarıram') },
-    { id: 'Peşəkar', label: t('talents.skillLevels.5.label', 'Peşəkar'), icon: '👑', desc: t('talents.skillLevels.5.desc', 'Real layihələr, müştərilər və ya təcrübəm var') },
-    { id: 'Çox yüksək səviyyə', label: t('talents.skillLevels.6.label', 'Ekspert / Usta'), icon: '🔥', desc: t('talents.skillLevels.6.desc', 'Bu sahədə fərqlənirəm və dərin biliyim var') }
+    { id: 'Yeni başlayıram', label: t('talents.skillLevels.1.label', 'Yeni başlayıram'), desc: t('talents.skillLevels.1.desc', 'Sadəcə öyrənməyə və kəşf etməyə başlamışam') },
+    { id: 'Başlanğıc', label: t('talents.skillLevels.2.label', 'Başlanğıc'), desc: t('talents.skillLevels.2.desc', 'Baza anlayışım və ilk təcrübələrim var') },
+    { id: 'Orta', label: t('talents.skillLevels.3.label', 'Orta səviyyə'), desc: t('talents.skillLevels.3.desc', 'Müstəqil nələrsə yarada və tətbiq edə bilirəm') },
+    { id: 'Yaxşı', label: t('talents.skillLevels.4.label', 'Yaxşı'), desc: t('talents.skillLevels.4.desc', 'Sahəmi yaxşı bilirəm və keyfiyyətli işlər çıxarıram') },
+    { id: 'Peşəkar', label: t('talents.skillLevels.5.label', 'Peşəkar'), desc: t('talents.skillLevels.5.desc', 'Real layihələr, müştərilər və ya təcrübəm var') },
+    { id: 'Çox yüksək səviyyə', label: t('talents.skillLevels.6.label', 'Ekspert / Usta'), desc: t('talents.skillLevels.6.desc', 'Bu sahədə fərqlənirəm və dərin biliyim var') }
   ];
 
   const investmentOptions = [
@@ -49,19 +133,27 @@ function HiddenTalentsPage() {
   ];
 
   const supportTypes = [
-    { id: 'Maliyyə', label: t('talents.supportList.finance', 'Maliyyə / Qrant'), icon: '💰' },
-    { id: 'Mentor', label: t('talents.supportList.mentor', 'Mentor / Məsləhət'), icon: '🎓' },
-    { id: 'Təhsil', label: t('talents.supportList.education', 'Təhsil / Təlimlər'), icon: '📚' },
-    { id: 'Texniki dəstək', label: t('talents.supportList.tech', 'Texniki / Proqram təminatı'), icon: '💻' },
-    { id: 'Komanda', label: t('talents.supportList.team', 'Komanda üzvü / Həmtəsisçi'), icon: '👥' },
-    { id: 'Marketinq', label: t('talents.supportList.marketing', 'Marketinq & Reklam'), icon: '📣' },
-    { id: 'Dizayn', label: t('talents.supportList.design', 'Dizayn & Brendinq'), icon: '🎨' },
-    { id: 'Avadanlıq', label: t('talents.supportList.equipment', 'Avadanlıq & Alətlər'), icon: '⚙️' },
-    { id: 'Məkan', label: t('talents.supportList.office', 'Ofis / İş məkanı'), icon: '🏢' },
-    { id: 'Hüquqi dəstək', label: t('talents.supportList.legal', 'Hüquqi & Patent dəstəyi'), icon: '⚖️' },
-    { id: 'Biznes plan', label: t('talents.supportList.businessPlan', 'Biznes plan & Strategiya'), icon: '📈' },
-    { id: 'İnvestor tapmaq', label: t('talents.supportList.investor', 'İnvestor əlaqələri'), icon: '🤝' },
-    { id: 'Digər', label: t('talents.supportList.other', 'Digər dəstək'), icon: '💡' }
+    { id: 'Maliyyə', label: t('talents.supportList.finance', 'Maliyyə / Qrant'), icon: Wallet },
+    { id: 'Mentor', label: t('talents.supportList.mentor', 'Mentor / Məsləhət'), icon: GraduationCap },
+    { id: 'Təhsil', label: t('talents.supportList.education', 'Təhsil / Təlimlər'), icon: BookOpen },
+    { id: 'Texniki dəstək', label: t('talents.supportList.tech', 'Texniki / Proqram təminatı'), icon: Laptop },
+    { id: 'Komanda', label: t('talents.supportList.team', 'Komanda üzvü / Həmtəsisçi'), icon: Users },
+    { id: 'Marketinq', label: t('talents.supportList.marketing', 'Marketinq & Reklam'), icon: Megaphone },
+    { id: 'Dizayn', label: t('talents.supportList.design', 'Dizayn & Brendinq'), icon: Palette },
+    { id: 'Avadanlıq', label: t('talents.supportList.equipment', 'Avadanlıq & Alətlər'), icon: Wrench },
+    { id: 'Məkan', label: t('talents.supportList.office', 'Ofis / İş məkanı'), icon: Building2 },
+    { id: 'Hüquqi dəstək', label: t('talents.supportList.legal', 'Hüquqi & Patent dəstəyi'), icon: Scale },
+    { id: 'Biznes plan', label: t('talents.supportList.businessPlan', 'Biznes plan & Strategiya'), icon: LineChart },
+    { id: 'İnvestor tapmaq', label: t('talents.supportList.investor', 'İnvestor əlaqələri'), icon: Handshake },
+    { id: 'Digər', label: t('talents.supportList.other', 'Digər dəstək'), icon: Lightbulb }
+  ];
+
+  const teamStatuses = [
+    { id: 'Solo', label: t('talents.teamStatuses.solo', 'Tək işləyirəm'), icon: User },
+    { id: 'Friends', label: t('talents.teamStatuses.friends', 'Dostlarım var'), icon: Handshake },
+    { id: 'Team', label: t('talents.teamStatuses.team', 'Komandamız var'), icon: Users },
+    { id: 'Company', label: t('talents.teamStatuses.company', 'Şirkətimiz var'), icon: Building2 },
+    { id: 'Other', label: t('talents.teamStatuses.other', 'Digər'), icon: Lightbulb }
   ];
 
   const inspirationTags = [
@@ -76,51 +168,17 @@ function HiddenTalentsPage() {
     t('talents.inspirational.sport', '🥋 İdman & Bacarıq'),
     t('talents.inspirational.teaching', '🎓 Tədris & Kurs Təşəbbüsü'),
     t('talents.inspirational.craft', '🧵 Əl İşi & Sənətkarlıq')
-  ];
+  ].map(plain);
 
   // Form State
-  const [formData, setFormData] = useState({
-    // Step 1
-    firstName: '',
-    lastName: '',
-    phone: '',
-    email: '',
-    age: '',
-    cityCountry: '',
-    socialLinks: '',
-    // Step 2
-    skillName: '',
-    experienceDuration: '',
-    skillLevel: 'Orta',
-    whereUsed: '',
-    whatCreated: '',
-    // Step 3
-    ideaDescription: '',
-    problemSolved: '',
-    targetAudience: '',
-    currentProgress: '',
-    mainGoal: '',
-    dynamicCategoryQuestion: '',
-    dynamicCategoryAnswer: '',
-    // Step 4
-    voiceNoteUrl: '',
-    videoUrl: '',
-    uploadedFiles: [], // [{ name, url, size, type }]
-    // Step 5
-    estimatedInvestment: 'Bilmirəm',
-    customInvestmentAmount: '',
-    neededSupportTypes: ['Mentor', 'Maliyyə'],
-    otherNeeds: '',
-    // Step 6
-    teamStatus: 'Solo',
-    teamSize: '',
-    teamRoles: '',
-    teamNotes: '',
-    oneYearVision: '',
-    wantIncome: 'Bəli',
-    wantBusiness: 'Bəli',
-    ultimateAmbition: ''
-  });
+  const [formData, setFormData] = useState(INITIAL_FORM);
+
+  // Field change helper — also clears that field's inline error.
+  const setField = (field, errorKey = field) => (e) => {
+    const { value } = e.target;
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[errorKey]) setErrors((prev) => ({ ...prev, [errorKey]: undefined }));
+  };
 
   const formSectionRef = useRef(null);
 
@@ -421,27 +479,27 @@ function HiddenTalentsPage() {
     });
   };
 
-  // Step Validation
+  // Step Validation — same rules as before; errors are now also shown inline next to the fields.
   const validateStep = (step) => {
+    const next = {};
     if (step === 1) {
-      if (!formData.firstName.trim()) {
-        toast?.showError ? toast.showError(t('talents.errors.firstName', 'Zəhmət olmasa adınızı daxil edin.')) : alert('Ad daxil edin.');
-        return false;
-      }
-      if (!formData.lastName.trim()) {
-        toast?.showError ? toast.showError(t('talents.errors.lastName', 'Zəhmət olmasa soyadınızı daxil edin.')) : alert('Soyad daxil edin.');
-        return false;
-      }
-      if (!formData.phone.trim() && !formData.email.trim()) {
-        toast?.showError ? toast.showError(t('talents.errors.contact', 'Əlaqə üçün ən azı telefon nömrəsi və ya e-mail daxil edin.')) : alert('Telefon və ya e-mail daxil edin.');
-        return false;
-      }
+      if (!formData.firstName.trim()) next.firstName = t('talents.errors.firstName', 'Zəhmət olmasa adınızı daxil edin.');
+      if (!formData.lastName.trim()) next.lastName = t('talents.errors.lastName', 'Zəhmət olmasa soyadınızı daxil edin.');
+      if (!formData.phone.trim() && !formData.email.trim()) next.contact = t('talents.errors.contact', 'Əlaqə üçün ən azı telefon nömrəsi və ya e-mail daxil edin.');
     }
     if (step === 2) {
-      if (!formData.skillName.trim()) {
-        toast?.showError ? toast.showError(t('talents.errors.skill', 'Zəhmət olmasa bacarığınız və ya istedadınız haqqında qısa məlumat yazın.')) : alert('Bacarığınızı yazın.');
-        return false;
-      }
+      if (!formData.skillName.trim()) next.skillName = t('talents.errors.skill', 'Zəhmət olmasa bacarığınız və ya istedadınız haqqında qısa məlumat yazın.');
+    }
+    const messages = Object.values(next);
+    if (messages.length) {
+      setErrors((prev) => ({ ...prev, ...next }));
+      toast?.showError ? toast.showError(messages[0]) : alert(messages[0]);
+      if (step !== currentStep) setCurrentStep(step);
+      requestAnimationFrame(() => {
+        const firstInvalid = formSectionRef.current?.querySelector('[aria-invalid="true"]');
+        firstInvalid?.focus();
+      });
+      return false;
     }
     return true;
   };
@@ -521,872 +579,899 @@ function HiddenTalentsPage() {
     return `${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  const stageLabel = t('talents.general.stage', 'Mərhələ');
+  const optionalText = t('talents.general.optional', 'İstəsən paylaş');
+  const customAmountOption = t('talents.step5.customAmountOption', 'Dəqiq məbləği özüm yazım');
+  const stepDescriptions = {
+    1: t('talents.step1.desc', 'Səninlə necə əlaqə saxlaya biləcəyimizi bilmək istəyirik. Qorxma, məlumatların tam məxfi saxlanılır.'),
+    2: t('talents.step2.desc', 'Səni ən çox həyəcanlandıran və saatlarla məşğul ola biləcəyin bacarıq və ya istedadın nədir?'),
+    3: t('talents.step3.desc', 'Ağlına gələn hər şeyi yaz. Fikrin tam hazır olmasına ehtiyac yoxdur. Əsas sənin baxış bucağındır.'),
+    4: t('talents.step4.desc', 'Şəkil, video, səs, sənəd və ya ideyanı izah edən başqa materialın varsa, buraya əlavə et. Görmək anlamağın ən yaxşı yoludur.'),
+    5: t('talents.step5.desc', 'Xəyallarını həqiqətə çevirmək üçün hansı dəstəyə və ya resurslara ehtiyac duyursan?'),
+    6: t('talents.step6.desc', 'Tək işləyirsən, yoxsa komandan var? Gələcək vizyonunu və planlarını bizimlə bölüş.'),
+    7: t('talents.step7.desc', 'Sənin bacarığın sadəcə bir hobbi olaraq qalmalı deyil. Bəlkə də onun arxasında böyük bir layihə, biznes və ya gələcək karyera dayanır. Bizə bacarığını göstər. Qalan yolun necə ola biləcəyini birlikdə araşdıraq.'),
+  };
+  const howSteps = [
+    { title: t('talents.howItWorksModal.step1Title', '1. Bacarıq və ya ideyanı bizimlə bölüş'), desc: t('talents.howItWorksModal.step1Desc', 'Hər hansı rəsmin, kodun, startap ideyan, musiqin və ya həvəsin varsa, formu doldur və ya birbaşa səsli izah et.') },
+    { title: t('talents.howItWorksModal.step2Title', '2. Ekspert komandamız qiymətləndirir'), desc: t('talents.howItWorksModal.step2Desc', 'Edusaz mentorları və investor şəbəkəmiz ideyanın hansı dəstəyə (maliyyə, mentorluq, komanda, təhsil və s.) ehtiyacı olduğunu təyin edir.') },
+    { title: t('talents.howItWorksModal.step3Title', '3. Birlikdə reallaşdırırıq'), desc: t('talents.howItWorksModal.step3Desc', 'Səninlə fərdi əlaqə saxlayıb yol xəritəsi cızırıq, lazım olduqda investor və ya komanda ilə birləşdiririk.') },
+  ];
+
+  const invalid = (key) => (errors[key] ? 'true' : undefined);
+  const describedBy = (...ids) => ids.filter(Boolean).join(' ') || undefined;
+
+  const resetForm = () => {
+    setIsSubmitted(false);
+    setCurrentStep(1);
+    setErrors({});
+    setAudioBlobUrl(null);
+    setRecordingTime(0);
+    setFormData(INITIAL_FORM);
+  };
+
+  const openFilePicker = () => fileInputRef.current && fileInputRef.current.click();
+
   return (
-    <div className="hidden-talents-page">
+    <main className="ds-page ht-page">
       <ScrollToTop />
 
-      {/* 1. HERO SECTION */}
-      <section className="ht-hero">
-        <div className="ht-hero__ambient" />
-        <div className="container ht-hero__container">
-          <div className="ht-hero__badge">
-            <span className="sparkle-icon">✨</span> {t('talents.badge', 'Edusaz İstedad & İdeya İnkubatoru')}
+      <div className="ds-container">
+        {/* ── Intro ─────────────────────────────────────────────────────── */}
+        <header className="ht-intro">
+          <div className="ht-intro__copy ds-page-header">
+            <span className="ds-eyebrow">{plain(t('talents.badge', 'Edusaz İstedad & İdeya İnkubatoru'))}</span>
+            <h1 className="ds-title">
+              {t('talents.heroTitle', 'Səndə hansı')}{' '}
+              <span className="ht-accent">{t('talents.heroHighlight', 'gizli bacarıq')}</span>{' '}
+              {t('talents.heroTitleEnd', 'var?')}
+            </h1>
+            <p className="ds-lead">
+              {t('talents.heroSubtitle', 'Bəlkə yaxşı rəsm çəkirsən, maraqlı ideyan var, nəsə yaradırsan, bir layihə düşünmüsən və ya sadəcə bacarığının necə böyük bir işə çevrilə biləcəyini bilmirsən. Bizə danış. Sən bacarığını paylaş, Edusaza isə onu reallaşdırmağın yollarını səninlə birlikdə axtarsın.')}
+            </p>
+            <p className="ht-after">
+              <MailCheck aria-hidden />
+              <span>
+                {t('pages.talents.afterSubmit', 'Göndərdikdən sonra komandamız müraciətini nəzərdən keçirir və ideyanı birlikdə inkişaf etdirə biləcəyimizə inansaq, səninlə əlaqə saxlayır.')}
+              </span>
+            </p>
+            <div className="ht-intro__actions">
+              <button type="button" className="ds-btn ds-btn--primary ds-btn--lg" onClick={scrollToForm}>
+                {plain(t('talents.shareTalent', 'Bacarığımı paylaş'))}
+                <ArrowRight aria-hidden className="ht-dir" />
+              </button>
+            </div>
+
+            <div className="ht-inspire">
+              <p className="ht-inspire__label" id="ht-inspire-label">{t('talents.getInspired', 'İlham al:')}</p>
+              <ul className="ht-inspire__list" aria-labelledby="ht-inspire-label">
+                {inspirationTags.map((tag) => (
+                  <li key={tag}>
+                    <button
+                      type="button"
+                      className="ds-chip"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          skillName: prev.skillName ? `${prev.skillName}, ${tag}` : tag
+                        }));
+                        if (errors.skillName) setErrors((prev) => ({ ...prev, skillName: undefined }));
+                        scrollToForm();
+                      }}
+                    >
+                      {tag}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          <h1 className="ht-hero__title">
-            {t('talents.heroTitle', 'Səndə hansı')}{' '}
-            <span className="ht-hero__highlight">{t('talents.heroHighlight', 'gizli bacarıq')}</span>{' '}
-            {t('talents.heroTitleEnd', 'var?')}
-          </h1>
-
-          <p className="ht-hero__subtitle">
-            {t('talents.heroSubtitle', 'Bəlkə yaxşı rəsm çəkirsən, maraqlı ideyan var, nəsə yaradırsan, bir layihə düşünmüsən və ya sadəcə bacarığının necə böyük bir işə çevrilə biləcəyini bilmirsən. Bizə danış. Sən bacarığını paylaş, Edusaza isə onu reallaşdırmağın yollarını səninlə birlikdə axtarsın.')}
-          </p>
-
-          <div className="ht-hero__actions">
-            <button className="ht-btn ht-btn--primary" onClick={scrollToForm}>
-              <span>{t('talents.shareTalent', 'Bacarığımı paylaş')}</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </button>
-
-            <button className="ht-btn ht-btn--secondary" onClick={() => setShowHowItWorks(true)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-              <span>{t('talents.howItWorks', 'Necə işləyir?')}</span>
-            </button>
-          </div>
-
-          {/* Inspiration Floating Tags */}
-          <div className="ht-hero__tags">
-            <span className="tags-label">{t('talents.getInspired', 'İlham al:')}</span>
-            <div className="tags-scroll">
-              {inspirationTags.map((tag) => (
-                <button
-                  key={tag}
-                  className="inspiration-pill"
-                  onClick={() => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      skillName: prev.skillName ? `${prev.skillName}, ${tag.split(' ')[1] || tag}` : tag.split(' ').slice(1).join(' ') || tag
-                    }));
-                    scrollToForm();
-                  }}
-                >
-                  {tag}
-                </button>
+          {/* How it works — 3 steps */}
+          <aside className="ht-how ds-card" id="ht-how" aria-labelledby="ht-how-title" data-reveal>
+            <h2 id="ht-how-title" className="ds-h3">{plain(t('talents.howItWorks', 'Necə işləyir?'))}</h2>
+            <ol className="ht-how__list">
+              {howSteps.map((s, i) => (
+                <li key={i} className="ht-how__item">
+                  <span className="ht-how__num">0{i + 1}</span>
+                  <div>
+                    <h3 className="ht-how__title">{stripNumber(s.title)}</h3>
+                    <p className="ds-muted">{plain(s.desc)}</p>
+                  </div>
+                </li>
               ))}
-            </div>
-          </div>
-        </div>
-      </section>
+            </ol>
+          </aside>
+        </header>
 
-      {/* 2. MAIN FORM SECTION */}
-      <section className="ht-form-section" ref={formSectionRef}>
-        <div className="container">
-          {/* Trust Banner */}
-          {!isSubmitted && (
-            <div className="ht-trust-banner">
-              <div className="ht-trust-banner__icon">💡</div>
-              <div className="ht-trust-banner__content">
-                <h4>{t('talents.trustBannerTitle', 'Nə qədər çox məlumat paylaşsan, səni və ideyanı bir o qədər yaxşı anlaya bilərik.')}</h4>
-                <p>{t('talents.trustBannerDesc', 'Hər sahəni doldurmaq məcburi deyil. Sənin üçün vacib olan məlumatları paylaş. Qalanını birlikdə tamamlayarıq.')}</p>
-              </div>
-            </div>
-          )}
-
-          {/* SUCCESS SCREEN */}
+        {/* ── Form ──────────────────────────────────────────────────────── */}
+        <section className="ht-form" ref={formSectionRef} aria-label={plain(t('talents.shareTalent', 'Bacarığımı paylaş'))}>
           {isSubmitted ? (
-            <div className="ht-success-card">
-              <div className="ht-success-card__icon-wrap">
-                <div className="ht-success-card__celebrate">🎉</div>
-                <div className="ht-success-card__rocket">🚀</div>
-              </div>
-
-              <h2 className="ht-success-card__title">{t('talents.success.title', 'Bacarığını bizimlə paylaşdın. İndi növbə bizdədir!')}</h2>
-              <p className="ht-success-card__desc">
+            /* SUCCESS */
+            <div className="ht-success ds-card" role="status">
+              <span className="ht-success__icon">
+                <CheckCircle2 aria-hidden />
+              </span>
+              <h2 className="ds-h2">{plain(t('talents.success.title', 'Bacarığını bizimlə paylaşdın. İndi növbə bizdədir!'))}</h2>
+              <p className="ds-lead">
                 {t('talents.success.desc', 'Məlumatlarını və ideyanı qəbul etdik. Komandamız paylaşdığın bacarıq və layihəni diqqətlə nəzərdən keçirəcək. Əgər səninlə birlikdə bu ideyanı inkişaf etdirə biləcəyimizə inanırıqsa, ən qısa zamanda əlaqə saxlayacağıq.')}
               </p>
 
-              {/* Review Timeline */}
-              <div className="ht-timeline">
-                <div className="ht-timeline__item done">
-                  <div className="ht-timeline__dot">✓</div>
-                  <div className="ht-timeline__info">
-                    <h5>{t('talents.success.timeline1Title', 'Müraciət Göndərildi')}</h5>
-                    <span>{t('talents.success.timeline1Desc', 'Bütün məlumat və fayllarınız təhlükəsiz qeydə alındı')}</span>
-                  </div>
-                </div>
-                <div className="ht-timeline__item active">
-                  <div className="ht-timeline__dot">2</div>
-                  <div className="ht-timeline__info">
-                    <h5>{t('talents.success.timeline2Title', 'Komanda Baxışı')}</h5>
-                    <span>{t('talents.success.timeline2Desc', 'Mütəxəssislərimiz bacarıq və resurs ehtiyaclarını analiz edir (24-48 saat)')}</span>
-                  </div>
-                </div>
-                <div className="ht-timeline__item">
-                  <div className="ht-timeline__dot">3</div>
-                  <div className="ht-timeline__info">
-                    <h5>{t('talents.success.timeline3Title', 'Əlaqə & Görüş')}</h5>
-                    <span>{t('talents.success.timeline3Desc', 'Sizinlə onlayn və ya ofisimizdə görüş təyin edib yol xəritəsini qururuq')}</span>
-                  </div>
-                </div>
-              </div>
+              <ol className="ht-timeline">
+                {[
+                  { state: 'done', title: t('talents.success.timeline1Title', 'Müraciət Göndərildi'), desc: t('talents.success.timeline1Desc', 'Bütün məlumat və fayllarınız təhlükəsiz qeydə alındı') },
+                  { state: 'current', title: t('talents.success.timeline2Title', 'Komanda Baxışı'), desc: t('talents.success.timeline2Desc', 'Mütəxəssislərimiz bacarıq və resurs ehtiyaclarını analiz edir (24-48 saat)') },
+                  { state: 'upcoming', title: t('talents.success.timeline3Title', 'Əlaqə & Görüş'), desc: t('talents.success.timeline3Desc', 'Sizinlə onlayn və ya ofisimizdə görüş təyin edib yol xəritəsini qururuq') },
+                ].map((item, i) => (
+                  <li key={i} className="ht-timeline__item" data-state={item.state}>
+                    <span className="ht-timeline__dot" aria-hidden>
+                      {item.state === 'done' ? <Check /> : i + 1}
+                    </span>
+                    <div>
+                      <h3 className="ht-timeline__title">{plain(item.title)}</h3>
+                      <p className="ds-muted">{plain(item.desc)}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
 
-              <div className="ht-success-card__actions">
-                <Link to="/" className="ht-btn ht-btn--primary">
-                  {t('talents.success.returnHome', 'Edusazaya qayıt')}
+              <div className="ht-success__actions">
+                <Link to="/" className="ds-btn ds-btn--primary">
+                  {plain(t('talents.success.returnHome', 'Edusazaya qayıt'))}
                 </Link>
-                <button
-                  className="ht-btn ht-btn--ghost"
-                  onClick={() => {
-                    setIsSubmitted(false);
-                    setCurrentStep(1);
-                    setFormData({
-                      firstName: '', lastName: '', phone: '', email: '', age: '', cityCountry: '', socialLinks: '',
-                      skillName: '', experienceDuration: '', skillLevel: 'Orta', whereUsed: '', whatCreated: '',
-                      ideaDescription: '', problemSolved: '', targetAudience: '', currentProgress: '', mainGoal: '',
-                      dynamicCategoryQuestion: '', dynamicCategoryAnswer: '',
-                      voiceNoteUrl: '', videoUrl: '', uploadedFiles: [],
-                      estimatedInvestment: 'Bilmirəm', customInvestmentAmount: '', neededSupportTypes: ['Mentor', 'Maliyyə'], otherNeeds: '',
-                      teamStatus: 'Solo', teamSize: '', teamRoles: '', teamNotes: '',
-                      oneYearVision: '', wantIncome: 'Bəli', wantBusiness: 'Bəli', ultimateAmbition: ''
-                    });
-                  }}
-                >
-                  {t('talents.success.newSubmission', 'Yeni bacarıq əlavə et')}
+                <button type="button" className="ds-btn ds-btn--secondary" onClick={resetForm}>
+                  {plain(t('talents.success.newSubmission', 'Yeni bacarıq əlavə et'))}
                 </button>
               </div>
             </div>
           ) : (
-            /* MULTI-STEP WIZARD CONTAINER */
-            <div className="ht-wizard-card">
-              {/* Wizard Steps Progress Header */}
-              <div className="ht-steps-header">
-                <div className="ht-steps-progress-bar">
+            <div className="ht-wizard" data-step={currentStep}>
+              {/* Side: stepper + trust note */}
+              <div className="ht-wizard__side">
+                <nav className="ht-stepper" aria-label={stageLabel}>
+                  <ol className="ht-stepper__list">
+                    {steps.map((s) => {
+                      const state = s.id < currentStep ? 'done' : s.id === currentStep ? 'current' : 'upcoming';
+                      return (
+                        <li key={s.id}>
+                          <button
+                            type="button"
+                            className="ht-stepper__btn"
+                            data-state={state}
+                            aria-current={state === 'current' ? 'step' : undefined}
+                            disabled={state === 'upcoming'}
+                            onClick={() => {
+                              if (s.id <= currentStep) setCurrentStep(s.id);
+                            }}
+                          >
+                            <span className="ht-stepper__num" aria-hidden>
+                              {state === 'done' ? <Check /> : s.id}
+                            </span>
+                            <span className="ht-stepper__label">{plain(s.short)}</span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ol>
                   <div
-                    className="ht-steps-progress-fill"
-                    style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
-                  />
-                </div>
+                    className="ht-progress"
+                    role="progressbar"
+                    aria-valuemin={1}
+                    aria-valuemax={steps.length}
+                    aria-valuenow={currentStep}
+                    aria-label={`${stageLabel} ${currentStep} / ${steps.length}`}
+                  >
+                    <span className="ht-progress__fill" style={{ width: `${(currentStep / steps.length) * 100}%` }} />
+                  </div>
+                </nav>
 
-                <div className="ht-steps-nav">
-                  {steps.map((s) => {
-                    const isPassed = s.id < currentStep;
-                    const isActive = s.id === currentStep;
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        className={`ht-step-node ${isActive ? 'active' : ''} ${isPassed ? 'passed' : ''}`}
-                        onClick={() => {
-                          if (isPassed || s.id === currentStep) {
-                            setCurrentStep(s.id);
-                          }
-                        }}
-                      >
-                        <div className="ht-step-node__circle">
-                          {isPassed ? '✓' : s.icon}
-                        </div>
-                        <span className="ht-step-node__text">{s.short}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="ht-steps-counter">
-                  {t('talents.general.stage', 'Mərhələ')} {currentStep} / {steps.length}
+                <div className="ht-trust">
+                  <Info aria-hidden />
+                  <div>
+                    <p className="ht-trust__title">{plain(t('talents.trustBannerTitle', 'Nə qədər çox məlumat paylaşsan, səni və ideyanı bir o qədər yaxşı anlaya bilərik.'))}</p>
+                    <p className="ds-muted">{plain(t('talents.trustBannerDesc', 'Hər sahəni doldurmaq məcburi deyil. Sənin üçün vacib olan məlumatları paylaş. Qalanını birlikdə tamamlayarıq.'))}</p>
+                  </div>
                 </div>
               </div>
 
-              {/* FORM CONTENT BODY */}
-              <div className="ht-wizard-body">
-                {/* ── STEP 1: ŞƏXSİ MƏLUMATLAR ── */}
-                {currentStep === 1 && (
-                  <div className="ht-step-pane animate-fade-in">
-                    <div className="ht-step-title-group">
-                      <span className="ht-step-subtitle">{t('talents.general.stage', 'Mərhələ')} 1</span>
-                      <h3 className="ht-step-title">{t('talents.step1.title', 'Əvvəlcə səni tanıyaq')}</h3>
-                      <p className="ht-step-desc">
-                        {t('talents.step1.desc', 'Səninlə necə əlaqə saxlaya biləcəyimizi bilmək istəyirik. Qorxma, məlumatların tam məxfi saxlanılır.')}
-                      </p>
-                    </div>
+              {/* Main: current step */}
+              <form
+                className="ht-wizard__main ds-card"
+                noValidate
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (currentStep < 7) handleNext();
+                  else handleSubmit(e);
+                }}
+              >
+                <header className="ht-pane__head">
+                  <p className="ht-pane__kicker">
+                    {stageLabel} {currentStep} / {steps.length}
+                  </p>
+                  <h2 className="ds-h2">{plain(steps[currentStep - 1].title)}</h2>
+                  <p className="ds-muted">{plain(stepDescriptions[currentStep])}</p>
+                </header>
 
-                    <div className="ht-grid-2">
-                      <div className="ht-field">
-                        <label>{t('talents.step1.firstName', 'Adın')} <span className="req">*</span></label>
-                        <input
-                          type="text"
-                          placeholder="Məs: Cavid"
-                          value={formData.firstName}
-                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                          required
-                        />
+                <div className="ht-pane" key={currentStep}>
+                  {/* ── STEP 1: ABOUT YOU ── */}
+                  {currentStep === 1 && (
+                    <>
+                      <div className="ht-grid-2">
+                        <Field id="ht-firstName" label={t('talents.step1.firstName', 'Adın')} req error={errors.firstName}>
+                          <input
+                            id="ht-firstName"
+                            className="ds-input"
+                            type="text"
+                            autoComplete="given-name"
+                            placeholder="Məs: Cavid"
+                            value={formData.firstName}
+                            onChange={setField('firstName')}
+                            aria-invalid={invalid('firstName')}
+                            aria-describedby={describedBy(errors.firstName && 'ht-firstName-error')}
+                            required
+                          />
+                        </Field>
+                        <Field id="ht-lastName" label={t('talents.step1.lastName', 'Soyadın')} req error={errors.lastName}>
+                          <input
+                            id="ht-lastName"
+                            className="ds-input"
+                            type="text"
+                            autoComplete="family-name"
+                            placeholder="Məs: Əliyev"
+                            value={formData.lastName}
+                            onChange={setField('lastName')}
+                            aria-invalid={invalid('lastName')}
+                            aria-describedby={describedBy(errors.lastName && 'ht-lastName-error')}
+                            required
+                          />
+                        </Field>
                       </div>
 
-                      <div className="ht-field">
-                        <label>{t('talents.step1.lastName', 'Soyadın')} <span className="req">*</span></label>
-                        <input
-                          type="text"
-                          placeholder="Məs: Əliyev"
-                          value={formData.lastName}
-                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="ht-grid-2">
-                      <div className="ht-field">
-                        <label>{t('talents.step1.phone', 'Telefon nömrən')} <span className="req">*</span></label>
-                        <input
-                          type="tel"
-                          placeholder="+994 50 123 45 67"
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="ht-field">
-                        <label>{t('talents.step1.email', 'E-mail ünvanın')} <span className="req">*</span></label>
-                        <input
-                          type="email"
-                          placeholder="cavid.aliyev@gmail.com"
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="ht-grid-2">
-                      <div className="ht-field">
-                        <label>{t('talents.step1.age', 'Yaşın')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                        <input
-                          type="number"
-                          placeholder="Məs: 21"
-                          value={formData.age}
-                          onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="ht-field">
-                        <label>{t('talents.step1.cityCountry', 'Şəhər / Ölkə')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                        <input
-                          type="text"
-                          placeholder="Məs: Bakı, Azərbaycan"
-                          value={formData.cityCountry}
-                          onChange={(e) => setFormData({ ...formData, cityCountry: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="ht-field">
-                      <label>{t('talents.step1.socialLinks', 'Sosial media və ya Portfolio linklərin')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                      <input
-                        type="text"
-                        placeholder="Məs: Instagram / LinkedIn / Behance / GitHub"
-                        value={formData.socialLinks}
-                        onChange={(e) => setFormData({ ...formData, socialLinks: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* ── STEP 2: BACARIĞIN HAQQINDA ── */}
-                {currentStep === 2 && (
-                  <div className="ht-step-pane animate-fade-in">
-                    <div className="ht-step-title-group">
-                      <span className="ht-step-subtitle">{t('talents.general.stage', 'Mərhələ')} 2</span>
-                      <h3 className="ht-step-title">{t('talents.step2.title', 'İndi isə sənin bacarığın haqqında danışaq')}</h3>
-                      <p className="ht-step-desc">
-                        {t('talents.step2.desc', 'Səni ən çox həyəcanlandıran və saatlarla məşğul ola biləcəyin bacarıq və ya istedadın nədir?')}
-                      </p>
-                    </div>
-
-                    <div className="ht-field">
-                      <label>{t('talents.step2.skillName', 'Bacarığın / istedadın nədir?')} <span className="req">*</span></label>
-                      <textarea
-                        rows="3"
-                        placeholder={t('talents.step2.skillPlaceholder', 'Məsələn: rəsm çəkmək, musiqi bəstələmək, proqramlaşdırma, qrafik dizayn, əl işi, video montaj, biznes ideyası, idman, tədris və s.')}
-                        value={formData.skillName}
-                        onChange={(e) => setFormData({ ...formData, skillName: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <div className="ht-field">
-                      <label>{t('talents.step2.experienceDuration', 'Bu bacarığı nə vaxtdan edirsən?')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                      <input
-                        type="text"
-                        placeholder={t('talents.step2.expPlaceholder', 'Məsələn: 6 aydır, 3 ildir, uşaqlıqdan bəri')}
-                        value={formData.experienceDuration}
-                        onChange={(e) => setFormData({ ...formData, experienceDuration: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="ht-field">
-                      <label>{t('talents.step2.skillLevel', 'Özünü bu sahədə necə qiymətləndirirsən?')}</label>
-                      <div className="ht-skill-levels-grid">
-                        {skillLevels.map((lvl) => (
-                          <div
-                            key={lvl.id}
-                            className={`ht-level-card ${formData.skillLevel === lvl.id ? 'active' : ''}`}
-                            onClick={() => setFormData({ ...formData, skillLevel: lvl.id })}
-                          >
-                            <div className="ht-level-card__icon">{lvl.icon}</div>
-                            <div className="ht-level-card__title">{lvl.label}</div>
-                            <div className="ht-level-card__desc">{lvl.desc}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="ht-field">
-                      <label>{t('talents.step2.whereUsed', 'Bu bacarığı harada və necə istifadə etmisən?')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                      <textarea
-                        rows="2"
-                        placeholder={t('talents.step2.wherePlaceholder', 'Məs: Dostlarıma kömək edəndə, universitet layihəsində, şəxsi səhifəmdə, yarışmada...')}
-                        value={formData.whereUsed}
-                        onChange={(e) => setFormData({ ...formData, whereUsed: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="ht-field">
-                      <label>{t('talents.step2.whatCreated', 'İndiyə qədər nə yaratmısan?')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                      <textarea
-                        rows="2"
-                        placeholder={t('talents.step2.whatPlaceholder', 'Məs: Bir neçə portret çəkmişəm, sadə mobil tətbiq kodlamışam, 5 mahnı aranjeman etmişəm...')}
-                        value={formData.whatCreated}
-                        onChange={(e) => setFormData({ ...formData, whatCreated: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* ── STEP 3: İDEYAN ── */}
-                {currentStep === 3 && (
-                  <div className="ht-step-pane animate-fade-in">
-                    <div className="ht-step-title-group">
-                      <span className="ht-step-subtitle">{t('talents.general.stage', 'Mərhələ')} 3</span>
-                      <h3 className="ht-step-title">{t('talents.step3.title', 'Bunu reallaşdırsaydın, nə edərdin?')}</h3>
-                      <p className="ht-step-desc">
-                        {t('talents.step3.desc', 'Ağlına gələn hər şeyi yaz. Fikrin tam hazır olmasına ehtiyac yoxdur. Əsas sənin baxış bucağındır.')}
-                      </p>
-                    </div>
-
-                    <div className="ht-field">
-                      <label>{t('talents.step3.ideaDesc', 'İdeyanı və ya xəyalındakı layihəni ətraflı izah et')}</label>
-                      <textarea
-                        rows="4"
-                        placeholder={t('talents.step3.ideaPlaceholder', 'Məs: Mən istəyirəm ki, gənclər üçün xüsusi interaktiv platforma quraq və ya öz çəkdiyim rəsmlərdən ibarət qlobal sərgi açaq...')}
-                        value={formData.ideaDescription}
-                        onChange={(e) => setFormData({ ...formData, ideaDescription: e.target.value })}
-                      />
-                    </div>
-
-                    {/* AI Dynamic Smart Follow-up Box */}
-                    <div className="ht-ai-smart-box">
-                      <div className="ht-ai-smart-box__header">
-                        <span className="ai-badge">🤖 {t('talents.step3.aiBadge', 'Edusaz Ağıllı Sualı')}</span>
-                        <p>{dynamicInfo.question}</p>
-                      </div>
-                      <div className="ht-ai-smart-box__options">
-                        {dynamicInfo.options.map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            className={`smart-opt-btn ${formData.dynamicCategoryAnswer === opt ? 'active' : ''}`}
-                            onClick={() => setFormData({ ...formData, dynamicCategoryAnswer: opt })}
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="ht-grid-2">
-                      <div className="ht-field">
-                        <label>{t('talents.step3.problemSolved', 'Səncə bu ideya hansı problemi həll edir?')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                        <textarea
-                          rows="2"
-                          placeholder={t('talents.step3.problemPlaceholder', 'Məs: İnsanların vaxt itkisini azaldır, keyfiyyətli təhsili əlçatan edir...')}
-                          value={formData.problemSolved}
-                          onChange={(e) => setFormData({ ...formData, problemSolved: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="ht-field">
-                        <label>{t('talents.step3.targetAudience', 'Bu ideyanın kimə faydası ola bilər?')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                        <textarea
-                          rows="2"
-                          placeholder={t('talents.step3.targetPlaceholder', 'Məs: Tələbələrə, kiçik bizneslərə, sənətsevərlərə...')}
-                          value={formData.targetAudience}
-                          onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="ht-grid-2">
-                      <div className="ht-field">
-                        <label>{t('talents.step3.currentProgress', 'İndiyə qədər bu ideya üçün nə etmisən?')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                        <input
-                          type="text"
-                          placeholder={t('talents.step3.progressPlaceholder', 'Məs: Plan cızmışam, prototip hazırlamışam, hələ başlamamışam...')}
-                          value={formData.currentProgress}
-                          onChange={(e) => setFormData({ ...formData, currentProgress: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="ht-field">
-                        <label>{t('talents.step3.mainGoal', 'Sənin bu layihədə əsas məqsədin nədir?')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                        <input
-                          type="text"
-                          placeholder={t('talents.step3.goalPlaceholder', 'Məs: Öz biznesimi qurmaq, dünyaya səs salmaq, təqaüd almaq...')}
-                          value={formData.mainGoal}
-                          onChange={(e) => setFormData({ ...formData, mainGoal: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── STEP 4: FAYLLAR & SƏSLİ İZAH ── */}
-                {currentStep === 4 && (
-                  <div className="ht-step-pane animate-fade-in">
-                    <div className="ht-step-title-group">
-                      <span className="ht-step-subtitle">{t('talents.general.stage', 'Mərhələ')} 4</span>
-                      <h3 className="ht-step-title">{t('talents.step4.title', 'Bacardığını bizə göstər')}</h3>
-                      <p className="ht-step-desc">
-                        {t('talents.step4.desc', 'Şəkil, video, səs, sənəd və ya ideyanı izah edən başqa materialın varsa, buraya əlavə et. Görmək anlamağın ən yaxşı yoludur.')}
-                      </p>
-                    </div>
-
-                    {/* 1. Voice Note Recorder */}
-                    <div className="ht-voice-recorder-card">
-                      <div className="ht-voice-recorder-card__header">
-                        <div className="voice-icon-wrap">🎙️</div>
-                        <div>
-                          <h4>{t('talents.step4.voiceTitle', 'Səsli izah et')}</h4>
-                          <p>{t('talents.step4.voiceDesc', 'Yazmaq yerinə fikrini rahatca danışaraq izah etmək istəyirsənsə, birbaşa brauzerdən qeyd et.')}</p>
+                      <div className="ht-contact">
+                        <div className="ht-grid-2">
+                          <Field id="ht-phone" label={t('talents.step1.phone', 'Telefon nömrən')} req>
+                            <input
+                              id="ht-phone"
+                              className="ds-input"
+                              type="tel"
+                              autoComplete="tel"
+                              placeholder="+994 50 123 45 67"
+                              value={formData.phone}
+                              onChange={setField('phone', 'contact')}
+                              aria-invalid={invalid('contact')}
+                              aria-describedby={describedBy('ht-contact-help', errors.contact && 'ht-contact-error')}
+                            />
+                          </Field>
+                          <Field id="ht-email" label={t('talents.step1.email', 'E-mail ünvanın')} req>
+                            <input
+                              id="ht-email"
+                              className="ds-input"
+                              type="email"
+                              autoComplete="email"
+                              placeholder="cavid.aliyev@gmail.com"
+                              value={formData.email}
+                              onChange={setField('email', 'contact')}
+                              aria-invalid={invalid('contact')}
+                              aria-describedby={describedBy('ht-contact-help', errors.contact && 'ht-contact-error')}
+                            />
+                          </Field>
                         </div>
-                      </div>
-
-                      <div className="ht-voice-recorder-card__action">
-                        {isRecording ? (
-                          <div className="recording-active-view">
-                            <div className="pulsating-rec-dot" />
-                            <span className="rec-timer">{formatTimer(recordingTime)}</span>
-                            <button type="button" className="ht-btn ht-btn--danger" onClick={stopRecording}>
-                              {t('talents.step4.stopRecording', '⏹️ Səsi dayandır və saxla')}
-                            </button>
-                          </div>
-                        ) : audioBlobUrl ? (
-                          <div className="recording-playback-view">
-                            <audio controls src={audioBlobUrl} className="custom-audio-player" />
-                            <button type="button" className="ht-btn ht-btn--ghost-sm" onClick={resetRecording}>
-                              {t('talents.step4.rerecord', '🔄 Yenidən yaz')}
-                            </button>
-                            {isUploadingVoice && <span className="voice-uploading-tag">{t('talents.step4.uploadingVoice', '⏳ Yüklənir...')}</span>}
-                          </div>
-                        ) : (
-                          <button type="button" className="ht-btn ht-btn--voice" onClick={startRecording}>
-                            <span>{t('talents.step4.startRecording', '🎙️ Səsli izah etməyə başla')}</span>
-                          </button>
+                        <p className="ds-help" id="ht-contact-help">
+                          {t('pages.talents.contactHelp', 'Telefon və ya e-mail — ən azı birini yazmağın kifayətdir.')}
+                        </p>
+                        {errors.contact && (
+                          <p className="ds-error" id="ht-contact-error">{errors.contact}</p>
                         )}
                       </div>
-                    </div>
 
-                    {/* 2. Drag & Drop Multi-file Uploader */}
-                    <div className="ht-field">
-                      <label>{t('talents.step4.dropzoneTitle', 'Faylları buraya sürükləyin və ya seçmək üçün klikləyin')} <span className="opt">Şəkil, Video, PDF, DOC, ZIP</span></label>
-                      <div
-                        className={`ht-dropzone ${isDragging ? 'dragging' : ''}`}
-                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                        onDragLeave={() => setIsDragging(false)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          setIsDragging(false);
-                          handleFilesSelect(e.dataTransfer.files);
-                        }}
-                        onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                      >
-                        <input
-                          type="file"
-                          multiple
-                          ref={fileInputRef}
-                          style={{ display: 'none' }}
-                          onChange={(e) => handleFilesSelect(e.target.files)}
-                          accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar"
-                        />
-                        <div className="ht-dropzone__icon">📤</div>
-                        <h4>{t('talents.step4.dropzoneTitle', 'Faylları buraya sürükləyin və ya seçmək üçün klikləyin')}</h4>
-                        <p>{t('talents.step4.dropzoneDesc', 'İstənilən formatda iş nümunələri, eskizlər, təqdimatlar və ya sənədlər')}</p>
-                        {isUploadingFile && <div className="ht-dropzone__uploading">{t('talents.step4.uploadingFiles', 'Fayllar yüklənir... ⏳')}</div>}
+                      <div className="ht-grid-2">
+                        <Field id="ht-age" label={t('talents.step1.age', 'Yaşın')} optionalText={optionalText}>
+                          <input
+                            id="ht-age"
+                            className="ds-input"
+                            type="number"
+                            inputMode="numeric"
+                            placeholder="Məs: 21"
+                            value={formData.age}
+                            onChange={setField('age')}
+                          />
+                        </Field>
+                        <Field id="ht-city" label={t('talents.step1.cityCountry', 'Şəhər / Ölkə')} optionalText={optionalText}>
+                          <input
+                            id="ht-city"
+                            className="ds-input"
+                            type="text"
+                            placeholder="Məs: Bakı, Azərbaycan"
+                            value={formData.cityCountry}
+                            onChange={setField('cityCountry')}
+                          />
+                        </Field>
                       </div>
 
-                      {/* Uploaded Files Preview List */}
-                      {formData.uploadedFiles.length > 0 && (
-                        <div className="ht-uploaded-files-list">
-                          {formData.uploadedFiles.map((file, idx) => (
-                            <div key={idx} className="ht-file-item">
-                              <span className="ht-file-item__icon">📄</span>
-                              <div className="ht-file-item__meta">
-                                <span className="file-name">{file.name}</span>
-                                <span className="file-size">{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
-                              </div>
-                              <button type="button" className="file-del-btn" onClick={() => removeFile(idx)}>
-                                ✕
-                              </button>
-                            </div>
+                      <Field id="ht-social" label={t('talents.step1.socialLinks', 'Sosial media və ya Portfolio linklərin')} optionalText={optionalText}>
+                        <input
+                          id="ht-social"
+                          className="ds-input"
+                          type="text"
+                          placeholder="Məs: Instagram / LinkedIn / Behance / GitHub"
+                          value={formData.socialLinks}
+                          onChange={setField('socialLinks')}
+                        />
+                      </Field>
+                    </>
+                  )}
+
+                  {/* ── STEP 2: YOUR SKILL ── */}
+                  {currentStep === 2 && (
+                    <>
+                      <Field id="ht-skill" label={t('talents.step2.skillName', 'Bacarığın / istedadın nədir?')} req error={errors.skillName}>
+                        <textarea
+                          id="ht-skill"
+                          className="ds-textarea"
+                          rows="3"
+                          placeholder={t('talents.step2.skillPlaceholder', 'Məsələn: rəsm çəkmək, musiqi bəstələmək, proqramlaşdırma, qrafik dizayn, əl işi, video montaj, biznes ideyası, idman, tədris və s.')}
+                          value={formData.skillName}
+                          onChange={setField('skillName')}
+                          aria-invalid={invalid('skillName')}
+                          aria-describedby={describedBy(errors.skillName && 'ht-skill-error')}
+                          required
+                        />
+                      </Field>
+
+                      <Field id="ht-exp" label={t('talents.step2.experienceDuration', 'Bu bacarığı nə vaxtdan edirsən?')} optionalText={optionalText}>
+                        <input
+                          id="ht-exp"
+                          className="ds-input"
+                          type="text"
+                          placeholder={t('talents.step2.expPlaceholder', 'Məsələn: 6 aydır, 3 ildir, uşaqlıqdan bəri')}
+                          value={formData.experienceDuration}
+                          onChange={setField('experienceDuration')}
+                        />
+                      </Field>
+
+                      <fieldset className="ht-fieldset">
+                        <legend className="ds-label">{t('talents.step2.skillLevel', 'Özünü bu sahədə necə qiymətləndirirsən?')}</legend>
+                        <div className="ht-levels">
+                          {skillLevels.map((lvl, i) => (
+                            <label key={lvl.id} className="ht-option ht-level" data-checked={formData.skillLevel === lvl.id ? 'true' : undefined}>
+                              <input
+                                type="radio"
+                                name="ht-skillLevel"
+                                className="ht-sr"
+                                value={lvl.id}
+                                checked={formData.skillLevel === lvl.id}
+                                onChange={() => setFormData((prev) => ({ ...prev, skillLevel: lvl.id }))}
+                              />
+                              <span className="ht-level__meter" aria-hidden>
+                                {skillLevels.map((_, j) => (
+                                  <span key={j} data-on={j <= i ? 'true' : undefined} />
+                                ))}
+                              </span>
+                              <span className="ht-level__title">{plain(lvl.label)}</span>
+                              <span className="ht-level__desc">{plain(lvl.desc)}</span>
+                            </label>
                           ))}
                         </div>
-                      )}
-                    </div>
+                      </fieldset>
 
-                    {/* 3. Video Link Input */}
-                    <div className="ht-field">
-                      <label>{t('talents.step4.videoUrl', 'Video Linki')} <span className="opt">YouTube / Vimeo / Loom / Drive</span></label>
-                      <input
-                        type="url"
-                        placeholder={t('talents.step4.videoPlaceholder', 'https://www.youtube.com/watch?v=...')}
-                        value={formData.videoUrl}
-                        onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                )}
+                      <Field id="ht-where" label={t('talents.step2.whereUsed', 'Bu bacarığı harada və necə istifadə etmisən?')} optionalText={optionalText}>
+                        <textarea
+                          id="ht-where"
+                          className="ds-textarea ht-textarea-sm"
+                          rows="2"
+                          placeholder={t('talents.step2.wherePlaceholder', 'Məs: Dostlarıma kömək edəndə, universitet layihəsində, şəxsi səhifəmdə, yarışmada...')}
+                          value={formData.whereUsed}
+                          onChange={setField('whereUsed')}
+                        />
+                      </Field>
 
-                {/* ── STEP 5: İNVESTİSİYA VƏ RESURS EHTİYACI ── */}
-                {currentStep === 5 && (
-                  <div className="ht-step-pane animate-fade-in">
-                    <div className="ht-step-title-group">
-                      <span className="ht-step-subtitle">{t('talents.general.stage', 'Mərhələ')} 5</span>
-                      <h3 className="ht-step-title">{t('talents.step5.title', 'Bunu reallaşdırmaq üçün sənə nə lazımdır?')}</h3>
-                      <p className="ht-step-desc">
-                        {t('talents.step5.desc', 'Xəyallarını həqiqətə çevirmək üçün hansı dəstəyə və ya resurslara ehtiyac duyursan?')}
-                      </p>
-                    </div>
+                      <Field id="ht-created" label={t('talents.step2.whatCreated', 'İndiyə qədər nə yaratmısan?')} optionalText={optionalText}>
+                        <textarea
+                          id="ht-created"
+                          className="ds-textarea ht-textarea-sm"
+                          rows="2"
+                          placeholder={t('talents.step2.whatPlaceholder', 'Məs: Bir neçə portret çəkmişəm, sadə mobil tətbiq kodlamışam, 5 mahnı aranjeman etmişəm...')}
+                          value={formData.whatCreated}
+                          onChange={setField('whatCreated')}
+                        />
+                      </Field>
+                    </>
+                  )}
 
-                    <div className="ht-field">
-                      <label>{t('talents.step5.estInvestment', 'Təxminən nə qədər investisiya lazım olduğunu düşünürsən?')}</label>
-                      <div className="ht-radio-pills-grid">
-                        {investmentOptions.map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            className={`ht-radio-pill ${formData.estimatedInvestment === opt ? 'active' : ''}`}
-                            onClick={() => setFormData({ ...formData, estimatedInvestment: opt })}
-                          >
-                            {opt}
-                          </button>
-                        ))}
+                  {/* ── STEP 3: YOUR IDEA ── */}
+                  {currentStep === 3 && (
+                    <>
+                      <Field id="ht-idea" label={t('talents.step3.ideaDesc', 'İdeyanı və ya xəyalındakı layihəni ətraflı izah et')}>
+                        <textarea
+                          id="ht-idea"
+                          className="ds-textarea"
+                          rows="4"
+                          placeholder={t('talents.step3.ideaPlaceholder', 'Məs: Mən istəyirəm ki, gənclər üçün xüsusi interaktiv platforma quraq və ya öz çəkdiyim rəsmlərdən ibarət qlobal sərgi açaq...')}
+                          value={formData.ideaDescription}
+                          onChange={setField('ideaDescription')}
+                        />
+                      </Field>
+
+                      {/* Context-aware follow-up question */}
+                      <fieldset className="ht-fieldset ht-followup">
+                        <legend className="ht-followup__legend">
+                          <span className="ds-badge ds-badge--brand">
+                            <MessageCircleQuestion aria-hidden />
+                            {plain(t('talents.step3.aiBadge', 'Edusaz Ağıllı Sualı'))}
+                          </span>
+                          <span className="ht-followup__q">{plain(dynamicInfo.question)}</span>
+                        </legend>
+                        <div className="ht-choices">
+                          {dynamicInfo.options.map((opt) => (
+                            <label key={opt} className="ht-option ht-choice" data-checked={formData.dynamicCategoryAnswer === opt ? 'true' : undefined}>
+                              <input
+                                type="radio"
+                                name="ht-dynamic"
+                                className="ht-sr"
+                                value={opt}
+                                checked={formData.dynamicCategoryAnswer === opt}
+                                onChange={() => setFormData((prev) => ({ ...prev, dynamicCategoryAnswer: opt }))}
+                              />
+                              {plain(opt)}
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+
+                      <div className="ht-grid-2">
+                        <Field id="ht-problem" label={t('talents.step3.problemSolved', 'Səncə bu ideya hansı problemi həll edir?')} optionalText={optionalText}>
+                          <textarea
+                            id="ht-problem"
+                            className="ds-textarea ht-textarea-sm"
+                            rows="2"
+                            placeholder={t('talents.step3.problemPlaceholder', 'Məs: İnsanların vaxt itkisini azaldır, keyfiyyətli təhsili əlçatan edir...')}
+                            value={formData.problemSolved}
+                            onChange={setField('problemSolved')}
+                          />
+                        </Field>
+                        <Field id="ht-audience" label={t('talents.step3.targetAudience', 'Bu ideyanın kimə faydası ola bilər?')} optionalText={optionalText}>
+                          <textarea
+                            id="ht-audience"
+                            className="ds-textarea ht-textarea-sm"
+                            rows="2"
+                            placeholder={t('talents.step3.targetPlaceholder', 'Məs: Tələbələrə, kiçik bizneslərə, sənətsevərlərə...')}
+                            value={formData.targetAudience}
+                            onChange={setField('targetAudience')}
+                          />
+                        </Field>
                       </div>
 
-                      {formData.estimatedInvestment === t('talents.step5.customAmountOption', 'Dəqiq məbləği özüm yazım') && (
-                        <div className="ht-custom-amount-input animate-fade-in">
+                      <div className="ht-grid-2">
+                        <Field id="ht-progress" label={t('talents.step3.currentProgress', 'İndiyə qədər bu ideya üçün nə etmisən?')} optionalText={optionalText}>
                           <input
+                            id="ht-progress"
+                            className="ds-input"
                             type="text"
+                            placeholder={t('talents.step3.progressPlaceholder', 'Məs: Plan cızmışam, prototip hazırlamışam, hələ başlamamışam...')}
+                            value={formData.currentProgress}
+                            onChange={setField('currentProgress')}
+                          />
+                        </Field>
+                        <Field id="ht-goal" label={t('talents.step3.mainGoal', 'Sənin bu layihədə əsas məqsədin nədir?')} optionalText={optionalText}>
+                          <input
+                            id="ht-goal"
+                            className="ds-input"
+                            type="text"
+                            placeholder={t('talents.step3.goalPlaceholder', 'Məs: Öz biznesimi qurmaq, dünyaya səs salmaq, təqaüd almaq...')}
+                            value={formData.mainGoal}
+                            onChange={setField('mainGoal')}
+                          />
+                        </Field>
+                      </div>
+                    </>
+                  )}
+
+                  {/* ── STEP 4: MEDIA & FILES ── */}
+                  {currentStep === 4 && (
+                    <>
+                      {/* Voice note */}
+                      <section className="ht-media" aria-labelledby="ht-voice-title">
+                        <div className="ht-media__head">
+                          <span className="ht-media__icon">
+                            <Mic aria-hidden />
+                          </span>
+                          <div>
+                            <h3 id="ht-voice-title" className="ds-h3">{plain(t('talents.step4.voiceTitle', 'Səsli izah et'))}</h3>
+                            <p className="ds-muted">{plain(t('talents.step4.voiceDesc', 'Yazmaq yerinə fikrini rahatca danışaraq izah etmək istəyirsənsə, birbaşa brauzerdən qeyd et.'))}</p>
+                          </div>
+                        </div>
+
+                        <div className="ht-media__action">
+                          {isRecording ? (
+                            <div className="ht-rec">
+                              <span className="ht-rec__dot" aria-hidden />
+                              <span className="ht-rec__time">{formatTimer(recordingTime)}</span>
+                              <button type="button" className="ds-btn ds-btn--danger" onClick={stopRecording}>
+                                <Square aria-hidden />
+                                {plain(t('talents.step4.stopRecording', 'Səsi dayandır və saxla'))}
+                              </button>
+                            </div>
+                          ) : audioBlobUrl ? (
+                            <div className="ht-playback">
+                              <audio controls src={audioBlobUrl} className="ht-playback__audio" />
+                              <div className="ht-playback__row">
+                                <button type="button" className="ds-btn ds-btn--ghost ds-btn--sm" onClick={resetRecording}>
+                                  <RotateCcw aria-hidden />
+                                  {plain(t('talents.step4.rerecord', 'Yenidən yaz'))}
+                                </button>
+                                {isUploadingVoice && (
+                                  <span className="ds-badge" role="status">{plain(t('talents.step4.uploadingVoice', 'Yüklənir...'))}</span>
+                                )}
+                                {!isUploadingVoice && formData.voiceNoteUrl && (
+                                  <span className="ds-badge ds-badge--success">
+                                    <Check aria-hidden />
+                                    {plain(t('talents.step7.voiceAttached', 'Səs yazısı əlavə edildi'))}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <button type="button" className="ds-btn ds-btn--secondary" onClick={startRecording}>
+                              <Mic aria-hidden />
+                              {plain(t('talents.step4.startRecording', 'Səsli izah etməyə başla'))}
+                            </button>
+                          )}
+                        </div>
+                      </section>
+
+                      {/* Files */}
+                      <section className="ht-files" aria-labelledby="ht-files-title">
+                        <div className="ht-files__head">
+                          <h3 id="ht-files-title" className="ds-label">{plain(t('talents.stepShort.4', 'Fayllar'))}</h3>
+                        </div>
+                        <div
+                          className="ht-dropzone"
+                          data-dragging={isDragging ? 'true' : undefined}
+                          role="button"
+                          tabIndex={0}
+                          aria-describedby="ht-dropzone-desc"
+                          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                          onDragLeave={() => setIsDragging(false)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setIsDragging(false);
+                            handleFilesSelect(e.dataTransfer.files);
+                          }}
+                          onClick={openFilePicker}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              openFilePicker();
+                            }
+                          }}
+                        >
+                          <input
+                            type="file"
+                            multiple
+                            ref={fileInputRef}
+                            hidden
+                            tabIndex={-1}
+                            onChange={(e) => handleFilesSelect(e.target.files)}
+                            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar"
+                          />
+                          <span className="ht-dropzone__icon">
+                            <Upload aria-hidden />
+                          </span>
+                          <span className="ht-dropzone__title">{plain(t('talents.step4.dropzoneTitle', 'Faylları buraya sürükləyin və ya seçmək üçün klikləyin'))}</span>
+                          <span className="ht-dropzone__desc" id="ht-dropzone-desc">{plain(t('talents.step4.dropzoneDesc', 'İstənilən formatda iş nümunələri, eskizlər, təqdimatlar və ya sənədlər'))}</span>
+                          {isUploadingFile && (
+                            <span className="ds-badge ds-badge--brand" role="status">{plain(t('talents.step4.uploadingFiles', 'Fayllar yüklənir...'))}</span>
+                          )}
+                        </div>
+
+                        {formData.uploadedFiles.length > 0 && (
+                          <ul className="ht-filelist">
+                            {formData.uploadedFiles.map((file, idx) => (
+                              <li key={idx} className="ht-file">
+                                <FileText aria-hidden className="ht-file__icon" />
+                                <span className="ht-file__meta">
+                                  <span className="ht-file__name">{file.name}</span>
+                                  <span className="ht-file__size">{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                </span>
+                                <button
+                                  type="button"
+                                  className="ds-btn ds-btn--ghost ds-btn--sm ht-file__remove"
+                                  onClick={() => removeFile(idx)}
+                                  aria-label={`${t('pages.talents.removeFile', 'Faylı sil')}: ${file.name}`}
+                                >
+                                  <X aria-hidden />
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </section>
+
+                      <Field id="ht-video" label={t('talents.step4.videoUrl', 'Video Linki')} optionalText="YouTube / Vimeo / Loom / Drive">
+                        <input
+                          id="ht-video"
+                          className="ds-input"
+                          type="url"
+                          placeholder={t('talents.step4.videoPlaceholder', 'https://www.youtube.com/watch?v=...')}
+                          value={formData.videoUrl}
+                          onChange={setField('videoUrl')}
+                        />
+                      </Field>
+                    </>
+                  )}
+
+                  {/* ── STEP 5: NEEDS & RESOURCES ── */}
+                  {currentStep === 5 && (
+                    <>
+                      <fieldset className="ht-fieldset">
+                        <legend className="ds-label">{t('talents.step5.estInvestment', 'Təxminən nə qədər investisiya lazım olduğunu düşünürsən?')}</legend>
+                        <div className="ht-choices">
+                          {investmentOptions.map((opt) => (
+                            <label key={opt} className="ht-option ht-choice" data-checked={formData.estimatedInvestment === opt ? 'true' : undefined}>
+                              <input
+                                type="radio"
+                                name="ht-investment"
+                                className="ht-sr"
+                                value={opt}
+                                checked={formData.estimatedInvestment === opt}
+                                onChange={() => setFormData((prev) => ({ ...prev, estimatedInvestment: opt }))}
+                              />
+                              {opt}
+                            </label>
+                          ))}
+                        </div>
+                        {formData.estimatedInvestment === customAmountOption && (
+                          <input
+                            className="ds-input ht-custom-amount"
+                            type="text"
+                            aria-label={t('talents.step5.customAmountPlaceholder', 'Dəqiq məbləği qeyd edin (məs: 7,500 AZN)')}
                             placeholder={t('talents.step5.customAmountPlaceholder', 'Dəqiq məbləği qeyd edin (məs: 7,500 AZN)')}
                             value={formData.customInvestmentAmount}
-                            onChange={(e) => setFormData({ ...formData, customInvestmentAmount: e.target.value })}
+                            onChange={setField('customInvestmentAmount')}
                           />
+                        )}
+                      </fieldset>
+
+                      <fieldset className="ht-fieldset">
+                        <legend className="ds-label">
+                          {t('talents.step5.supportTypes', 'Sənə hansı dəstək növləri lazımdır?')}{' '}
+                          <span className="ht-opt">{t('talents.step5.multiSelectNote', 'Birdən çox seçə bilərsən')}</span>
+                        </legend>
+                        <div className="ht-tiles">
+                          {supportTypes.map((supp) => {
+                            const isSelected = (formData.neededSupportTypes || []).includes(supp.id);
+                            const Icon = supp.icon;
+                            return (
+                              <label key={supp.id} className="ht-option ht-tile" data-checked={isSelected ? 'true' : undefined}>
+                                <input
+                                  type="checkbox"
+                                  className="ht-sr"
+                                  checked={isSelected}
+                                  onChange={() => toggleSupportType(supp.id)}
+                                />
+                                <Icon aria-hidden className="ht-tile__icon" />
+                                <span className="ht-tile__label">{plain(supp.label)}</span>
+                                <span className="ht-tile__check" aria-hidden>
+                                  <Check />
+                                </span>
+                              </label>
+                            );
+                          })}
                         </div>
-                      )}
-                    </div>
+                      </fieldset>
 
-                    <div className="ht-field">
-                      <label>{t('talents.step5.supportTypes', 'Sənə hansı dəstək növləri lazımdır?')} <span className="opt">{t('talents.step5.multiSelectNote', 'Birdən çox seçə bilərsən')}</span></label>
-                      <div className="ht-support-types-grid">
-                        {supportTypes.map((supp) => {
-                          const isSelected = (formData.neededSupportTypes || []).includes(supp.id);
-                          return (
-                            <div
-                              key={supp.id}
-                              className={`ht-support-card ${isSelected ? 'selected' : ''}`}
-                              onClick={() => toggleSupportType(supp.id)}
-                            >
-                              <div className="ht-support-card__checkbox">
-                                {isSelected ? '✓' : ''}
-                              </div>
-                              <span className="ht-support-card__icon">{supp.icon}</span>
-                              <span className="ht-support-card__label">{supp.label}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                      <Field id="ht-other" label={t('talents.step5.otherNeeds', 'Başqa nə lazımdır?')} optionalText={optionalText}>
+                        <textarea
+                          id="ht-other"
+                          className="ds-textarea"
+                          rows="3"
+                          placeholder={t('talents.step5.otherNeedsPlaceholder', 'Məs: Güclü kompüter, xüsusi boyalar, laboratoriya avadanlığı, studiya vaxtı və s.')}
+                          value={formData.otherNeeds}
+                          onChange={setField('otherNeeds')}
+                        />
+                      </Field>
+                    </>
+                  )}
 
-                    <div className="ht-field">
-                      <label>{t('talents.step5.otherNeeds', 'Başqa nə lazımdır?')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                      <textarea
-                        rows="3"
-                        placeholder={t('talents.step5.otherNeedsPlaceholder', 'Məs: Güclü kompüter, xüsusi boyalar, laboratoriya avadanlığı, studiya vaxtı və s.')}
-                        value={formData.otherNeeds}
-                        onChange={(e) => setFormData({ ...formData, otherNeeds: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                )}
+                  {/* ── STEP 6: TEAM & FUTURE ── */}
+                  {currentStep === 6 && (
+                    <>
+                      <fieldset className="ht-fieldset">
+                        <legend className="ds-label">{t('talents.step6.teamQuestion', 'Bu ideyanı birlikdə etdiyin biri varmı?')}</legend>
+                        <div className="ht-tiles ht-tiles--team">
+                          {teamStatuses.map((tItem) => {
+                            const Icon = tItem.icon;
+                            return (
+                              <label key={tItem.id} className="ht-option ht-tile" data-checked={formData.teamStatus === tItem.id ? 'true' : undefined}>
+                                <input
+                                  type="radio"
+                                  name="ht-teamStatus"
+                                  className="ht-sr"
+                                  value={tItem.id}
+                                  checked={formData.teamStatus === tItem.id}
+                                  onChange={() => setFormData((prev) => ({ ...prev, teamStatus: tItem.id }))}
+                                />
+                                <Icon aria-hidden className="ht-tile__icon" />
+                                <span className="ht-tile__label">{plain(tItem.label)}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
 
-                {/* ── STEP 6: KOMANDA VƏ GƏLƏCƏK PLAN ── */}
-                {currentStep === 6 && (
-                  <div className="ht-step-pane animate-fade-in">
-                    <div className="ht-step-title-group">
-                      <span className="ht-step-subtitle">{t('talents.general.stage', 'Mərhələ')} 6</span>
-                      <h3 className="ht-step-title">{t('talents.step6.title', 'Bu bacarığın gələcəyini necə görürsən?')}</h3>
-                      <p className="ht-step-desc">
-                        {t('talents.step6.desc', 'Tək işləyirsən, yoxsa komandan var? Gələcək vizyonunu və planlarını bizimlə bölüş.')}
-                      </p>
-                    </div>
-
-                    <div className="ht-field">
-                      <label>{t('talents.step6.teamQuestion', 'Bu ideyanı birlikdə etdiyin biri varmı?')}</label>
-                      <div className="ht-team-status-grid">
-                        {[
-                          { id: 'Solo', label: t('talents.teamStatuses.solo', 'Tək işləyirəm'), icon: '👤' },
-                          { id: 'Friends', label: t('talents.teamStatuses.friends', 'Dostlarım var'), icon: '🤝' },
-                          { id: 'Team', label: t('talents.teamStatuses.team', 'Komandamız var'), icon: '👥' },
-                          { id: 'Company', label: t('talents.teamStatuses.company', 'Şirkətimiz var'), icon: '🏢' },
-                          { id: 'Other', label: t('talents.teamStatuses.other', 'Digər'), icon: '💡' }
-                        ].map((tItem) => (
-                          <button
-                            key={tItem.id}
-                            type="button"
-                            className={`ht-team-card ${formData.teamStatus === tItem.id ? 'active' : ''}`}
-                            onClick={() => setFormData({ ...formData, teamStatus: tItem.id })}
-                          >
-                            <span className="team-icon">{tItem.icon}</span>
-                            <span className="team-label">{tItem.label}</span>
-                          </button>
-                        ))}
-                      </div>
-
-                      {formData.teamStatus !== 'Solo' && (
-                        <div className="ht-team-extra-fields animate-fade-in">
-                          <div className="ht-grid-2">
-                            <div className="ht-field">
-                              <label>{t('talents.step6.teamSize', 'Komanda üzvlərinin sayı')}</label>
+                        {formData.teamStatus !== 'Solo' && (
+                          <div className="ht-grid-2 ht-team-extra">
+                            <Field id="ht-teamSize" label={t('talents.step6.teamSize', 'Komanda üzvlərinin sayı')}>
                               <input
+                                id="ht-teamSize"
+                                className="ds-input"
                                 type="number"
+                                inputMode="numeric"
                                 placeholder="Məs: 3"
                                 value={formData.teamSize}
-                                onChange={(e) => setFormData({ ...formData, teamSize: e.target.value })}
+                                onChange={setField('teamSize')}
                               />
-                            </div>
-                            <div className="ht-field">
-                              <label>{t('talents.step6.teamRoles', 'Rolları')}</label>
+                            </Field>
+                            <Field id="ht-teamRoles" label={t('talents.step6.teamRoles', 'Rolları')}>
                               <input
+                                id="ht-teamRoles"
+                                className="ds-input"
                                 type="text"
                                 placeholder="Məs: 1 Dizayner, 1 Proqramçı"
                                 value={formData.teamRoles}
-                                onChange={(e) => setFormData({ ...formData, teamRoles: e.target.value })}
+                                onChange={setField('teamRoles')}
                               />
+                            </Field>
+                          </div>
+                        )}
+                      </fieldset>
+
+                      <Field id="ht-vision" label={t('talents.step6.oneYearVision', '1 il sonra özünü və layihəni harada görürsən?')} optionalText={optionalText}>
+                        <textarea
+                          id="ht-vision"
+                          className="ds-textarea ht-textarea-sm"
+                          rows="2"
+                          placeholder={t('talents.step6.visionPlaceholder', 'Məs: İlk 1,000 istifadəçiyə çatmış, xaricdə sərgidə iştirak edən, gəlir əldə edən...')}
+                          value={formData.oneYearVision}
+                          onChange={setField('oneYearVision')}
+                        />
+                      </Field>
+
+                      <div className="ht-grid-2">
+                        <Field id="ht-income" label={t('talents.step6.wantIncome', 'Bu bacarıqdan gəlir əldə etmək istəyirsən?')}>
+                          <select id="ht-income" className="ds-select" value={formData.wantIncome} onChange={setField('wantIncome')}>
+                            <option value="Bəli">{t('talents.general.yes', 'Bəli')}</option>
+                            <option value="Xeyr">{t('talents.general.no', 'Xeyr')}</option>
+                            <option value="Hələ qərar verməmişəm">{t('talents.general.undecided', 'Hələ qərar verməmişəm')}</option>
+                          </select>
+                        </Field>
+                        <Field id="ht-business" label={t('talents.step6.wantBusiness', 'Bu layihəni biznesə çevirmək istəyirsən?')}>
+                          <select id="ht-business" className="ds-select" value={formData.wantBusiness} onChange={setField('wantBusiness')}>
+                            <option value="Bəli">{t('talents.general.yes', 'Bəli')}</option>
+                            <option value="Xeyr">{t('talents.general.no', 'Xeyr')}</option>
+                            <option value="Bilmirəm">{t('talents.general.dontKnow', 'Bilmirəm')}</option>
+                          </select>
+                        </Field>
+                      </div>
+
+                      <Field id="ht-ambition" label={t('talents.step6.ultimateAmbition', 'Sənin üçün ən böyük xəyal / məqsəd nədir?')}>
+                        <textarea
+                          id="ht-ambition"
+                          className="ds-textarea"
+                          rows="3"
+                          placeholder={t('talents.step6.ambitionPlaceholder', 'Məs: Öz sahəmdə qlobal səviyyədə tanınmaq və dünyanı dəyişdirəcək bir məhsul buraxmaq...')}
+                          value={formData.ultimateAmbition}
+                          onChange={setField('ultimateAmbition')}
+                        />
+                      </Field>
+                    </>
+                  )}
+
+                  {/* ── STEP 7: REVIEW & SUBMIT ── */}
+                  {currentStep === 7 && (
+                    <>
+                      <section className="ht-summary" aria-labelledby="ht-summary-title">
+                        <h3 id="ht-summary-title" className="ds-h3">{plain(t('talents.step7.summaryTitle', 'Müraciət İcmalı'))}</h3>
+                        <dl className="ht-summary__grid">
+                          <div>
+                            <dt>{t('talents.step7.fullName', 'Ad, Soyad:')}</dt>
+                            <dd>{`${formData.firstName} ${formData.lastName}`.trim() || '—'}</dd>
+                          </div>
+                          <div>
+                            <dt>{t('talents.step7.contact', 'Əlaqə:')}</dt>
+                            <dd>{formData.phone || formData.email || '—'}</dd>
+                          </div>
+                          <div>
+                            <dt>{t('talents.step7.skill', 'Bacarıq:')}</dt>
+                            <dd>
+                              {formData.skillName || '—'} ({plain(skillLevels.find((l) => l.id === formData.skillLevel)?.label || formData.skillLevel)})
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>{t('talents.step7.investment', 'İnvestisiya Ehtiyacı:')}</dt>
+                            <dd>{(formData.estimatedInvestment === customAmountOption ? formData.customInvestmentAmount : formData.estimatedInvestment) || '—'}</dd>
+                          </div>
+                          {formData.uploadedFiles.length > 0 && (
+                            <div className="ht-summary__full">
+                              <dt>{t('talents.step7.filesCount', 'Əlavə edilmiş fayllar:')}</dt>
+                              <dd>{formData.uploadedFiles.length} {plain(t('talents.filesUploadedSuccess', 'fayl yükləndi'))}</dd>
                             </div>
-                          </div>
-                        </div>
+                          )}
+                          {formData.voiceNoteUrl && (
+                            <div className="ht-summary__full">
+                              <dt>{plain(t('talents.step4.voiceTitle', 'Səsli izah'))}:</dt>
+                              <dd>{plain(t('talents.step7.voiceAttached', 'Səs yazısı əlavə edildi'))}</dd>
+                            </div>
+                          )}
+                        </dl>
+                      </section>
+
+                      <div className="ht-privacy">
+                        <ShieldCheck aria-hidden />
+                        <p>
+                          {t('talents.step7.privacyText', 'Paylaşdığın məlumatlar yalnız Edusaza komandası tərəfindən müraciətini qiymətləndirmək və səninlə əlaqə saxlamaq məqsədilə istifadə olunacaq.')}{' '}
+                          <button
+                            type="button"
+                            className="ht-linkbtn"
+                            onClick={() => { alert('Edusaz Privacy Policy: All personal data and project ideas are encrypted and never shared with third parties without consent.'); }}
+                          >
+                            {t('talents.step7.privacyLink', 'Məxfilik Siyasəti')}
+                          </button>
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Footer controls */}
+                <div className="ht-footer">
+                  {currentStep > 1 && (
+                    <button type="button" className="ds-btn ds-btn--ghost" onClick={handlePrev}>
+                      <ArrowLeft aria-hidden className="ht-dir" />
+                      {plain(t('talents.general.back', 'Geri'))}
+                    </button>
+                  )}
+                  <span className="ht-footer__spacer" />
+                  {currentStep < 7 ? (
+                    <button type="submit" className="ds-btn ds-btn--primary">
+                      {plain(t('talents.general.next', 'Növbəti'))}
+                      <ArrowRight aria-hidden className="ht-dir" />
+                    </button>
+                  ) : (
+                    <button type="submit" className="ds-btn ds-btn--primary ds-btn--lg" disabled={isSubmitting} aria-busy={isSubmitting || undefined}>
+                      {isSubmitting ? (
+                        plain(t('talents.step7.submitting', 'Göndərilir...'))
+                      ) : (
+                        <>
+                          <Send aria-hidden />
+                          {plain(t('talents.step7.submitBtn', 'Bacarığımı göndər'))}
+                        </>
                       )}
-                    </div>
-
-                    <div className="ht-field">
-                      <label>{t('talents.step6.oneYearVision', '1 il sonra özünü və layihəni harada görürsən?')} <span className="opt">{t('talents.general.optional', 'İstəsən paylaş')}</span></label>
-                      <textarea
-                        rows="2"
-                        placeholder={t('talents.step6.visionPlaceholder', 'Məs: İlk 1,000 istifadəçiyə çatmış, xaricdə sərgidə iştirak edən, gəlir əldə edən...')}
-                        value={formData.oneYearVision}
-                        onChange={(e) => setFormData({ ...formData, oneYearVision: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="ht-grid-2">
-                      <div className="ht-field">
-                        <label>{t('talents.step6.wantIncome', 'Bu bacarıqdan gəlir əldə etmək istəyirsən?')}</label>
-                        <select
-                          value={formData.wantIncome}
-                          onChange={(e) => setFormData({ ...formData, wantIncome: e.target.value })}
-                        >
-                          <option value="Bəli">{t('talents.general.yes', 'Bəli')}</option>
-                          <option value="Xeyr">{t('talents.general.no', 'Xeyr')}</option>
-                          <option value="Hələ qərar verməmişəm">{t('talents.general.undecided', 'Hələ qərar verməmişəm')}</option>
-                        </select>
-                      </div>
-
-                      <div className="ht-field">
-                        <label>{t('talents.step6.wantBusiness', 'Bu layihəni biznesə çevirmək istəyirsən?')}</label>
-                        <select
-                          value={formData.wantBusiness}
-                          onChange={(e) => setFormData({ ...formData, wantBusiness: e.target.value })}
-                        >
-                          <option value="Bəli">{t('talents.general.yes', 'Bəli')}</option>
-                          <option value="Xeyr">{t('talents.general.no', 'Xeyr')}</option>
-                          <option value="Bilmirəm">{t('talents.general.dontKnow', 'Bilmirəm')}</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="ht-field">
-                      <label>{t('talents.step6.ultimateAmbition', 'Sənin üçün ən böyük xəyal / məqsəd nədir?')}</label>
-                      <textarea
-                        rows="3"
-                        placeholder={t('talents.step6.ambitionPlaceholder', 'Məs: Öz sahəmdə qlobal səviyyədə tanınmaq və dünyanı dəyişdirəcək bir məhsul buraxmaq...')}
-                        value={formData.ultimateAmbition}
-                        onChange={(e) => setFormData({ ...formData, ultimateAmbition: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* ── STEP 7: İCMAL VƏ EMOSİONAL CTA ── */}
-                {currentStep === 7 && (
-                  <div className="ht-step-pane animate-fade-in">
-                    <div className="ht-final-cta-box">
-                      <div className="sparkle-circle">✨</div>
-                      <h2>{t('talents.step7.title', 'Bəlkə də axtardığımız insan sənsən.')}</h2>
-                      <p>
-                        {t('talents.step7.desc', 'Sənin bacarığın sadəcə bir hobbi olaraq qalmalı deyil. Bəlkə də onun arxasında böyük bir layihə, biznes və ya gələcək karyera dayanır. Bizə bacarığını göstər. Qalan yolun necə ola biləcəyini birlikdə araşdıraq.')}
-                      </p>
-                    </div>
-
-                    {/* Summary Preview Box */}
-                    <div className="ht-summary-card">
-                      <h4>{t('talents.step7.summaryTitle', 'Müraciət İcmalı')}</h4>
-                      <div className="ht-summary-grid">
-                        <div>
-                          <span className="lbl">{t('talents.step7.fullName', 'Ad, Soyad:')}</span>
-                          <strong>{formData.firstName} {formData.lastName}</strong>
-                        </div>
-                        <div>
-                          <span className="lbl">{t('talents.step7.contact', 'Əlaqə:')}</span>
-                          <strong>{formData.phone || formData.email}</strong>
-                        </div>
-                        <div>
-                          <span className="lbl">{t('talents.step7.skill', 'Bacarıq:')}</span>
-                          <strong>{formData.skillName} ({formData.skillLevel})</strong>
-                        </div>
-                        <div>
-                          <span className="lbl">{t('talents.step7.investment', 'İnvestisiya Ehtiyacı:')}</span>
-                          <strong>{formData.estimatedInvestment === t('talents.step5.customAmountOption', 'Dəqiq məbləği özüm yazım') ? formData.customInvestmentAmount : formData.estimatedInvestment}</strong>
-                        </div>
-                        {formData.uploadedFiles.length > 0 && (
-                          <div className="full-width">
-                            <span className="lbl">{t('talents.step7.filesCount', 'Əlavə edilmiş fayllar:')}</span>
-                            <strong>{formData.uploadedFiles.length} {t('talents.filesUploadedSuccess', 'fayl yükləndi')}</strong>
-                          </div>
-                        )}
-                        {formData.voiceNoteUrl && (
-                          <div className="full-width">
-                            <span className="lbl">{t('talents.step4.voiceTitle', 'Səsli izah')}:</span>
-                            <strong>{t('talents.step7.voiceAttached', '✓ Səs yazısı əlavə edildi')}</strong>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Privacy Guarantee Reassurance */}
-                    <div className="ht-privacy-note">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                      </svg>
-                      <p>
-                        {t('talents.step7.privacyText', 'Paylaşdığın məlumatlar yalnız Edusaza komandası tərəfindən müraciətini qiymətləndirmək və səninlə əlaqə saxlamaq məqsədilə istifadə olunacaq.')}{' '}
-                        <a href="#" onClick={(e) => { e.preventDefault(); alert('Edusaz Privacy Policy: All personal data and project ideas are encrypted and never shared with third parties without consent.'); }}>
-                          {t('talents.step7.privacyLink', 'Məxfilik Siyasəti')}
-                        </a>
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* WIZARD FOOTER CONTROLS */}
-              <div className="ht-wizard-footer">
-                {currentStep > 1 && (
-                  <button type="button" className="ht-btn ht-btn--back" onClick={handlePrev}>
-                    {t('talents.general.back', '← Geri')}
-                  </button>
-                )}
-
-                <div className="ht-wizard-footer__spacer" />
-
-                {currentStep < 7 ? (
-                  <button type="button" className="ht-btn ht-btn--next" onClick={handleNext}>
-                    <span>{t('talents.general.next', 'Növbəti')}</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                      <polyline points="12 5 19 12 12 19" />
-                    </svg>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="ht-btn ht-btn--submit"
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="btn-spinner" />
-                        <span>{t('talents.step7.submitting', 'Göndərilir...')}</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>{t('talents.step7.submitBtn', 'Bacarığımı göndər 🚀')}</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
+                    </button>
+                  )}
+                </div>
+              </form>
             </div>
           )}
-        </div>
-      </section>
+        </section>
+      </div>
+    </main>
+  );
+}
 
-      {/* HOW IT WORKS MODAL */}
-      {showHowItWorks && (
-        <div className="ht-modal-backdrop" onClick={() => setShowHowItWorks(false)}>
-          <div className="ht-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="ht-modal-card__header">
-              <h3>{t('talents.howItWorksModal.title', 'Necə işləyir?')}</h3>
-              <button className="close-btn" onClick={() => setShowHowItWorks(false)}>✕</button>
-            </div>
-
-            <div className="ht-modal-card__body">
-              <div className="how-step">
-                <div className="how-step__num">1</div>
-                <div>
-                  <h4>{t('talents.howItWorksModal.step1Title', '1. Bacarıq və ya ideyanı bizimlə bölüş')}</h4>
-                  <p>{t('talents.howItWorksModal.step1Desc', 'Hər hansı rəsmin, kodun, startap ideyan, musiqin və ya həvəsin varsa, formu doldur və ya birbaşa səsli izah et.')}</p>
-                </div>
-              </div>
-
-              <div className="how-step">
-                <div className="how-step__num">2</div>
-                <div>
-                  <h4>{t('talents.howItWorksModal.step2Title', '2. Ekspert komandamız qiymətləndirir')}</h4>
-                  <p>{t('talents.howItWorksModal.step2Desc', 'Edusaz mentorları və investor şəbəkəmiz ideyanın hansı dəstəyə (maliyyə, mentorluq, komanda, təhsil və s.) ehtiyacı olduğunu təyin edir.')}</p>
-                </div>
-              </div>
-
-              <div className="how-step">
-                <div className="how-step__num">3</div>
-                <div>
-                  <h4>{t('talents.howItWorksModal.step3Title', '3. Birlikdə reallaşdırırıq')}</h4>
-                  <p>{t('talents.howItWorksModal.step3Desc', 'Səninlə fərdi əlaqə saxlayıb yol xəritəsi cızırıq, lazım olduqda investor və ya komanda ilə birləşdiririk.')}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="ht-modal-card__footer">
-              <button className="ht-btn ht-btn--primary" onClick={() => { setShowHowItWorks(false); scrollToForm(); }}>
-                {t('talents.howItWorksModal.understood', 'Anladım, başlayaq!')}
-              </button>
-            </div>
-          </div>
-        </div>
+function Field({ id, label, req, optionalText, error, children }) {
+  return (
+    <div className="ds-field">
+      <label className="ds-label ht-label" htmlFor={id}>
+        <span>
+          {label}
+          {req && <span className="ht-req" aria-hidden> *</span>}
+        </span>
+        {optionalText && <span className="ht-opt">{optionalText}</span>}
+      </label>
+      {children}
+      {error && (
+        <p className="ds-error" id={`${id}-error`}>
+          {error}
+        </p>
       )}
     </div>
   );

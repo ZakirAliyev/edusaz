@@ -41,7 +41,7 @@
     }
   },
   "howItWorks": {
-    "badge": "EDUSAZ 如何运作",
+    "badge": "Edusaz 如何运作",
     "titlePart1": "从个人背景到精准匹配列表",
     "titlePart2": "仅需 3 分钟",
     "step1": {
@@ -111,9 +111,9 @@
   },
   "auth": {
     "signInTitle": "登录",
-    "welcomeBack": "欢迎回到 EDUSAZ",
+    "welcomeBack": "欢迎回到 Edusaz",
     "subtitle": "通往世界顶尖名校之旅在此继续。",
-    "newToEdusaz": "首次使用 EDUSAZ？",
+    "newToEdusaz": "首次使用 Edusaz？",
     "createAccount": "创建新账号",
     "emailLabel": "电子邮箱",
     "passwordLabel": "密码",

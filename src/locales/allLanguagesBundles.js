@@ -1,4 +1,4 @@
-// 31-Language Complete Translation Bundles Generator for EDUSAZ Platform & University Portal
+// 31-Language Complete Translation Bundles Generator for Edusaz Platform & University Portal
 import en from './en/common.json';
 import az from './az/common.json';
 import tr from './tr/common.json';

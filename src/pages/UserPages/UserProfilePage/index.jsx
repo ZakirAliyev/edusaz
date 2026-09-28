@@ -2,41 +2,57 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
+import {
+  Activity,
+  CheckCircle2,
+  GraduationCap,
+  Languages,
+  Loader2,
+  MapPin,
+  Save,
+  Star,
+  UserRound,
+} from 'lucide-react';
 import { useGetUserProfileQuery, useUpdateUserProfileMutation } from '../../../services/apis/userApi';
 import { useToast } from '../../../context/ToastContext';
 import './index.scss';
 
-const UserAvatarIcon = () => (
-  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
+// Fields that count toward the "profile completion" meter.
+// Values the degree select offers; any other stored value is still shown as-is instead of silently displaying the first option.
+const DEGREE_VALUES = ['Bakalavr', 'Magistratura', 'Doktorantura'];
+const COMPLETION_FIELDS = ['firstName', 'lastName', 'phone', 'country', 'gpa', 'englishScore', 'degreeLevel', 'desiredField'];
 
-const AcademicCapIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-  </svg>
-);
+function formatDate(value, lang) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  try {
+    return new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
+  } catch {
+    return date.toLocaleDateString();
+  }
+}
 
-const SaveIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-    <polyline points="17 21 17 13 7 13 7 21"/>
-    <polyline points="7 3 7 8 15 8"/>
-  </svg>
-);
-
-const CheckBadgeIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
+function ProfileSkeleton() {
+  return (
+    <div className="up-skeleton" aria-hidden>
+      <div className="up-head">
+        <div className="ds-skeleton up-skeleton__avatar" />
+        <div className="up-skeleton__lines">
+          <div className="ds-skeleton" style={{ width: '220px', height: '28px' }} />
+          <div className="ds-skeleton" style={{ width: '180px', height: '16px' }} />
+        </div>
+      </div>
+      <div className="up-grid">
+        <div className="ds-skeleton" style={{ height: '420px', borderRadius: 'var(--ds-r-lg)' }} />
+        <div className="ds-skeleton" style={{ height: '240px', borderRadius: 'var(--ds-r-lg)' }} />
+      </div>
+    </div>
+  );
+}
 
 function UserProfilePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -89,7 +105,8 @@ function UserProfilePage() {
         lastName: profileData.lastName,
         phone: profileData.phone,
         country: profileData.country,
-        gpa: parseFloat(profileData.gpa) || 3.6,
+        // An empty GPA is sent as null (the API then keeps the stored value) instead of a made-up default.
+        gpa: parseFloat(profileData.gpa) || null,
         englishScore: profileData.englishScore,
         degreeLevel: profileData.degreeLevel,
         desiredField: profileData.desiredField
@@ -106,184 +123,191 @@ function UserProfilePage() {
     }
   };
 
+  const setField = (name) => (e) => setProfileData({ ...profileData, [name]: e.target.value });
+
   const activities = apiProfile?.activities || [];
+  const fullName = `${profileData.firstName} ${profileData.lastName}`.trim();
+  const initials = [profileData.firstName, profileData.lastName]
+    .map((part) => part.trim().charAt(0))
+    .join('')
+    .toUpperCase();
+  const filled = COMPLETION_FIELDS.filter((name) => String(profileData[name] || '').trim()).length;
+  const completion = Math.round((filled / COMPLETION_FIELDS.length) * 100);
+  const scholarshipCount = apiProfile?.scholarshipCount ?? activities.length;
 
   return (
-    <div id="user-profile-page">
-      <div className="profile-container">
-        
+    <main className="ds-page up-page">
+      <div className="ds-container">
         {isProfileLoading ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>Loading profile from backend...</div>
+          <ProfileSkeleton />
         ) : (
           <>
-            {/* Profile Header Banner */}
-            <div className="profile-header-card">
-              <div className="profile-avatar-wrapper">
-                <UserAvatarIcon />
+            {/* Header: avatar, name, email and quick facts */}
+            <header className="up-head" data-reveal>
+              <div className="up-avatar" aria-hidden>
+                {initials || <UserRound />}
               </div>
-              <div className="profile-header-info">
-                <h2>{profileData.firstName} {profileData.lastName}</h2>
-                <p className="profile-email">{profileData.email}</p>
-                <div className="profile-badges">
-                  <span className="p-badge role">🎓 {t('profile.studentAccount', 'Tələbə Hesabı')}</span>
-                  <span className="p-badge country">🇦🇿 {profileData.country}</span>
-                  <span className="p-badge gpa">⭐ GPA {profileData.gpa}/4.0</span>
-                  <span className="p-badge lang">🌐 {profileData.englishScore}</span>
-                </div>
+              <div className="up-head__info">
+                <h1 className="up-name">{fullName || profileData.email}</h1>
+                {fullName && <p className="up-email">{profileData.email}</p>}
+                <ul className="up-badges">
+                  <li className="ds-badge ds-badge--brand">
+                    <GraduationCap aria-hidden /> {t('profile.studentAccount', 'Tələbə Hesabı')}
+                  </li>
+                  {profileData.country && (
+                    <li className="ds-badge"><MapPin aria-hidden /> {profileData.country}</li>
+                  )}
+                  {profileData.gpa && (
+                    <li className="ds-badge"><Star aria-hidden /> GPA {profileData.gpa}/4.0</li>
+                  )}
+                  {profileData.englishScore && (
+                    <li className="ds-badge"><Languages aria-hidden /> {profileData.englishScore}</li>
+                  )}
+                </ul>
               </div>
-            </div>
+            </header>
 
-            {/* Profile Details Form */}
-            <div className="profile-content-grid">
-              <div className="profile-card main-info">
-                <div className="card-header">
-                  <AcademicCapIcon />
-                  <h3>{t('profile.title', 'Şəxsi & Akademik Məlumatlar')}</h3>
-                </div>
-
-                {savedSuccess && (
-                  <div className="save-toast">
-                    <CheckBadgeIcon /> {t('profile.updatedSuccess', 'Məlumatlarınız yeniləndi')}
-                  </div>
-                )}
-
-                <form onSubmit={handleSave} className="profile-form">
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('profile.firstName', 'Ad')} *</label>
-                      <input
-                        type="text"
-                        value={profileData.firstName}
-                        onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
-                        required
-                      />
+            <div className="up-grid">
+              <form onSubmit={handleSave} className="up-form">
+                <section className="ds-card ds-card--pad up-card" aria-labelledby="up-personal-title" data-reveal>
+                  <h2 id="up-personal-title" className="up-card__title">
+                    {t('pages.profile.personalInfo', 'Şəxsi məlumatlar')}
+                  </h2>
+                  <div className="up-fields">
+                    <div className="ds-field">
+                      <label className="ds-label" htmlFor="up-first-name">{t('profile.firstName', 'Ad')} *</label>
+                      <input id="up-first-name" className="ds-input" type="text" autoComplete="given-name"
+                        value={profileData.firstName} onChange={setField('firstName')} required />
                     </div>
-                    <div className="form-group">
-                      <label>{t('profile.lastName', 'Soyad')} *</label>
-                      <input
-                        type="text"
-                        value={profileData.lastName}
-                        onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
-                        required
-                      />
+                    <div className="ds-field">
+                      <label className="ds-label" htmlFor="up-last-name">{t('profile.lastName', 'Soyad')} *</label>
+                      <input id="up-last-name" className="ds-input" type="text" autoComplete="family-name"
+                        value={profileData.lastName} onChange={setField('lastName')} required />
                     </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('profile.email', 'E-poçt Ünvanı')} *</label>
-                      <input
-                        type="email"
-                        value={profileData.email}
-                        onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                        required
-                      />
+                    <div className="ds-field">
+                      <label className="ds-label" htmlFor="up-email">{t('profile.email', 'E-poçt Ünvanı')}</label>
+                      <input id="up-email" className="ds-input" type="email" value={profileData.email}
+                        readOnly aria-describedby="up-email-help" />
+                      <p id="up-email-help" className="ds-help">
+                        {t('pages.profile.emailLocked', 'E-poçt ünvanı hesabınızın girişidir və burada dəyişdirilmir.')}
+                      </p>
                     </div>
-                    <div className="form-group">
-                      <label>{t('profile.phone', 'Əlaqə Nömrəsi')}</label>
-                      <input
-                        type="tel"
-                        value={profileData.phone}
-                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                      />
+                    <div className="ds-field">
+                      <label className="ds-label" htmlFor="up-phone">{t('profile.phone', 'Əlaqə Nömrəsi')}</label>
+                      <input id="up-phone" className="ds-input" type="tel" autoComplete="tel"
+                        value={profileData.phone} onChange={setField('phone')} />
+                    </div>
+                    <div className="ds-field up-fields__full">
+                      <label className="ds-label" htmlFor="up-country">{t('profile.country', 'Vətəndaşlıq Ölkəsi')}</label>
+                      <input id="up-country" className="ds-input" type="text" autoComplete="country-name"
+                        value={profileData.country} onChange={setField('country')} />
                     </div>
                   </div>
+                </section>
 
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('profile.country', 'Vətəndaşlıq Ölkəsi')}</label>
-                      <input
-                        type="text"
-                        value={profileData.country}
-                        onChange={(e) => setProfileData({ ...profileData, country: e.target.value })}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>{t('profile.degreeLevel', 'Təhsil Dərəcəsi')}</label>
-                      <select
-                        value={profileData.degreeLevel}
-                        onChange={(e) => setProfileData({ ...profileData, degreeLevel: e.target.value })}
-                      >
+                <section className="ds-card ds-card--pad up-card" aria-labelledby="up-academic-title" data-reveal>
+                  <h2 id="up-academic-title" className="up-card__title">
+                    {t('pages.profile.academicProfile', 'Akademik profil')}
+                  </h2>
+                  <div className="up-fields">
+                    <div className="ds-field">
+                      <label className="ds-label" htmlFor="up-degree">{t('profile.degreeLevel', 'Təhsil Dərəcəsi')}</label>
+                      <select id="up-degree" className="ds-select" value={profileData.degreeLevel} onChange={setField('degreeLevel')}>
+                        <option value="" disabled>{t('pages.profile.selectDegree', 'Seçin')}</option>
                         <option value="Bakalavr">{t('profile.bachelor', 'Bakalavr')}</option>
                         <option value="Magistratura">{t('profile.master', 'Magistratura')}</option>
                         <option value="Doktorantura">{t('profile.phd', 'Doktorantura')}</option>
+                        {profileData.degreeLevel && !DEGREE_VALUES.includes(profileData.degreeLevel) && (
+                          <option value={profileData.degreeLevel}>{profileData.degreeLevel}</option>
+                        )}
                       </select>
                     </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('profile.gpa', 'Ortalama Ball (GPA 4.0)')}</label>
-                      <input
-                        type="text"
-                        value={profileData.gpa}
-                        onChange={(e) => setProfileData({ ...profileData, gpa: e.target.value })}
-                      />
+                    <div className="ds-field">
+                      <label className="ds-label" htmlFor="up-gpa">{t('profile.gpa', 'Ortalama Ball (GPA 4.0)')}</label>
+                      <input id="up-gpa" className="ds-input" type="text" inputMode="decimal" placeholder="3.5"
+                        value={profileData.gpa} onChange={setField('gpa')} />
                     </div>
-                    <div className="form-group">
-                      <label>{t('profile.englishScore', 'Xarici Dil Sertifikatı')}</label>
-                      <input
-                        type="text"
-                        value={profileData.englishScore}
-                        onChange={(e) => setProfileData({ ...profileData, englishScore: e.target.value })}
-                      />
+                    <div className="ds-field">
+                      <label className="ds-label" htmlFor="up-english">{t('profile.englishScore', 'Xarici Dil Sertifikatı')}</label>
+                      <input id="up-english" className="ds-input" type="text" placeholder="IELTS 7.0"
+                        value={profileData.englishScore} onChange={setField('englishScore')} />
+                    </div>
+                    <div className="ds-field">
+                      <label className="ds-label" htmlFor="up-field">{t('profile.desiredField', 'Arzuladığınız İxtisas Sahəsi')}</label>
+                      <input id="up-field" className="ds-input" type="text"
+                        value={profileData.desiredField} onChange={setField('desiredField')} />
                     </div>
                   </div>
+                </section>
 
-                  <div className="form-group">
-                    <label>{t('profile.desiredField', 'Arzuladığınız İxtisas Sahəsi')}</label>
-                    <input
-                      type="text"
-                      value={profileData.desiredField}
-                      onChange={(e) => setProfileData({ ...profileData, desiredField: e.target.value })}
-                    />
-                  </div>
-
-                  <button type="submit" className="btn-save-profile" disabled={isUpdating}>
-                    <SaveIcon /> {isUpdating ? t('profile.saving', 'Yenilənir...') : t('profile.saveBtn', 'Dəyişiklikləri Yadda Saxla')}
+                <div className="up-actions" data-reveal>
+                  <p className="up-actions__status" role="status" aria-live="polite">
+                    {savedSuccess && (
+                      <>
+                        <CheckCircle2 aria-hidden /> {t('profile.updatedSuccess', 'Məlumatlarınız yeniləndi')}
+                      </>
+                    )}
+                  </p>
+                  <button type="submit" className="ds-btn ds-btn--primary ds-btn--lg up-save" disabled={isUpdating} aria-busy={isUpdating}>
+                    {isUpdating ? <Loader2 className="up-spin" aria-hidden /> : <Save aria-hidden />}
+                    {isUpdating ? t('profile.saving', 'Yenilənir...') : t('profile.saveBtn', 'Dəyişiklikləri Yadda Saxla')}
                   </button>
-                </form>
-              </div>
-
-              {/* Quick Stats & Saved Applications */}
-              <div className="profile-sidebar">
-                <div className="profile-card summary-card">
-                  <h3>{t('profile.applicationStatus', 'Müraciət Statusu')}</h3>
-                  <div className="stat-item">
-                    <span className="lbl">{t('profile.activeScholarships', 'Aktiv Təqaüd Analizləri')}</span>
-                    <span className="val highlight">{apiProfile?.scholarshipCount || 3}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="lbl">{t('profile.emailNotifications', 'E-poçt Bildirişləri')}</span>
-                    <span className="val status-active">Aktiv</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="lbl">{t('profile.profileCompletion', 'Profil Tamlığı')}</span>
-                    <span className="val percent">100%</span>
-                  </div>
                 </div>
+              </form>
 
-                <div className="profile-card activity-card">
-                  <h3>{t('profile.recentActivity', 'Son Fəaliyyət')}</h3>
-                  <ul className="activity-list">
-                    {activities.map((act, idx) => (
-                      <li key={idx}>
-                        <span className="act-dot"></span>
-                        <div>
-                          <strong>{act.title}</strong>
-                          <p>{act.description}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+              <aside className="up-side">
+                <section className="ds-card ds-card--pad up-card" aria-labelledby="up-status-title" data-reveal>
+                  <h2 id="up-status-title" className="up-card__title">{t('profile.applicationStatus', 'Müraciət Statusu')}</h2>
+                  <dl className="up-stats">
+                    <div className="up-stat">
+                      <dt>{t('profile.activeScholarships', 'Aktiv Təqaüd Analizləri')}</dt>
+                      <dd>{scholarshipCount}</dd>
+                    </div>
+                    <div className="up-stat">
+                      <dt>{t('profile.profileCompletion', 'Profil Tamlığı')}</dt>
+                      <dd>{completion}%</dd>
+                    </div>
+                  </dl>
+                  <div
+                    className="up-meter"
+                    role="progressbar"
+                    aria-label={t('profile.profileCompletion', 'Profil Tamlığı')}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={completion}
+                  >
+                    <span style={{ inlineSize: `${completion}%` }} />
+                  </div>
+                </section>
+
+                <section className="ds-card ds-card--pad up-card" aria-labelledby="up-activity-title" data-reveal style={{ '--delay': '60ms' }}>
+                  <h2 id="up-activity-title" className="up-card__title">{t('profile.recentActivity', 'Son Fəaliyyət')}</h2>
+                  {activities.length > 0 ? (
+                    <ol className="up-activity">
+                      {activities.map((act, idx) => (
+                        <li key={idx} className="up-activity__item">
+                          <span className="up-activity__dot" aria-hidden />
+                          <div className="up-activity__body">
+                            <strong>{act.title}</strong>
+                            {act.description && <p>{act.description}</p>}
+                            {act.date && <time dateTime={act.date}>{formatDate(act.date, i18n.language)}</time>}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <div className="up-empty">
+                      <Activity aria-hidden />
+                      <p>{t('pages.profile.noActivity', 'Hələ fəaliyyət yoxdur. Təqaüd uyğunluğunu yoxladıqda burada görünəcək.')}</p>
+                    </div>
+                  )}
+                </section>
+              </aside>
             </div>
           </>
         )}
-
       </div>
-    </div>
+    </main>
   );
 }
 

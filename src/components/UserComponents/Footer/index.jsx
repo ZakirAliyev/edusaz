@@ -1,91 +1,96 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../../../context/LanguageContext';
+import { useGetCountriesQuery, useGetScholarshipsQuery, useGetUniversitiesQuery } from '../../../services/apis/userApi';
+import BrandLogo from '../../Common/BrandLogo.jsx';
+import '../../../landing/i18n';
 import './index.scss';
-
-const LogoIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-  </svg>
-);
 
 function Footer() {
   const { t } = useTranslation();
+  const { language } = useLanguage();
+  const { data: universities } = useGetUniversitiesQuery(language);
+  const { data: countries } = useGetCountriesQuery(language);
+  const { data: scholarships } = useGetScholarshipsQuery(language);
+
+  // Real counts from the API (the same queries the pages use, so they come from cache).
+  const stats = [
+    [universities?.length, t('footer.stats.universities')],
+    [countries?.length, t('footer.stats.countries')],
+    [scholarships?.length, t('footer.stats.scholarships')],
+  ].filter(([value]) => value > 0);
+
+  const columns = [
+    {
+      title: t('landing.footer.students'),
+      links: [
+        ['/universities', t('nav.browseUniversities')],
+        ['/scholarships', t('nav.scholarships')],
+        ['/courses', t('nav.courses', { defaultValue: 'Kurslar' })],
+        ['/destinations', t('nav.destinations')],
+        ['/ai-discovery', t('landing.features.match.title')],
+      ],
+    },
+    {
+      title: t('landing.footer.partners'),
+      links: [
+        ['/for-universities', t('nav.forUniversities')],
+        ['/register', t('landing.partners.teach.cta')],
+        ['/talents', t('nav.talents', { defaultValue: 'Gizli Bacarıqlar' })],
+        ['/university-portal', t('footer.universityDashboard')],
+      ],
+    },
+    {
+      title: t('landing.footer.account'),
+      links: [
+        ['/signin', t('nav.signIn')],
+        ['/register', t('landing.footer.signUp')],
+        ['/profile', t('nav.profile')],
+      ],
+    },
+  ];
 
   return (
-    <footer id="footer">
-      <div className="footer-inner">
-        <div className="footer-main">
-          
-          <div className="footer-brand">
-            <div className="footer-logo">
-              <div className="logo-icon-wrap">
-                <LogoIcon />
-              </div>
-              <span>EDUSAZ</span>
-            </div>
-            
-            <p className="footer-desc">
-              {t('footer.desc')}
-            </p>
-            
-            <div className="footer-stats">
-              <div className="footer-stat">
-                <h4>2,500+</h4>
-                <p>{t('footer.stats.universities')}</p>
-              </div>
-              <div className="footer-stat">
-                <h4>80+</h4>
-                <p>{t('footer.stats.countries')}</p>
-              </div>
-              <div className="footer-stat">
-                <h4>150K+</h4>
-                <p>{t('footer.stats.scholarships')}</p>
-              </div>
-              <div className="footer-stat">
-                <h4>500K+</h4>
-                <p>{t('footer.stats.students')}</p>
-              </div>
-            </div>
+    <footer id="footer" className="sf">
+      <div className="sf__inner">
+        <div className="sf__top">
+          <div className="sf__brand">
+            <Link to="/" className="sf__logo" aria-label="Edusaz">
+              <BrandLogo size={30} />
+            </Link>
+            <p className="sf__tagline">{t('landing.footer.tagline')}</p>
+            {stats.length > 0 && (
+              <dl className="sf__stats">
+                {stats.map(([value, label]) => (
+                  <div key={label}>
+                    <dt>{value}</dt>
+                    <dd>{label}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
           </div>
 
-          <div className="footer-links-group">
-            <div className="footer-col">
-              <h4>{t('footer.studentsTitle')}</h4>
-              <ul>
-                <li><Link to="/ai-discovery">{t('nav.aiDiscovery')}</Link></li>
-                <li><Link to="/universities">{t('nav.browseUniversities')}</Link></li>
-                <li><Link to="/scholarships">{t('nav.scholarships')}</Link></li>
-                <li><Link to="/destinations">{t('nav.destinations')}</Link></li>
-                <li><Link to="/talents">✨ {t('nav.talents', { defaultValue: 'Gizli Bacarıqlar' })}</Link></li>
-              </ul>
-            </div>
-            
-            <div className="footer-col">
-              <h4>{t('footer.universitiesTitle')}</h4>
-              <ul>
-                <li><Link to="/for-universities">{t('nav.forUniversities')}</Link></li>
-                <li><Link to="/university-portal">{t('footer.universityDashboard')}</Link></li>
-              </ul>
-            </div>
-            
-            <div className="footer-col">
-              <h4>{t('footer.platformTitle')}</h4>
-              <ul>
-                <li><Link to="/signin">{t('nav.signIn')}</Link></li>
-                <li><Link to="/signin">{t('auth.createAccount')}</Link></li>
-              </ul>
-            </div>
-          </div>
-          
+          <nav className="sf__cols" aria-label="Footer">
+            {columns.map((col) => (
+              <div key={col.title} className="sf__col">
+                <h2 className="sf__col-title">{col.title}</h2>
+                <ul>
+                  {col.links.map(([to, label]) => (
+                    <li key={`${to}-${label}`}>
+                      <Link to={to}>{label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
         </div>
 
-        <div className="footer-bottom">
-          <p>© 2026 EDUSAZ. {t('footer.rightsReserved')}</p>
-          <div className="footer-legal">
-            <a href="#">{t('footer.privacy')}</a>
-            <a href="#">{t('footer.terms')}</a>
-            <a href="#">{t('footer.cookies')}</a>
-          </div>
+        <div className="sf__bottom">
+          <p>
+            © {new Date().getFullYear()} Edusaz. {t('footer.rightsReserved')}
+          </p>
         </div>
       </div>
     </footer>

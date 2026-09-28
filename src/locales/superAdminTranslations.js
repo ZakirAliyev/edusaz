@@ -1,4 +1,4 @@
-// Comprehensive 31-Language Dictionaries for EDUSAZ SuperAdmin Management Center
+// Comprehensive 31-Language Dictionaries for Edusaz SuperAdmin Management Center
 
 export const superAdminTranslations = {
   az: {

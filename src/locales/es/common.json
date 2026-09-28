@@ -41,7 +41,7 @@
     }
   },
   "howItWorks": {
-    "badge": "Cómo funciona EDUSAZ",
+    "badge": "Cómo funciona Edusaz",
     "titlePart1": "De tu perfil a tu lista ideal",
     "titlePart2": "en 3 minutos",
     "step1": {
@@ -111,9 +111,9 @@
   },
   "auth": {
     "signInTitle": "Iniciar Sesión",
-    "welcomeBack": "Bienvenido de nuevo a EDUSAZ",
+    "welcomeBack": "Bienvenido de nuevo a Edusaz",
     "subtitle": "Tu camino hacia las mejores universidades del mundo continúa aquí.",
-    "newToEdusaz": "¿Nuevo en EDUSAZ?",
+    "newToEdusaz": "¿Nuevo en Edusaz?",
     "createAccount": "Crear una cuenta",
     "emailLabel": "Correo electrónico",
     "passwordLabel": "Contraseña",

@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ArrowUpRight, Building2, Globe2, Search, SearchX, Wallet, X } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useGetCountriesQuery } from '../../../services/apis/userApi';
+import { resolveMediaUrl } from '../../../config/env';
 import ScrollToTop from '../../../components/Common/ScrollToTop';
 import './index.scss';
+
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=900&q=70';
+const onImgError = (e) => {
+  if (e.currentTarget.src !== FALLBACK_IMAGE) e.currentTarget.src = FALLBACK_IMAGE;
+};
 
 function DestinationsPage() {
   const { t } = useTranslation();
@@ -17,71 +24,111 @@ function DestinationsPage() {
   );
 
   return (
-    <div className="dp-page">
+    <main className="ds-page dp-page">
       <ScrollToTop />
+      <div className="ds-container">
+        <header className="ds-page-header dp-header" data-reveal>
+          <span className="ds-eyebrow">{t('topDestinations.badge', 'Ölkələr')}</span>
+          <div className="dp-header__row">
+            <div className="dp-header__text">
+              <h1 className="ds-title">{t('topDestinations.title', 'Dünya üzrə Təhsil Mərkəzləri')}</h1>
+              <p className="ds-lead">
+                {t('topDestinations.subtitle', 'Xarici ölkələrdəki universitet və kurs imkanlarını kəşf et')}
+              </p>
+            </div>
 
-      {/* Header */}
-      <div className="dp-header">
-        <div className="dp-header-inner">
-          <span className="dp-badge">🌍 {t('topDestinations.badge') || 'Ölkələr'}</span>
-          <h1>{t('topDestinations.title') || 'Dünya üzrə Təhsil Mərkəzləri'}</h1>
-          <p>{t('topDestinations.subtitle') || 'Xarici ölkələrdəki universitet və kurs imkanlarını kəşf et'}</p>
+            <div className="dp-search">
+              <label htmlFor="dp-search-input" className="dp-sr-only">
+                {t('common.search', 'Ölkə axtar...')}
+              </label>
+              <Search aria-hidden className="dp-search__icon" />
+              <input
+                id="dp-search-input"
+                type="search"
+                className="ds-input dp-search__input"
+                placeholder={t('common.search', 'Ölkə axtar...')}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  type="button"
+                  className="dp-search__clear"
+                  onClick={() => setSearch('')}
+                  aria-label={t('pages.destinations.clearSearch', 'Axtarışı təmizlə')}
+                >
+                  <X aria-hidden />
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
 
-          {/* Search */}
-          <div className="dp-search">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.35-4.35" />
-            </svg>
-            <input
-              type="text"
-              placeholder={t('common.search') || 'Ölkə axtar...'}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        {!isLoading && countries.length > 0 && (
+          <p className="dp-count ds-muted" aria-live="polite">
+            {t('pages.destinations.count', '{{count}} ölkə', { count: filtered.length })}
+          </p>
+        )}
+
+        {isLoading ? (
+          <ul className="dp-grid" aria-busy="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <li key={i} aria-hidden>
+                <span className="ds-skeleton dp-skeleton" />
+              </li>
+            ))}
+          </ul>
+        ) : filtered.length === 0 ? (
+          <div className="ds-empty dp-empty">
+            {countries.length === 0 ? <Globe2 aria-hidden /> : <SearchX aria-hidden />}
+            <strong>{t('pages.destinations.notFound', 'Heç bir ölkə tapılmadı.')}</strong>
             {search && (
-              <button className="dp-clear" onClick={() => setSearch('')}>✕</button>
+              <button type="button" className="ds-btn ds-btn--secondary ds-btn--sm" onClick={() => setSearch('')}>
+                {t('pages.destinations.clearSearch', 'Axtarışı təmizlə')}
+              </button>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Country Grid */}
-      <div className="dp-body">
-        {isLoading ? (
-          <div className="dp-loading">
-            <div className="dp-spinner" />
-            <p>Yüklənir...</p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="dp-empty">
-            <span>🔍</span>
-            <p>Heç bir ölkə tapılmadı.</p>
-          </div>
         ) : (
-          <div className="dp-grid">
-            {filtered.map((country) => (
-              <Link
-                key={country.id}
-                to={`/destinations/${country.code || country.id}`}
-                className="dp-card"
-              >
-                <span className="dp-flag">{country.flagEmoji || '🌐'}</span>
-                <div className="dp-card-info">
-                  <span className="dp-name">{country.name}</span>
-                  {country.universityCount > 0 && (
-                    <span className="dp-count">{country.universityCount} universitet</span>
-                  )}
-                </div>
-                <svg className="dp-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </Link>
+          <ul className="dp-grid">
+            {filtered.map((country, i) => (
+              <li key={country.id} data-reveal style={{ '--delay': `${Math.min(i % 3, 5) * 60}ms` }}>
+                <Link to={`/destinations/${country.code || country.id}`} className="dp-card">
+                  <img
+                    src={resolveMediaUrl(country.imageUrl) || FALLBACK_IMAGE}
+                    onError={onImgError}
+                    alt=""
+                    loading="lazy"
+                    className="dp-card__img"
+                  />
+                  <span className="dp-card__overlay" aria-hidden />
+                  {country.label && <span className="dp-card__label">{country.label}</span>}
+                  <ArrowUpRight aria-hidden className="dp-card__arrow" />
+                  <span className="dp-card__body">
+                    <span className="dp-card__name">
+                      {country.flagEmoji && <span className="dp-card__flag" aria-hidden>{country.flagEmoji}</span>}
+                      {country.name}
+                    </span>
+                    <span className="dp-card__meta">
+                      <span>
+                        <Building2 aria-hidden />
+                        {t('landing.destinations.count', '{{count}} universitet', { count: country.universityCount || 0 })}
+                      </span>
+                      {country.averageCost && (
+                        <span>
+                          <Wallet aria-hidden />
+                          <span className="dp-sr-only">{t('landing.destinations.cost', 'Orta xərc')}: </span>
+                          {country.averageCost}
+                        </span>
+                      )}
+                    </span>
+                  </span>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 

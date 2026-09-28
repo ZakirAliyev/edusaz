@@ -38,7 +38,7 @@
     }
   },
   "howItWorks": {
-    "badge": "How EDUSAZ Works",
+    "badge": "How Edusaz Works",
     "titlePart1": "From profile to shortlist in",
     "titlePart2": "3 minutes",
     "step1": {
@@ -75,9 +75,9 @@
   },
   "auth": {
     "signInTitle": "Sign in",
-    "welcomeBack": "Welcome back to EDUSAZ",
+    "welcomeBack": "Welcome back to Edusaz",
     "subtitle": "Your path to the world's best universities continues here.",
-    "newToEdusaz": "New to EDUSAZ?",
+    "newToEdusaz": "New to Edusaz?",
     "createAccount": "Create free account",
     "emailLabel": "Email Address",
     "passwordLabel": "Password",

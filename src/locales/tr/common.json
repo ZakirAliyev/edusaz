@@ -42,7 +42,7 @@
     }
   },
   "howItWorks": {
-    "badge": "EDUSAZ Nasıl Çalışır",
+    "badge": "Edusaz Nasıl Çalışır",
     "titlePart1": "Profilinizden eşleşen listenize",
     "titlePart2": "3 dakikadan kısa sürede",
     "step1": {
@@ -69,7 +69,7 @@
     "feature1": "Her üniversite için kabul olasılığı",
     "feature2": "Profilinizle eşleşen mevcut burslar",
     "feature3": "Vize gereksinimleri ve adım adım rehberlik",
-    "chatTitle": "EDUSAZ AI Danışmanı",
+    "chatTitle": "Edusaz AI Danışmanı",
     "chatSubtitle": "2.500+ üniversite analiz ediliyor",
     "userMsg": "Nijerya'dan geliyorum. Azerbaycan'da Tıp okumak istiyorum. Bütçe: $5.000/yıl.",
     "botResponse": "Profilinize uygun 8 üniversite bulundu:",
@@ -80,7 +80,7 @@
     "badge": "Üniversiteler İçin",
     "titlePart1": "500.000+ küresel öğrenci çekin",
     "titlePart2": "AI hassasiyetiyle",
-    "subtitle": "Nitelikli uluslararası öğrencilere ulaşmak için EDUSAZ platformunu kullanan 180+ üniversiteye katılın. Doğrulanmış profil, öncelikli görünürlük ve detaylı analitik.",
+    "subtitle": "Nitelikli uluslararası öğrencilere ulaşmak için Edusaz platformunu kullanan 180+ üniversiteye katılın. Doğrulanmış profil, öncelikli görünürlük ve detaylı analitik.",
     "monthlyLeads": "Aylık öğrenci başvurusu",
     "leadScore": "Kalite skoru",
     "sourceCountries": "Öğrenci kaynağı ülke",
@@ -93,7 +93,7 @@
     "feature3Desc": "Programlarınıza, şartlarınıza ve bütçenize uygun öğrencilerle bağlantı kurun",
     "feature4Title": "Öğrenci Çekme Analiz Paneli",
     "feature4Desc": "Görüntülemeleri, sorguları ve başvuru sonuçlarını gerçek zamanlı takip edin",
-    "partnerBtn": "EDUSAZ ile Partner Olun"
+    "partnerBtn": "Edusaz ile Partner Olun"
   },
   "scholarshipsSection": {
     "titleSuffix": "uluslararası öğrenciler için",
@@ -161,9 +161,9 @@
   },
   "auth": {
     "signInTitle": "Giriş Yap",
-    "welcomeBack": "EDUSAZ'a tekrar hoş geldiniz",
+    "welcomeBack": "Edusaz'a tekrar hoş geldiniz",
     "subtitle": "Dünyanın en iyi üniversitelerine giden yolunuz burada devam ediyor.",
-    "newToEdusaz": "EDUSAZ'da yeni misiniz?",
+    "newToEdusaz": "Edusaz'da yeni misiniz?",
     "createAccount": "Hesap oluşturun",
     "emailLabel": "E-posta adresi",
     "passwordLabel": "Şifre",
@@ -207,7 +207,7 @@
   },
   "forUniversitiesPage": {
     "titlePart1": "Uluslararası Öğrencileri Çekin",
-    "titlePart2": "EduSaz ile Küresel Ortaklık",
+    "titlePart2": "Edusaz ile Küresel Ortaklık",
     "desc": "Üniversitenizi ve akademik programlarınızı dünya çapında 500.000'den fazla öğrenciye tanıtın ve tüm başvuru süreçlerini tek bir panelden yönetin."
   },
   "scholarshipsPage": {

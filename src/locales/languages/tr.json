@@ -38,7 +38,7 @@
     }
   },
   "howItWorks": {
-    "badge": "EDUSAZ Nasıl Çalışır",
+    "badge": "Edusaz Nasıl Çalışır",
     "titlePart1": "Profilinizden eşleşen listeye",
     "titlePart2": "3 dakikada",
     "step1": {
@@ -75,9 +75,9 @@
   },
   "auth": {
     "signInTitle": "Giriş Yapın",
-    "welcomeBack": "EDUSAZ'a Tekrar Hoş Geldiniz",
+    "welcomeBack": "Edusaz'a Tekrar Hoş Geldiniz",
     "subtitle": "Dünyanın en iyi üniversitelerine giden yolunuz burada devam ediyor.",
-    "newToEdusaz": "EDUSAZ'da yeni misiniz?",
+    "newToEdusaz": "Edusaz'da yeni misiniz?",
     "createAccount": "Hesap oluşturun",
     "emailLabel": "E-posta adresi",
     "passwordLabel": "Şifre",

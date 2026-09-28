@@ -1,248 +1,196 @@
-.payment-result-page {
-  min-height: calc(100vh - 120px);
+// Payment result pages (/payment/success, /payment/fail, /payment/result).
+// Shared by PaymentSuccessPage and PaymentFailPage; scoped under `.pr-`.
+
+.pr-page {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  background: radial-gradient(circle at 50% 20%, rgba(122, 92, 255, 0.06) 0%, #f8fafc 100%);
-  font-family: 'Manrope', sans-serif;
 
-  .payment-result-container {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 24px;
-    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.06);
-    padding: 48px 36px;
-    max-width: 540px;
-    width: 100%;
+  > .ds-container {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.pr-card {
+  --pr-tone: var(--ds-success);
+  --pr-tone-soft: var(--ds-success-soft);
+
+  width: 100%;
+  max-width: 560px;
+  padding: clamp(28px, 5vw, 44px) clamp(20px, 5vw, 44px) clamp(24px, 4vw, 32px);
+  text-align: center;
+  box-shadow: var(--ds-shadow);
+
+  &[data-tone='fail'] {
+    --pr-tone: var(--ds-danger);
+    --pr-tone-soft: var(--ds-danger-soft);
+  }
+}
+
+.pr-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: var(--pr-tone-soft);
+  color: var(--pr-tone);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--pr-tone-soft) 55%, transparent);
+  animation: pr-icon-in 0.45s var(--ds-ease) both;
+
+  svg {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+@keyframes pr-icon-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+.pr-chip {
+  margin-bottom: 14px;
+}
+
+.pr-title {
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+
+.pr-lead {
+  max-width: 34rem;
+  margin: 0 auto 28px;
+  font-size: 0.975rem;
+  line-height: 1.65;
+  color: var(--ds-muted);
+  overflow-wrap: anywhere;
+}
+
+.pr-summary {
+  margin: 0 0 28px;
+  padding: 4px 18px;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-r);
+  background: var(--ds-bg);
+  text-align: start;
+}
+
+.pr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 12px;
+  font-size: 0.875rem;
+
+  & + & {
+    border-top: 1px solid var(--ds-line);
+  }
+
+  dt {
+    flex-shrink: 0;
+    color: var(--ds-muted);
+    font-weight: 500;
+  }
+
+  dd {
+    margin: 0;
+    min-width: 0;
+    color: var(--ds-ink);
+    font-weight: 600;
+    text-align: end;
+    overflow-wrap: anywhere;
+  }
+}
+
+.pr-code {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--ds-brand-ink) !important;
+}
+
+.pr-amount {
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pr-status {
+  white-space: normal;
+  text-align: center;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+.pr-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 22px;
+
+  .ds-btn {
+    height: auto;
+    min-height: 52px;
+    padding-block: 12px;
+    white-space: normal;
     text-align: center;
-    box-sizing: border-box;
+    line-height: 1.3;
+  }
 
-    @media (max-width: 600px) {
-      padding: 32px 20px;
-    }
+  @media (min-width: 560px) {
+    flex-direction: row;
 
-    .status-badge-wrapper {
-      margin-bottom: 20px;
-
-      .status-icon-outer {
-        width: 88px;
-        height: 88px;
-        border-radius: 50%;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-
-        &.success {
-          background: rgba(16, 185, 129, 0.12);
-          color: #10b981;
-          box-shadow: 0 0 0 10px rgba(16, 185, 129, 0.05);
-
-          svg {
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-          }
-        }
-
-        &.fail {
-          background: rgba(239, 68, 68, 0.12);
-          color: #ef4444;
-          box-shadow: 0 0 0 10px rgba(239, 68, 68, 0.05);
-
-          svg {
-            animation: shake 0.4s ease-in-out;
-          }
-        }
-      }
-    }
-
-    .payment-chip {
-      display: inline-block;
-      padding: 6px 14px;
-      border-radius: 100px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-
-      &.success {
-        background: #ecfdf5;
-        color: #059669;
-        border: 1px solid #a7f3d0;
-      }
-
-      &.fail {
-        background: #fef2f2;
-        color: #dc2626;
-        border: 1px solid #fecaca;
-      }
-    }
-
-    .payment-title {
-      font-size: 1.75rem;
-      font-weight: 800;
-      color: #0f172a;
-      margin: 0 0 10px 0;
-      line-height: 1.25;
-
-      @media (max-width: 600px) {
-        font-size: 1.5rem;
-      }
-    }
-
-    .payment-subtitle {
-      font-size: 0.95rem;
-      color: #64748b;
-      margin: 0 0 28px 0;
-      line-height: 1.5;
-    }
-
-    .payment-details-card {
-      background: #f8fafc;
-      border: 1px solid #f1f5f9;
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 28px;
-      text-align: left;
-
-      .detail-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px dashed #e2e8f0;
-        font-size: 0.875rem;
-
-        &:last-child {
-          border-bottom: none;
-          padding-bottom: 0;
-        }
-
-        &:first-child {
-          padding-top: 0;
-        }
-
-        .detail-label {
-          color: #64748b;
-          font-weight: 500;
-        }
-
-        .detail-value {
-          color: #1e293b;
-          font-weight: 600;
-
-          &.order-id {
-            font-family: 'Courier New', Courier, monospace;
-            background: #ffffff;
-            padding: 2px 8px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-            color: #7A5CFF;
-          }
-
-          &.amount-value {
-            color: #0f172a;
-            font-size: 1rem;
-            font-weight: 700;
-          }
-
-          &.status-tag {
-            padding: 2px 8px;
-            border-radius: 100px;
-            font-size: 0.78rem;
-
-            &.success {
-              color: #10b981;
-              background: rgba(16, 185, 129, 0.1);
-            }
-
-            &.fail {
-              color: #ef4444;
-              background: rgba(239, 68, 68, 0.1);
-            }
-          }
-        }
-      }
-    }
-
-    .payment-actions {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-
-      @media (max-width: 500px) {
-        flex-direction: column;
-      }
-
-      .btn-primary {
-        flex: 1;
-        background: #7A5CFF;
-        color: #ffffff;
-        padding: 14px 20px;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.95rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(122, 92, 255, 0.25);
-
-        &:hover {
-          background: #6a4cee;
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(122, 92, 255, 0.35);
-        }
-      }
-
-      .btn-secondary {
-        flex: 1;
-        background: #ffffff;
-        color: #475569;
-        border: 1px solid #cbd5e1;
-        padding: 14px 20px;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.95rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-
-        &:hover {
-          background: #f8fafc;
-          border-color: #94a3b8;
-          color: #0f172a;
-        }
-      }
-    }
-
-    .payment-support-hint {
-      p {
-        margin: 0;
-        font-size: 0.8rem;
-        color: #94a3b8;
-
-        a {
-          color: #7A5CFF;
-          text-decoration: underline;
-        }
-      }
+    .ds-btn {
+      flex: 1 1 auto;
+      min-width: 150px;
     }
   }
 }
 
-@keyframes popIn {
-  0% { transform: scale(0.6); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+html[dir='rtl'] .pr-dir-icon {
+  transform: scaleX(-1);
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-6px); }
-  40%, 80% { transform: translateX(6px); }
+.pr-support {
+  max-width: 30rem;
+  margin: 0 auto;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ds-muted);
+  text-wrap: pretty;
+
+  svg {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    margin-inline-end: 6px;
+    vertical-align: -3px;
+    color: var(--ds-subtle);
+  }
+
+  .ds-link {
+    display: inline;
+  }
+}
+
+@media (max-width: 480px) {
+  .pr-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+
+    dd {
+      text-align: start;
+    }
+  }
 }

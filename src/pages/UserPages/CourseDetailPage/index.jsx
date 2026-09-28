@@ -1,6 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import {
+  Award,
+  BarChart3,
+  BookOpen,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  CreditCard,
+  Globe2,
+  Loader2,
+  Lock,
+  PlayCircle,
+  RotateCcw,
+  ShieldCheck,
+  Smartphone,
+  Star,
+  Users,
+  X,
+} from 'lucide-react';
 import {
   useGetPublishedCourseByIdQuery,
   useInitiateCoursePaymentMutation,
@@ -11,13 +32,6 @@ import { AutoTranslate } from '../../../hooks/useAutoTranslate';
 import Cookies from 'js-cookie';
 import ScrollToTop from '../../../components/Common/ScrollToTop.jsx';
 import './index.scss';
-
-const CloseIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="6" x2="6" y2="18"/>
-    <line x1="6" y1="6" x2="18" y2="18"/>
-  </svg>
-);
 
 function getYouTubeEmbedUrl(url) {
   if (!url) return null;
@@ -53,6 +67,43 @@ const convertToAznDisplay = (val, curr) => {
   }
 };
 
+function formatDuration(minutes, t) {
+  const total = Number(minutes) || 0;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (!h) return `${m} ${t('courses.min', 'dəq')}`;
+  return `${h} ${t('pages.courses.hourShort', 'saat')}${m ? ` ${m} ${t('courses.min', 'dəq')}` : ''}`;
+}
+
+function DetailSkeleton() {
+  return (
+    <main className="ds-page cdp" aria-busy="true">
+      <div className="ds-container">
+        <div className="cdp-layout">
+          <div className="cdp-head">
+            <span className="ds-skeleton cdp-sk" style={{ width: '40%' }} />
+            <span className="ds-skeleton cdp-sk cdp-sk--title" />
+            <span className="ds-skeleton cdp-sk" style={{ width: '80%' }} />
+            <span className="ds-skeleton cdp-sk" style={{ width: '60%' }} />
+          </div>
+          <aside className="cdp-aside">
+            <div className="ds-card cdp-buy">
+              <div className="cdp-buy__media ds-skeleton" />
+              <div className="cdp-buy__body">
+                <span className="ds-skeleton cdp-sk cdp-sk--price" />
+                <span className="ds-skeleton cdp-sk cdp-sk--btn" />
+              </div>
+            </div>
+          </aside>
+          <div className="cdp-body">
+            <div className="ds-skeleton cdp-sk cdp-sk--block" />
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 function CourseDetailPage() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
@@ -63,6 +114,8 @@ function CourseDetailPage() {
   const [modalLecture, setModalLecture] = useState(null);
   const [isFreeEnrolled, setIsFreeEnrolled] = useState(false);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+  const [playingLectureId, setPlayingLectureId] = useState(null);
+  const playerRef = useRef(null);
 
   const userInfo = getUserInfo();
   const isLoggedIn = userInfo.isLoggedIn;
@@ -71,7 +124,7 @@ function CourseDetailPage() {
   const [initiateCoursePayment] = useInitiateCoursePaymentMutation();
 
   // Check enrollment status for logged-in users
-  const { data: enrollmentData, refetch: refetchEnrollment } = useCheckCourseEnrollmentQuery(
+  const { data: enrollmentData } = useCheckCourseEnrollmentQuery(
     { courseId: id, userEmail: userInfo.email },
     { skip: !isLoggedIn || !id }
   );
@@ -90,24 +143,34 @@ function CourseDetailPage() {
     }
   }, [isFreeEnrolled, course, activeVideo]);
 
+  // Close the lecture player with Escape.
+  useEffect(() => {
+    if (!modalLecture) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setModalLecture(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [modalLecture]);
+
   if (isLoading) {
-    return (
-      <div className="cdp-loading">
-        <div className="cdp-spinner" />
-        <p>{t('common.loading', 'Yüklənir...')}</p>
-      </div>
-    );
+    return <DetailSkeleton />;
   }
 
   if (!course) {
     return (
-      <div className="cdp-error">
-        <h2>{t('courses.notFound', 'Kurs tapılmadı')}</h2>
-        <p>{t('courses.notFoundDesc', 'Axtardığınız kurs mövcud deyil və ya silinib.')}</p>
-        <Link to="/courses" className="cdp-btn cdp-btn--primary">
-          {t('courses.browseAll', 'Bütün Kurslara Bax')}
-        </Link>
-      </div>
+      <main className="ds-page cdp">
+        <div className="ds-container">
+          <div className="ds-empty cdp-notfound">
+            <BookOpen aria-hidden />
+            <h1 className="ds-h3">{t('courses.notFound', 'Kurs tapılmadı')}</h1>
+            <p>{t('courses.notFoundDesc', 'Axtardığınız kurs mövcud deyil və ya silinib.')}</p>
+            <Link to="/courses" className="ds-btn ds-btn--primary">
+              {t('courses.browseAll', 'Bütün Kurslara Bax')}
+            </Link>
+          </div>
+        </div>
+      </main>
     );
   }
 
@@ -169,313 +232,419 @@ function CourseDetailPage() {
     }
   };
 
+  // Same behavior as before, plus: remember which lecture plays and bring the
+  // player into view when it is off-screen (mobile, where the card is not sticky).
+  const playLecture = (lec) => {
+    handleLectureClick(lec);
+    if (!isLoggedIn || !lec.videoUrl) return;
+    setPlayingLectureId(lec.id);
+    const el = playerRef.current;
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < 72 || rect.bottom > window.innerHeight) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  };
+
   const currentEmbedUrl = activeVideo
     ? getYouTubeEmbedUrl(activeVideo)
     : (course.previewVideoUrl ? getYouTubeEmbedUrl(course.previewVideoUrl) : null);
 
-  const price = course.discountPrice > 0 && course.discountPrice < course.price
-    ? course.discountPrice
-    : course.price;
+  const hasDiscount = course.discountPrice > 0 && course.discountPrice < course.price;
+  const price = hasDiscount ? course.discountPrice : course.price;
+  const currency = course.currency || 'AZN';
 
   // Button label
   const ctaLabel = () => {
-    if (isPaymentLoading) return '⏳ Emal edilir...';
-    if (isEnrolled) return '▶ Dərslərə Bax';
+    if (isPaymentLoading) return 'Emal edilir...';
+    if (isEnrolled) return 'Dərslərə Bax';
     if (course.isFree) {
       return isFreeEnrolled
-        ? t('courses.accessNow', '▶ Dərslərə Bax')
-        : t('courses.enrollFree', '🎓 İndi Qoşul (Ödənişsiz)');
+        ? t('courses.accessNow', 'Dərslərə Bax')
+        : t('courses.enrollFree', 'İndi Qoşul (Ödənişsiz)');
     }
-    return `💳 ${t('courses.buyNow', 'Kursu Al')} — ${price} ${course.currency || 'AZN'}`;
+    return `${t('courses.buyNow', 'Kursu Al')} — ${price} ${currency}`;
   };
 
+  const CtaIcon = isPaymentLoading
+    ? Loader2
+    : isEnrolled || (course.isFree && isFreeEnrolled)
+      ? PlayCircle
+      : course.isFree
+        ? BookOpen
+        : CreditCard;
+
+  const learnItems = (course.whatYouLearn || '').split('\n').filter(Boolean);
+  const requirementItems = (course.requirements || '').split('\n').filter(Boolean);
+  const sections = course.sections || [];
+  const showInstructor = !course.isSuperAdminCreated && course.instructorName;
+
   return (
-    <div className="course-detail-page">
+    <main className="ds-page cdp">
       <ScrollToTop />
-
-      {/* Hero Header */}
-      <section className="cdp-hero">
-        <div className="container">
-          <div className="cdp-hero__content">
-            <div className="cdp-breadcrumbs">
-              <Link to="/">{t('nav.home', 'Ana Səhifə')}</Link> /{' '}
+      <div className="ds-container">
+        <nav className="cdp-crumbs" aria-label="Breadcrumb">
+          <ol>
+            <li><Link to="/">{t('nav.home', 'Ana Səhifə')}</Link></li>
+            <li>
+              <ChevronRight aria-hidden />
               <Link to="/courses">{t('nav.courses', 'Kurslar')}</Link>
+            </li>
+            {course.category && (
+              <li>
+                <ChevronRight aria-hidden />
+                <span aria-current="page"><AutoTranslate text={course.category} /></span>
+              </li>
+            )}
+          </ol>
+        </nav>
+
+        <div className="cdp-layout">
+          {/* ── Header ── */}
+          <header className="cdp-head" data-reveal>
+            <div className="cdp-head__badges">
               {course.category && (
-                <> / <span><AutoTranslate text={course.category} /></span></>
+                <span className="ds-badge ds-badge--brand"><AutoTranslate text={course.category} /></span>
               )}
+              {course.isFree && <span className="ds-badge ds-badge--success">{t('courses.free', 'Ödənişsiz')}</span>}
             </div>
-            <h1 className="cdp-title"><AutoTranslate text={course.title} /></h1>
-            <p className="cdp-desc">
-              <AutoTranslate text={course.shortDescription || course.description} />
-            </p>
 
-            <div className="cdp-meta">
+            <h1 className="ds-title cdp-title"><AutoTranslate text={course.title} /></h1>
+
+            {(course.shortDescription || course.description) && (
+              <p className="ds-lead cdp-head__lead">
+                <AutoTranslate text={course.shortDescription || course.description} />
+              </p>
+            )}
+
+            <ul className="cdp-meta">
+              {course.rating > 0 && (
+                <li className="cdp-meta__rating">
+                  <Star aria-hidden />
+                  <strong>{course.rating.toFixed(1)}</strong>
+                  <span>{t('common.reviews', 'reytinq')}</span>
+                </li>
+              )}
+              {course.totalStudents > 0 && (
+                <li>
+                  <Users aria-hidden />
+                  {course.totalStudents} {t('courses.students', 'tələbə')}
+                </li>
+              )}
               {course.level && (
-                <span className="cdp-badge"><AutoTranslate text={course.level} /></span>
+                <li>
+                  <BarChart3 aria-hidden />
+                  <AutoTranslate text={course.level} />
+                </li>
               )}
-              {course.rating > 0 && <span>⭐ {course.rating.toFixed(1)} {t('common.reviews', 'reytinq')}</span>}
-              {course.totalStudents > 0 && <span>👥 {course.totalStudents} {t('courses.students', 'tələbə')}</span>}
-              {course.language && <span>🌐 {t('matchedUniversities.labels.language', 'Dil')}: {course.language.toUpperCase()}</span>}
-            </div>
+              {course.language && (
+                <li>
+                  <Globe2 aria-hidden />
+                  {t('matchedUniversities.labels.language', 'Dil')}: {course.language.toUpperCase()}
+                </li>
+              )}
+              <li>
+                <PlayCircle aria-hidden />
+                {course.totalLectures || 0} {t('courses.lectures', 'dərs')}
+              </li>
+              {course.totalDurationMinutes > 0 && (
+                <li>
+                  <Clock aria-hidden />
+                  {formatDuration(course.totalDurationMinutes, t)}
+                </li>
+              )}
+            </ul>
 
-            {/* Owner Section */}
-            {!course.isSuperAdminCreated && course.instructorName && (
+            {showInstructor && (
               <div className="cdp-instructor">
-                <div className="cdp-instructor__avatar">
+                <span className="cdp-instructor__avatar" aria-hidden>
                   {course.instructorAvatar ? (
-                    <img src={course.instructorAvatar} alt={course.instructorName} />
+                    <img src={course.instructorAvatar} alt="" />
                   ) : (
-                    <span>{course.instructorName?.[0] || '👨‍🏫'}</span>
+                    course.instructorName?.[0]
                   )}
-                </div>
-                <div>
+                </span>
+                <div className="cdp-instructor__text">
                   <div className="cdp-instructor__name">
                     {t('courses.instructorBy', 'Müəllif:')} <strong><AutoTranslate text={course.instructorName} /></strong>
                   </div>
                   {course.instructorBio && (
-                    <div className="cdp-instructor__exp">
+                    <div className="cdp-instructor__bio">
                       <AutoTranslate text={course.instructorBio} />
                     </div>
                   )}
                 </div>
               </div>
             )}
-          </div>
+          </header>
 
-          {/* Sticky Sidebar / Video Card */}
-          <div className="cdp-hero__card">
-            <div className="cdp-video-preview">
-              {currentEmbedUrl ? (
-                <iframe
-                  src={currentEmbedUrl}
-                  title="Course Video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : course.thumbnailUrl ? (
-                <img src={course.thumbnailUrl} alt={course.title} />
-              ) : (
-                <div className="cdp-thumb-placeholder">📚</div>
-              )}
-            </div>
-
-            <div className="cdp-card__body">
-              <div className="cdp-card__price">
-                {course.isFree ? (
-                  <span className="free">{t('courses.freeCourse', 'Ödənişsiz Kurs')}</span>
-                ) : isEnrolled ? (
-                  <span className="free">✅ Qeydiyyatdan Keçmisiniz</span>
+          {/* ── Purchase card (sticky on desktop, right after the header on mobile) ── */}
+          <aside className="cdp-aside">
+            <div className="ds-card cdp-buy">
+              <div className="cdp-buy__media" ref={playerRef}>
+                {currentEmbedUrl ? (
+                  <iframe
+                    src={currentEmbedUrl}
+                    title="Course Video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : course.thumbnailUrl ? (
+                  <img src={course.thumbnailUrl} alt={course.title} />
                 ) : (
-                  <>
-                    <span className="price">{price} {course.currency || 'AZN'}</span>
-                    {course.discountPrice > 0 && course.discountPrice < course.price && (
-                      <span className="original">{course.price} {course.currency || 'AZN'}</span>
-                    )}
-                    {course.currency && course.currency.toUpperCase() !== 'AZN' && (
-                      <div className="cdp-card__azn-rate" style={{ fontSize: '12px', color: '#10b981', marginTop: '4px', fontWeight: 500 }}>
-                        💳 ePoint ilə ödəniş: ~{convertToAznDisplay(price, course.currency)} AZN
-                      </div>
-                    )}
-                  </>
+                  <div className="cdp-buy__placeholder"><BookOpen aria-hidden /></div>
                 )}
               </div>
 
-              <button
-                className={`cdp-btn cdp-btn--primary ${isPaymentLoading ? 'loading' : ''}`}
-                onClick={handleEnrollOrBuy}
-                disabled={isPaymentLoading}
-              >
-                {ctaLabel()}
-              </button>
-
-              {!course.isFree && !isEnrolled && (
-                <div className="cdp-payment-badges">
-                  <span>🔒 Güvənli ödəniş</span>
-                  <span>💳 ePoint</span>
-                  <span>↩️ Geri qaytarıla bilər</span>
-                </div>
-              )}
-
-              <div className="cdp-card__includes">
-                <h4>{t('courses.includes', 'Bu kursa daxildir:')}</h4>
-                <ul>
-                  <li>📹 {course.totalLectures || 0} {t('courses.videoLectures', 'video dərs')}</li>
-                  <li>⏱️ {course.totalDurationMinutes || 0} {t('courses.minutesDuration', 'dəqiqə ümumi müddət')}</li>
-                  <li>📱 {t('courses.accessDevices', 'Mobil və kompüterdən giriş')}</li>
-                  <li>📜 {t('courses.certificate', 'Bitirmə sertifikatı')}</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Content Section */}
-      <section className="cdp-body">
-        <div className="container">
-          <div className="cdp-main-content">
-            {/* What you'll learn */}
-            {course.whatYouLearn && (
-              <div className="cdp-box">
-                <h2>{t('courses.whatYouLearn', 'Nələr Öyrənəcəksiniz')}</h2>
-                <div className="cdp-learn-grid">
-                  {course.whatYouLearn.split('\n').filter(Boolean).map((item, idx) => (
-                    <div key={idx} className="cdp-learn-item">
-                      <span>✓</span>
-                      <span><AutoTranslate text={item} /></span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Course Content / Curriculum */}
-            {course.sections && course.sections.length > 0 && (
-              <div className="cdp-box">
-                <h2>{t('courses.content', 'Kursun Məzmunu')}</h2>
-                <div className="cdp-curriculum">
-                  {course.sections.map((section, sIdx) => (
-                    <div key={section.id || sIdx} className="cdp-section">
-                      <button
-                        type="button"
-                        className="cdp-section__header"
-                        onClick={() => setActiveSection(activeSection === sIdx ? -1 : sIdx)}
-                      >
-                        <span className="cdp-section__title">
-                          <span style={{ marginRight: '10px', fontSize: '11px', color: '#7A5CFF', display: 'inline-block' }}>
-                            {activeSection === sIdx || activeSection === null ? '▼' : '▶'}
-                          </span>
-                          {t('courses.section', 'Bölmə')} {sIdx + 1}: <AutoTranslate text={section.title} />
-                        </span>
-                        <span className="cdp-section__meta">
-                          {section.lectures?.length || 0} {t('courses.lectures', 'dərs')}
-                        </span>
-                      </button>
-
-                      {(activeSection === sIdx || activeSection === null) && (
-                        <div className="cdp-section__body">
-                          {(section.lectures || []).map((lec) => {
-                            const canWatch = lec.isFree || hasFullAccess || course.isFree;
-                            const isPaidLocked = !course.isFree && !hasFullAccess && !lec.isFree;
-
-                            return (
-                              <div
-                                key={lec.id}
-                                className={`cdp-lecture ${isPaidLocked ? 'locked' : 'clickable'}`}
-                                onClick={() => {
-                                  if (canWatch && lec.videoUrl) {
-                                    handleLectureClick(lec);
-                                  } else if (isPaidLocked) {
-                                    handleEnrollOrBuy();
-                                  }
-                                }}
-                                title={canWatch ? 'Videonu izləmək üçün klikləyin' : 'Kursu alaraq izləyin'}
-                              >
-                                <span className="cdp-lecture__icon">
-                                  {isPaidLocked ? '🔒' : '▶'}
-                                </span>
-                                <span className="cdp-lecture__title">
-                                  <AutoTranslate text={lec.title} />
-                                </span>
-
-                                {/* Lecture action */}
-                                {lec.isFree && !canWatch && (
-                                  <span className="cdp-lecture__free">
-                                    {t('courses.freePreview', 'Ödənişsiz Baxış')}
-                                  </span>
-                                )}
-
-                                {canWatch && lec.videoUrl && (
-                                  <button
-                                    type="button"
-                                    className="cdp-lecture__btn"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleLectureClick(lec);
-                                    }}
-                                  >
-                                    {t('courses.watchVideo', 'Videoya Bax')}
-                                  </button>
-                                )}
-
-                                {isPaidLocked && (
-                                  <button
-                                    type="button"
-                                    className="cdp-lecture__btn cdp-lecture__btn--buy"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEnrollOrBuy();
-                                    }}
-                                    disabled={isPaymentLoading}
-                                  >
-                                    💳 {t('courses.buyToWatch', 'Al və İzlə')}
-                                  </button>
-                                )}
-
-                                {lec.durationMinutes > 0 && (
-                                  <span className="cdp-lecture__duration">
-                                    {lec.durationMinutes} {t('courses.min', 'dəq')}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
+              <div className="cdp-buy__body">
+                <div className="cdp-price">
+                  {course.isFree ? (
+                    <span className="cdp-price__now cdp-price__now--free">{t('courses.freeCourse', 'Ödənişsiz Kurs')}</span>
+                  ) : isEnrolled ? (
+                    <span className="cdp-price__enrolled">
+                      <CheckCircle2 aria-hidden /> Qeydiyyatdan Keçmisiniz
+                    </span>
+                  ) : (
+                    <>
+                      <div className="cdp-price__row">
+                        <span className="cdp-price__now">{price} {currency}</span>
+                        {hasDiscount && (
+                          <>
+                            <s className="cdp-price__was">{course.price} {currency}</s>
+                            <span className="ds-badge ds-badge--brand">
+                              −{Math.round((1 - course.discountPrice / course.price) * 100)}%
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      {course.currency && course.currency.toUpperCase() !== 'AZN' && (
+                        <div className="cdp-price__azn">
+                          ePoint ilə ödəniş: ~{convertToAznDisplay(price, course.currency)} AZN
                         </div>
                       )}
-                    </div>
-                  ))}
+                    </>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className="ds-btn ds-btn--primary ds-btn--lg ds-btn--block cdp-cta"
+                  onClick={handleEnrollOrBuy}
+                  disabled={isPaymentLoading}
+                  aria-busy={isPaymentLoading}
+                >
+                  <CtaIcon aria-hidden className={isPaymentLoading ? 'cdp-spin' : undefined} />
+                  <span>{ctaLabel()}</span>
+                </button>
+
+                {!course.isFree && !isEnrolled && (
+                  <ul className="cdp-trust">
+                    <li><ShieldCheck aria-hidden /> Güvənli ödəniş</li>
+                    <li><CreditCard aria-hidden /> ePoint</li>
+                    <li><RotateCcw aria-hidden /> Geri qaytarıla bilər</li>
+                  </ul>
+                )}
+
+                <div className="cdp-includes">
+                  <h2 className="cdp-includes__title">{t('courses.includes', 'Bu kursa daxildir:')}</h2>
+                  <ul>
+                    <li><PlayCircle aria-hidden /> {course.totalLectures || 0} {t('courses.videoLectures', 'video dərs')}</li>
+                    <li><Clock aria-hidden /> {course.totalDurationMinutes || 0} {t('courses.minutesDuration', 'dəqiqə ümumi müddət')}</li>
+                    <li><Smartphone aria-hidden /> {t('courses.accessDevices', 'Mobil və kompüterdən giriş')}</li>
+                    <li><Award aria-hidden /> {t('courses.certificate', 'Bitirmə sertifikatı')}</li>
+                  </ul>
                 </div>
               </div>
+            </div>
+          </aside>
+
+          {/* ── Body ── */}
+          <div className="cdp-body">
+            {learnItems.length > 0 && (
+              <section className="ds-card cdp-box" data-reveal>
+                <h2 className="ds-h3 cdp-box__title">{t('courses.whatYouLearn', 'Nələr Öyrənəcəksiniz')}</h2>
+                <ul className="cdp-learn">
+                  {learnItems.map((item, idx) => (
+                    <li key={idx}>
+                      <Check aria-hidden />
+                      <span><AutoTranslate text={item} /></span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             )}
 
-            {/* Description */}
+            {sections.length > 0 && (
+              <section className="cdp-curriculum" data-reveal>
+                <div className="cdp-curriculum__head">
+                  <h2 className="ds-h3">{t('courses.content', 'Kursun Məzmunu')}</h2>
+                  <span className="ds-muted">
+                    {course.totalLectures || 0} {t('courses.lectures', 'dərs')}
+                    {course.totalDurationMinutes > 0 && ` · ${formatDuration(course.totalDurationMinutes, t)}`}
+                  </span>
+                </div>
+
+                <div className="cdp-accordion">
+                  {sections.map((section, sIdx) => {
+                    const isOpen = activeSection === sIdx || activeSection === null;
+                    const panelId = `cdp-section-${sIdx}`;
+                    const sectionMinutes = (section.lectures || []).reduce((sum, l) => sum + (l.durationMinutes || 0), 0);
+
+                    return (
+                      <div key={section.id || sIdx} className="cdp-section">
+                        <button
+                          type="button"
+                          className="cdp-section__header"
+                          aria-expanded={isOpen}
+                          aria-controls={panelId}
+                          onClick={() => setActiveSection(activeSection === sIdx ? -1 : sIdx)}
+                        >
+                          <ChevronDown aria-hidden className="cdp-section__chevron" />
+                          <span className="cdp-section__title">
+                            {t('courses.section', 'Bölmə')} {sIdx + 1}: <AutoTranslate text={section.title} />
+                          </span>
+                          <span className="cdp-section__meta">
+                            {section.lectures?.length || 0} {t('courses.lectures', 'dərs')}
+                            {sectionMinutes > 0 && ` · ${formatDuration(sectionMinutes, t)}`}
+                          </span>
+                        </button>
+
+                        {isOpen && (
+                          <ul className="cdp-section__body" id={panelId}>
+                            {(section.lectures || []).map((lec) => {
+                              const canWatch = lec.isFree || hasFullAccess || course.isFree;
+                              const isPaidLocked = !course.isFree && !hasFullAccess && !lec.isFree;
+                              const isPreview = lec.isFree && !course.isFree && !hasFullAccess;
+                              const isPlaying = playingLectureId === lec.id && activeVideo === lec.videoUrl;
+                              const state = isPlaying ? 'playing' : isPaidLocked ? 'locked' : 'open';
+
+                              return (
+                                <li
+                                  key={lec.id}
+                                  className="cdp-lecture"
+                                  data-state={state}
+                                  onClick={() => {
+                                    if (canWatch && lec.videoUrl) {
+                                      playLecture(lec);
+                                    } else if (isPaidLocked) {
+                                      handleEnrollOrBuy();
+                                    }
+                                  }}
+                                  title={canWatch ? 'Videonu izləmək üçün klikləyin' : 'Kursu alaraq izləyin'}
+                                >
+                                  <span className="cdp-lecture__icon" aria-hidden>
+                                    {isPaidLocked ? <Lock /> : <PlayCircle />}
+                                  </span>
+
+                                  <span className="cdp-lecture__main">
+                                    <span className="cdp-lecture__title">
+                                      <AutoTranslate text={lec.title} />
+                                    </span>
+                                    <span className="cdp-lecture__sub">
+                                      {isPreview && (
+                                        <span className="ds-badge ds-badge--success">
+                                          {t('courses.freePreview', 'Ödənişsiz Baxış')}
+                                        </span>
+                                      )}
+                                      {lec.durationMinutes > 0 && (
+                                        <span className="cdp-lecture__duration">
+                                          <Clock aria-hidden /> {lec.durationMinutes} {t('courses.min', 'dəq')}
+                                        </span>
+                                      )}
+                                    </span>
+                                  </span>
+
+                                  {canWatch && lec.videoUrl && (
+                                    <button
+                                      type="button"
+                                      className="ds-btn ds-btn--soft ds-btn--sm cdp-lecture__btn"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        playLecture(lec);
+                                      }}
+                                    >
+                                      <PlayCircle aria-hidden />
+                                      {t('courses.watchVideo', 'Videoya Bax')}
+                                    </button>
+                                  )}
+
+                                  {isPaidLocked && (
+                                    <button
+                                      type="button"
+                                      className="ds-btn ds-btn--secondary ds-btn--sm cdp-lecture__btn"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEnrollOrBuy();
+                                      }}
+                                      disabled={isPaymentLoading}
+                                    >
+                                      <CreditCard aria-hidden />
+                                      {t('courses.buyToWatch', 'Al və İzlə')}
+                                    </button>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {requirementItems.length > 0 && (
+              <section className="cdp-block" data-reveal>
+                <h2 className="ds-h3 cdp-box__title">{t('courses.requirements', 'Tələblər')}</h2>
+                <ul className="cdp-reqs">
+                  {requirementItems.map((req, idx) => (
+                    <li key={idx}><AutoTranslate text={req} /></li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
             {course.description && (
-              <div className="cdp-box">
-                <h2>{t('courses.description', 'Açıqlama')}</h2>
-                <div className="cdp-description-content">
+              <section className="cdp-block" data-reveal>
+                <h2 className="ds-h3 cdp-box__title">{t('courses.description', 'Açıqlama')}</h2>
+                <div className="cdp-description">
                   <AutoTranslate text={course.description} />
                 </div>
-              </div>
-            )}
-
-            {/* Requirements */}
-            {course.requirements && (
-              <div className="cdp-box">
-                <h2>{t('courses.requirements', 'Tələblər')}</h2>
-                <div className="cdp-req-list">
-                  {course.requirements.split('\n').filter(Boolean).map((req, idx) => (
-                    <div key={idx} className="cdp-req-item">
-                      <span>•</span>
-                      <span><AutoTranslate text={req} /></span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              </section>
             )}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ── Cinema Video Modal Player ── */}
+      {/* ── Lecture player modal ── */}
       {modalLecture && modalLecture.videoUrl && (
-        <div className="cdp-video-modal-overlay" onClick={() => setModalLecture(null)}>
-          <div className="cdp-video-modal" onClick={e => e.stopPropagation()}>
-            <div className="cdp-video-modal__header">
-              <div className="cdp-video-modal__title-group">
-                <span className="cdp-video-modal__badge">▶ Dərs İzlənir</span>
-                <h3 className="cdp-video-modal__title"><AutoTranslate text={modalLecture.title} /></h3>
+        <div className="cdp-modal-overlay" onClick={() => setModalLecture(null)}>
+          <div
+            className="cdp-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cdp-modal-title"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="cdp-modal__header">
+              <div className="cdp-modal__titles">
+                <span className="cdp-modal__badge"><PlayCircle aria-hidden /> Dərs İzlənir</span>
+                <h2 className="cdp-modal__title" id="cdp-modal-title"><AutoTranslate text={modalLecture.title} /></h2>
               </div>
               <button
                 type="button"
-                className="cdp-video-modal__close"
+                className="cdp-modal__close"
                 onClick={() => setModalLecture(null)}
                 title="Bağla"
+                aria-label="Bağla"
               >
-                ✕
+                <X aria-hidden />
               </button>
             </div>
 
-            <div className="cdp-video-modal__player">
+            <div className="cdp-modal__player">
               <iframe
                 src={getYouTubeEmbedUrl(modalLecture.videoUrl)}
                 title={modalLecture.title}
@@ -485,15 +654,15 @@ function CourseDetailPage() {
             </div>
 
             {modalLecture.description && (
-              <div className="cdp-video-modal__desc">
-                <h4>Dərs Haqqında</h4>
+              <div className="cdp-modal__desc">
+                <h3>Dərs Haqqında</h3>
                 <p><AutoTranslate text={modalLecture.description} /></p>
               </div>
             )}
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
 

@@ -1,172 +1,272 @@
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { ArrowRight, Building2, CheckCircle2, Mail, X } from 'lucide-react';
 import { useCreatePartnershipApplicationMutation } from '../../../services/apis/userApi';
 import './index.scss';
 
-const CloseIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="6" x2="6" y2="18"/>
-    <line x1="6" y1="6" x2="18" y2="18"/>
-  </svg>
-);
+const EMPTY_FORM = {
+  institutionName: '',
+  contactName: '',
+  email: '',
+  phone: '',
+  country: '',
+  message: ''
+};
 
-const BuildingIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7b4dff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 10v12"/>
-    <path d="M20 10v12"/>
-    <path d="M4 22h16"/>
-    <path d="M2 10h20"/>
-    <path d="M12 2l-8 4v4h16V6z"/>
-  </svg>
-);
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 function PartnerModal({ isOpen, onClose }) {
   const { t } = useTranslation();
   const [createPartnershipApplication, { isLoading }] = useCreatePartnershipApplicationMutation();
   const [submitted, setSubmitted] = useState(false);
   const [responseMsg, setResponseMsg] = useState('');
-  const [formData, setFormData] = useState({
-    institutionName: '',
-    contactName: '',
-    email: '',
-    phone: '',
-    country: '',
-    message: ''
-  });
+  const [submitError, setSubmitError] = useState('');
+  const [formData, setFormData] = useState(EMPTY_FORM);
+
+  const dialogRef = useRef(null);
+  const closeTimerRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const uid = useId();
+  const titleId = `${uid}-title`;
+  const descId = `${uid}-desc`;
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // Escape to close, focus trap, body scroll lock and focus restore while open.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const previouslyFocused = document.activeElement;
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+
+    const focusFirst = () => {
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const first = dialog.querySelector('input, textarea') || dialog.querySelector(FOCUSABLE);
+      (first || dialog).focus();
+    };
+    const raf = requestAnimationFrame(focusFirst);
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onCloseRef.current?.();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const nodes = Array.from(dialogRef.current.querySelectorAll(FOCUSABLE)).filter((n) => n.offsetParent !== null);
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !dialogRef.current.contains(document.activeElement))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = overflow;
+      if (previouslyFocused && typeof previouslyFocused.focus === 'function') previouslyFocused.focus();
+    };
+  }, [isOpen]);
+
+  useEffect(() => () => clearTimeout(closeTimerRef.current), []);
 
   if (!isOpen) return null;
 
+  const update = (field) => (e) => setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
     try {
       const res = await createPartnershipApplication(formData).unwrap();
       setResponseMsg(res.message || res.data?.message || 'Tərəfdaşlıq müraciətiniz bazada saxlanıldı, xəbərdarlıq e-poçtları göndərildi!');
       setSubmitted(true);
-      setTimeout(() => {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = setTimeout(() => {
         setSubmitted(false);
-        setFormData({
-          institutionName: '',
-          contactName: '',
-          email: '',
-          phone: '',
-          country: '',
-          message: ''
-        });
-        onClose();
+        setFormData(EMPTY_FORM);
+        onCloseRef.current?.();
       }, 4000);
     } catch (err) {
+      // The API returns 400 when the application could not be saved — keep the form open so the user can retry.
       console.error('Partnership application submit error:', err);
-      setResponseMsg('Tərəfdaşlıq müraciətiniz qeydə alındı və admin elektron ünvanına göndərildi!');
-      setSubmitted(true);
-      setTimeout(() => {
-        setSubmitted(false);
-        onClose();
-      }, 4000);
+      setSubmitError(t('pages.partnerModal.error', 'Müraciət göndərilmədi. Zəhmət olmasa bir az sonra yenidən cəhd edin.'));
     }
   };
 
-  return (
-    <div className="partner-modal-backdrop" onClick={onClose}>
-      <div className="partner-modal-container" onClick={(e) => e.stopPropagation()}>
-        <button className="partner-modal-close" onClick={onClose}>
-          <CloseIcon />
+  return createPortal(
+    <div className="pm-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div
+        ref={dialogRef}
+        className="pm-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descId}
+        tabIndex={-1}
+      >
+        <button type="button" className="pm-close ds-btn ds-btn--ghost" onClick={onClose} aria-label={t('pages.partnerModal.close', 'Bağla')}>
+          <X aria-hidden />
         </button>
 
         {submitted ? (
-          <div className="partner-modal-success">
-            <div className="success-icon">✓</div>
-            <h3>{t('partnerModal.successTitle', 'Tərəfdaşlıq Müraciətiniz Qəbul Olundu!')}</h3>
-            <p>{responseMsg}</p>
-            <div style={{ marginTop: '12px', fontSize: '0.8125rem', color: '#10b981', background: '#ecfdf5', padding: '10px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
-              ✉️ {formData.email} {t('partnerModal.successEmailNote', 'ünvanına təsdiq məktubu və Admin ünvanına yeni müraciət bildirişi göndərildi.')}
-            </div>
+          <div className="pm-success" role="status">
+            <span className="pm-success__icon">
+              <CheckCircle2 aria-hidden />
+            </span>
+            <h2 id={titleId} className="ds-h3">
+              {t('partnerModal.successTitle', 'Tərəfdaşlıq Müraciətiniz Qəbul Olundu!')}
+            </h2>
+            <p id={descId} className="ds-muted">{responseMsg}</p>
+            <p className="pm-success__note">
+              <Mail aria-hidden />
+              <span>
+                {formData.email} {t('partnerModal.successEmailNote', 'ünvanına təsdiq məktubu və Admin ünvanına yeni müraciət bildirişi göndərildi.')}
+              </span>
+            </p>
           </div>
         ) : (
-          <form className="partner-modal-form" onSubmit={handleSubmit}>
-            <div className="partner-modal-header">
-              <div className="header-icon">
-                <BuildingIcon />
-              </div>
-              <h2>{t('forUniversitiesSection.partnerBtn', 'EDUSAZ ilə Tərəfdaş Olun')}</h2>
-              <p>{t('partnerModal.subtitle', 'Universitetinizi EDUSAZ platformasında qeydiyyatdan keçirin və qlobal tələbələrə çatın.')}</p>
+          <form className="pm-form" onSubmit={handleSubmit}>
+            <div className="pm-header">
+              <span className="pm-header__icon">
+                <Building2 aria-hidden />
+              </span>
+              <h2 id={titleId} className="ds-h3 pm-header__title">
+                {t('forUniversitiesSection.partnerBtn', 'Edusaz ilə Tərəfdaş Olun')}
+              </h2>
+              <p id={descId} className="ds-muted">
+                {t('partnerModal.subtitle', 'Universitetinizi Edusaz platformasında qeydiyyatdan keçirin və qlobal tələbələrə çatın.')}
+              </p>
             </div>
 
-            <div className="form-group">
-              <label>{t('partnerModal.institutionName', 'Universitet / Müəssisə Adı')} *</label>
+            <div className="ds-field">
+              <label className="ds-label" htmlFor={`${uid}-inst`}>
+                {t('partnerModal.institutionName', 'Universitet / Müəssisə Adı')} <span className="pm-req" aria-hidden>*</span>
+              </label>
               <input
+                id={`${uid}-inst`}
+                className="ds-input"
                 type="text"
                 required
+                autoComplete="organization"
                 placeholder={t('partnerModal.institutionName', 'Universitet / Müəssisə Adı')}
                 value={formData.institutionName}
-                onChange={(e) => setFormData({ ...formData, institutionName: e.target.value })}
+                onChange={update('institutionName')}
               />
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>{t('partnerModal.contactName', 'Nümayəndənin Adı Soyadı')} *</label>
+            <div className="pm-row">
+              <div className="ds-field">
+                <label className="ds-label" htmlFor={`${uid}-contact`}>
+                  {t('partnerModal.contactName', 'Nümayəndənin Adı Soyadı')} <span className="pm-req" aria-hidden>*</span>
+                </label>
                 <input
+                  id={`${uid}-contact`}
+                  className="ds-input"
                   type="text"
                   required
+                  autoComplete="name"
                   placeholder={t('partnerModal.contactName', 'Nümayəndənin Adı Soyadı')}
                   value={formData.contactName}
-                  onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
+                  onChange={update('contactName')}
                 />
               </div>
 
-              <div className="form-group">
-                <label>{t('partnerModal.email', 'Rəsmi E-poçt')} *</label>
+              <div className="ds-field">
+                <label className="ds-label" htmlFor={`${uid}-email`}>
+                  {t('partnerModal.email', 'Rəsmi E-poçt')} <span className="pm-req" aria-hidden>*</span>
+                </label>
                 <input
+                  id={`${uid}-email`}
+                  className="ds-input"
                   type="email"
                   required
+                  autoComplete="email"
                   placeholder="contact@university.edu"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={update('email')}
                 />
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>{t('partnerModal.phone', 'Əlaqə Nömrəsi')}</label>
+            <div className="pm-row">
+              <div className="ds-field">
+                <label className="ds-label" htmlFor={`${uid}-phone`}>
+                  {t('partnerModal.phone', 'Əlaqə Nömrəsi')}
+                </label>
                 <input
+                  id={`${uid}-phone`}
+                  className="ds-input"
                   type="tel"
+                  autoComplete="tel"
                   placeholder="+994 50 123 45 67"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={update('phone')}
                 />
               </div>
 
-              <div className="form-group">
-                <label>{t('partnerModal.country', 'Ölkə')}</label>
+              <div className="ds-field">
+                <label className="ds-label" htmlFor={`${uid}-country`}>
+                  {t('partnerModal.country', 'Ölkə')}
+                </label>
                 <input
+                  id={`${uid}-country`}
+                  className="ds-input"
                   type="text"
+                  autoComplete="country-name"
                   placeholder={t('partnerModal.country', 'Ölkə')}
                   value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                  onChange={update('country')}
                 />
               </div>
             </div>
 
-            <div className="form-group">
-              <label>{t('partnerModal.message', 'Əlavə Qeyd / Mesaj')}</label>
+            <div className="ds-field">
+              <label className="ds-label" htmlFor={`${uid}-msg`}>
+                {t('partnerModal.message', 'Əlavə Qeyd / Mesaj')}
+              </label>
               <textarea
+                id={`${uid}-msg`}
+                className="ds-textarea"
                 rows="3"
                 placeholder={t('partnerModal.message', 'Əlavə Qeyd / Mesaj')}
                 value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              ></textarea>
+                onChange={update('message')}
+              />
             </div>
 
-            <button type="submit" className="btn-submit-partner" disabled={isLoading}>
-              {isLoading ? t('profile.saving', 'Göndərilir...') : (
-                <>{t('partnerModal.sendBtn', 'Müraciəti Göndər')} &rarr;</>
+            {submitError && (
+              <p className="ds-error pm-error" role="alert">
+                {submitError}
+              </p>
+            )}
+
+            <button type="submit" className="ds-btn ds-btn--primary ds-btn--lg ds-btn--block" disabled={isLoading}>
+              {isLoading ? (
+                t('profile.saving', 'Göndərilir...')
+              ) : (
+                <>
+                  {t('partnerModal.sendBtn', 'Müraciəti Göndər')}
+                  <ArrowRight aria-hidden className="pm-arrow" />
+                </>
               )}
             </button>
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -43,7 +43,7 @@
     }
   },
   "howItWorks": {
-    "badge": "How EDUSAZ Works",
+    "badge": "How Edusaz Works",
     "titlePart1": "From your profile to your matched list",
     "titlePart2": "in under 3 minutes",
     "step1": {
@@ -70,7 +70,7 @@
     "feature1": "Admission probability for each university",
     "feature2": "Available scholarships matched to your profile",
     "feature3": "Visa requirements and step-by-step guidance",
-    "chatTitle": "EDUSAZ AI Advisor",
+    "chatTitle": "Edusaz AI Advisor",
     "chatSubtitle": "Analyzing 2,500+ universities",
     "userMsg": "I am from Nigeria. I want to study Medicine in Azerbaijan. Budget: $5,000/year.",
     "botResponse": "Found 8 universities matching your profile:",
@@ -81,7 +81,7 @@
     "badge": "For Universities",
     "titlePart1": "Recruit 500,000+ global students",
     "titlePart2": "with AI precision",
-    "subtitle": "Join 180+ universities using EDUSAZ to reach pre-qualified international students. Verified profile, premium visibility, AI matching, and detailed analytics.",
+    "subtitle": "Join 180+ universities using Edusaz to reach pre-qualified international students. Verified profile, premium visibility, AI matching, and detailed analytics.",
     "monthlyLeads": "Monthly leads",
     "leadScore": "Lead quality score",
     "sourceCountries": "Source countries",
@@ -94,7 +94,7 @@
     "feature3Desc": "Connect with students who match your programs, requirements, and budget range",
     "feature4Title": "Recruitment Analytics Dashboard",
     "feature4Desc": "Track views, inquiries, applications, and enrollment conversions in real-time",
-    "partnerBtn": "Partner with EDUSAZ"
+    "partnerBtn": "Partner with Edusaz"
   },
   "scholarshipsSection": {
     "titleSuffix": "international students",
@@ -194,9 +194,9 @@
   },
   "auth": {
     "signInTitle": "Sign In",
-    "welcomeBack": "Welcome back to EDUSAZ",
+    "welcomeBack": "Welcome back to Edusaz",
     "subtitle": "Your pathway to the world's top universities continues here.",
-    "newToEdusaz": "New to EDUSAZ?",
+    "newToEdusaz": "New to Edusaz?",
     "createAccount": "Create an account",
     "emailLabel": "Email address",
     "passwordLabel": "Password",
@@ -329,7 +329,7 @@
   },
   "partnerModal": {
     "successTitle": "Partnership Application Received!",
-    "subtitle": "Register your university on the EDUSAZ platform and reach global students.",
+    "subtitle": "Register your university on the Edusaz platform and reach global students.",
     "institutionName": "University / Institution Name",
     "contactName": "Contact Person Full Name",
     "email": "Official Email",
@@ -340,7 +340,7 @@
   },
   "forUniversitiesPage": {
     "titlePart1": "Attract Top Global Students",
-    "titlePart2": "Partner with EduSaz",
+    "titlePart2": "Partner with Edusaz",
     "desc": "Showcase your university and academic programs to 500,000+ prospective students worldwide and manage all admissions from a unified portal."
   },
   "scholarshipsPage": {

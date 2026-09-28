@@ -1,0 +1,182 @@
+/*
+ * Edusaz panel styles (Tailwind v4 + shadcn/ui) — shared by the SuperAdmin panel, the instructor portal and the university portal.
+ *
+ * This file is only loaded by the lazily-imported panel routes, and is written so it
+ * cannot leak into — or be broken by — the public site's global SCSS:
+ *   - Tailwind's global preflight is NOT imported; a scoped reset lives below.
+ *   - Utilities are imported unlayered so they beat the site's global `* { margin:0; padding:0 }`.
+ *   - Class scanning is limited to admin sources, so public class names (.container, .row…)
+ *     never get Tailwind utilities.
+ */
+@layer theme, base, components;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" source(none);
+@import "tw-animate-css";
+
+@source "./";
+@source "../instructor";
+@source "../university";
+@source "../components/ui";
+
+/* The panel is light-only: `dark:` variants must never match the OS preference. */
+@custom-variant dark (&:is(.admin-dark-never *));
+
+:root {
+  --radius: 0.625rem;
+
+  /* Brand */
+  --brand: #7a5cff;
+  --brand-soft: #f1edff;
+
+  --background: #f8f7fc;
+  --foreground: #1a1530;
+  --card: #ffffff;
+  --card-foreground: #1a1530;
+  --popover: #ffffff;
+  --popover-foreground: #1a1530;
+
+  /* Slightly deeper than the brand so white button text meets WCAG AA (5:1). */
+  --primary: #6b4eff;
+  --primary-hover: #5a3df0;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f3f2f8;
+  --secondary-foreground: #1a1530;
+  --muted: #f3f2f8;
+  --muted-foreground: #625e78;
+  --accent: #f1edff;
+  --accent-foreground: #3f2aa8;
+
+  --destructive: #dc2626;
+  --success: #15803d;
+  --success-soft: #ecfdf3;
+  --warning: #b45309;
+  --warning-soft: #fffbeb;
+  --info: #1d4ed8;
+  --info-soft: #eff6ff;
+
+  --border: #e6e4ef;
+  --input: #dcd9e8;
+  --ring: #7a5cff;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #3b3651;
+  --sidebar-primary: #6b4eff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1edff;
+  --sidebar-accent-foreground: #3f2aa8;
+  --sidebar-border: #eceaf3;
+  --sidebar-ring: #7a5cff;
+}
+
+@theme inline {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Scoped preflight: the admin root plus shadcn parts that portal into <body> (they all carry data-slot). */
+@layer base {
+  :where(.admin-root, [data-slot], [data-sonner-toaster]),
+  :where(.admin-root, [data-slot], [data-sonner-toaster]) *,
+  :where(.admin-root, [data-slot]) ::before,
+  :where(.admin-root, [data-slot]) ::after {
+    box-sizing: border-box;
+    border: 0 solid;
+    border-color: var(--color-border);
+    outline-color: color-mix(in oklab, var(--color-ring) 50%, transparent);
+  }
+
+  :where(.admin-root, [data-slot]) :where(button, input, select, textarea),
+  :where(button, input, select, textarea)[data-slot] {
+    font: inherit;
+    color: inherit;
+    background-color: transparent;
+  }
+
+  :where(.admin-root, [data-slot]) :where(img, svg, video, audio) {
+    display: block;
+    vertical-align: middle;
+  }
+
+  :where(.admin-root, [data-slot]) :where(a) {
+    color: inherit;
+  }
+
+  .admin-root {
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+}
+
+/*
+ * Overrides for the public site's global rules (unlayered, so they must be unlayered too):
+ * - `h1..h6 { font-family: … !important }` → panel headings use the panel font token.
+ * - `button, a { transition: all .2s }` → animate only visual properties, never layout.
+ */
+:is(.admin-root, [data-slot]) :is(h1, h2, h3, h4, h5, h6),
+:is(h1, h2, h3, h4, h5, h6)[data-slot] {
+  font-family: var(--font-sans) !important;
+}
+
+:where(.admin-root, [data-slot]) :is(button, a),
+:is(button, a)[data-slot] {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+}
+
+/* Beats the site's global `body { background: var(--bg-color); color: var(--text-color) }`. */
+body.admin-body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.admin-root, [data-slot]) * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

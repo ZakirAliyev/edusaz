@@ -17,13 +17,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install dependencies
         run: npm install
 
       - name: Build React frontend
-        run: npm run build
+        run: npm run build  # vite --mode production → .env.production
 
       - name: Copy Frontend files to VPS via SCP
         uses: appleboy/scp-action@v0.1.7
