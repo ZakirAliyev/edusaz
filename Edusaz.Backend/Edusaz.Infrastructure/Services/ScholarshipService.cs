@@ -239,13 +239,14 @@ public class ScholarshipService : IScholarshipService
             throw new Exception("Scholarship not found.");
         }
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email) 
-                   ?? await _context.Users.FirstOrDefaultAsync();
+        // Only the requesting user's own profile is used (never another user's data as a fallback).
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
-        var gpa = user?.Gpa ?? 3.6;
-        var englishScore = user?.EnglishScore ?? "IELTS 6.5";
-        var userCountry = user?.Country ?? "Azerbaijan";
-        var degreeLevel = user?.DegreeLevel ?? "Bachelor";
+        // Unfilled profile fields keep the previous neutral assumptions for scoring.
+        var gpa = user != null && user.Gpa > 0 ? user.Gpa : 3.6;
+        var englishScore = !string.IsNullOrWhiteSpace(user?.EnglishScore) ? user.EnglishScore : "IELTS 6.5";
+        var userCountry = !string.IsNullOrWhiteSpace(user?.Country) ? user.Country : "Azerbaijan";
+        var degreeLevel = !string.IsNullOrWhiteSpace(user?.DegreeLevel) ? user.DegreeLevel : "Bachelor";
 
         // Calculate REAL dynamic match score
         int score = 5; // base

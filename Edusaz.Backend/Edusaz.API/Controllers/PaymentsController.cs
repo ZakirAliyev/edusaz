@@ -493,11 +493,14 @@ public class PaymentsController : ControllerBase
         // First attempt ePoint API sync
         var isPaidOnEPoint = await SyncPaymentStatusWithEPointAsync(payment);
 
-        // Fallback: If redirected successfully or requested with success status
-        if (!isPaidOnEPoint && (string.Equals(dto.Status, "success", StringComparison.OrdinalIgnoreCase) ||
-                                string.Equals(dto.Status, "approved", StringComparison.OrdinalIgnoreCase) ||
-                                string.Equals(dto.Status, "paid", StringComparison.OrdinalIgnoreCase) ||
-                                string.IsNullOrEmpty(dto.Status)))
+        // Manual confirmation is only trusted from the course's instructor or a SuperAdmin.
+        // Anonymous callers (e.g. the public payment result page) can never mark a payment as paid
+        // on their own — otherwise anyone who knows an order id could enroll for free.
+        var wantsManualConfirm = string.Equals(dto.Status, "success", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(dto.Status, "approved", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(dto.Status, "paid", StringComparison.OrdinalIgnoreCase);
+
+        if (!isPaidOnEPoint && wantsManualConfirm && await CanManuallyConfirmAsync(payment))
         {
             payment.Status = "Paid";
             payment.PaidAt ??= DateTime.UtcNow;
@@ -535,6 +538,23 @@ public class PaymentsController : ControllerBase
             isPaid = payment.Status == "Paid",
             message = payment.Status == "Paid" ? "Ödəniş təsdiqləndi və kurs aktivləşdirildi!" : "Ödəniş statusu: " + payment.Status
         });
+    }
+
+    private async Task<bool> CanManuallyConfirmAsync(CoursePayment payment)
+    {
+        if (User?.Identity?.IsAuthenticated != true) return false;
+        if (User.IsInRole("SuperAdmin")) return true;
+
+        var callerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? User.Identity?.Name;
+        if (string.IsNullOrWhiteSpace(callerEmail)) return false;
+
+        var course = await _context.Courses
+            .Include(c => c.Instructor)
+            .FirstOrDefaultAsync(c => c.Id == payment.CourseId && !c.IsDeleted);
+        if (course?.Instructor == null) return false;
+
+        var instructorUser = await _userManager.FindByIdAsync(course.Instructor.UserId.ToString());
+        return instructorUser != null && string.Equals(instructorUser.Email, callerEmail, StringComparison.OrdinalIgnoreCase);
     }
 
     // ── Sync Course Payments for Instructor ───────────────────────────────────
@@ -827,7 +847,9 @@ public class PaymentsController : ControllerBase
     [HttpGet("fail")]
     public IActionResult FailRedirect()
     {
-        var redirectUrl = "https://edusaz.com/payment/result" + Request.QueryString.Value;
+        // Mark the redirect as failed so the result page never treats it as a success.
+        var query = Request.QueryString.HasValue ? Request.QueryString.Value + "&status=fail" : "?status=fail";
+        var redirectUrl = "https://edusaz.com/payment/result" + query;
         return Redirect(redirectUrl);
     }
 

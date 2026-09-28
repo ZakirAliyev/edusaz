@@ -105,6 +105,9 @@ public class ProgramService : IProgramService
             LanguageOfInstruction = dto.LanguageOfInstruction ?? dto.TeachingLanguage ?? "İngilis dili",
             FieldOfStudy = dto.FieldOfStudy ?? "Ümumi",
             EntryRequirements = dto.EntryRequirements ?? "Tam orta təhsil attestatı",
+            // Both columns are NOT NULL in the database; leaving them unset made every create fail.
+            StudyMode = "Full-time",
+            ApplicationDeadline = string.Empty,
             Translations = new List<ProgramTranslation>()
         };
 

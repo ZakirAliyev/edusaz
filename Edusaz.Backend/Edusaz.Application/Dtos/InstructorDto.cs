@@ -90,6 +90,7 @@ public class CourseListDto
     public string Language { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public decimal DiscountPrice { get; set; }
+    public string Currency { get; set; } = "AZN";
     public bool IsFree { get; set; }
     public string ThumbnailUrl { get; set; } = string.Empty;
     public bool IsPublished { get; set; }

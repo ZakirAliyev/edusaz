@@ -37,6 +37,26 @@ public class CoursesController : ControllerBase
     }
 
     /// <summary>
+    private static readonly Dictionary<string, string[]> CategoryAliasMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Programming"] = new[] { "programming", "proqramlaşdırma" },
+        ["Web Development"] = new[] { "web", "veb" },
+        ["Mobile Development"] = new[] { "mobile", "mobil" },
+        ["Data Science"] = new[] { "data science", "data elmi" },
+        ["AI & Machine Learning"] = new[] { "ai & ", "machine learning", "süni intellekt" },
+        ["Design"] = new[] { "design", "dizayn" },
+        ["Business"] = new[] { "business", "biznes" },
+        ["Marketing"] = new[] { "marketing", "marketinq", "smm" },
+        ["Finance"] = new[] { "finance", "maliyyə" },
+        ["Language Learning"] = new[] { "language", "xarici dil", "ielts", "toefl", "tömer" },
+    };
+
+    private static string[] CategoryAliases(string category)
+    {
+        var key = category.Trim();
+        return CategoryAliasMap.TryGetValue(key, out var aliases) ? aliases : new[] { key.ToLowerInvariant() };
+    }
+
     /// Get courses with optional language translation, category, and search filter
     /// </summary>
     [HttpGet]
@@ -54,13 +74,6 @@ public class CoursesController : ControllerBase
             .Where(c => !c.IsDeleted)
             .AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(category) && category != "All" && category != "Hamısı" && category != "all")
-        {
-            var catLower = category.ToLower().Trim();
-            query = query.Where(c => c.Category.ToLower().Contains(catLower) || 
-                                     catLower.Contains(c.Category.ToLower()) ||
-                                     (c.SubCategory != null && c.SubCategory.ToLower().Contains(catLower)));
-        }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -72,6 +85,19 @@ public class CoursesController : ControllerBase
         }
 
         var list = await query.OrderByDescending(c => c.CreatedDate).ToListAsync();
+
+        // Category filter runs in memory: the public site sends English keys ("Programming")
+        // while admin-created courses store Azerbaijani names ("Proqramlaşdırma").
+        if (!string.IsNullOrWhiteSpace(category) && category != "All" && category != "Hamısı" && category != "all")
+        {
+            var aliases = CategoryAliases(category);
+            list = list.Where(c =>
+            {
+                var cat = (c.Category ?? string.Empty).ToLowerInvariant();
+                var sub = (c.SubCategory ?? string.Empty).ToLowerInvariant();
+                return aliases.Any(a => cat.Contains(a) || sub.Contains(a) || (cat.Length > 0 && a.Contains(cat)));
+            }).ToList();
+        }
 
         var dtos = list.Select(c =>
         {
@@ -110,12 +136,13 @@ public class CoursesController : ControllerBase
                 Language = c.Language,
                 Price = c.Price,
                 DiscountPrice = c.DiscountPrice,
+                Currency = c.Currency,
                 IsFree = c.IsFree,
                 ThumbnailUrl = c.ThumbnailUrl,
                 IsPublished = c.IsPublished,
                 IsFeatured = c.IsFeatured,
                 TotalStudents = c.Enrollments?.Count ?? c.TotalStudents,
-                Rating = c.Rating > 0 ? c.Rating : 5.0,
+                Rating = c.Rating,
                 ReviewCount = c.ReviewCount,
                 TotalLectures = totalLectures,
                 TotalDurationMinutes = totalDuration,
@@ -211,13 +238,14 @@ public class CoursesController : ControllerBase
             Language = course.Language,
             Price = course.Price,
             DiscountPrice = course.DiscountPrice,
+            Currency = course.Currency,
             IsFree = course.IsFree,
             ThumbnailUrl = course.ThumbnailUrl,
             PreviewVideoUrl = course.PreviewVideoUrl,
             IsPublished = course.IsPublished,
             IsFeatured = course.IsFeatured,
             TotalStudents = course.Enrollments?.Count ?? course.TotalStudents,
-            Rating = course.Rating > 0 ? course.Rating : 5.0,
+            Rating = course.Rating,
             ReviewCount = course.ReviewCount,
             TotalLectures = totalLectures,
             TotalDurationMinutes = totalDuration,
@@ -275,7 +303,7 @@ public class CoursesController : ControllerBase
                 {
                     UserName = "admin@edusaz.com",
                     Email = "admin@edusaz.com",
-                    FirstName = "EduSaz",
+                    FirstName = "Edusaz",
                     LastName = "Academy"
                 };
                 await _userManager.CreateAsync(user, "Admin12345!");
@@ -284,8 +312,8 @@ public class CoursesController : ControllerBase
             instructor = new Instructor
             {
                 UserId = user.Id,
-                DisplayName = !string.IsNullOrWhiteSpace(dto.InstructorName) ? dto.InstructorName : "EduSaz Academy",
-                Bio = "Rəsmi EduSaz Tədris Mərkəzi",
+                DisplayName = !string.IsNullOrWhiteSpace(dto.InstructorName) ? dto.InstructorName : "Edusaz Academy",
+                Bio = "Rəsmi Edusaz Tədris Mərkəzi",
                 Expertise = "Təhsil & Texnologiya",
                 IsApproved = true
             };
@@ -318,8 +346,9 @@ public class CoursesController : ControllerBase
             PreviewVideoUrl = dto.PreviewVideoUrl ?? string.Empty,
             IsPublished = dto.IsPublished,
             IsApproved = true,
-            Rating = 5.0,
-            ReviewCount = 1
+            // New courses start without reviews; the rating comes from real reviews only.
+            Rating = 0,
+            ReviewCount = 0
         };
 
         // Add Lectures / Sections

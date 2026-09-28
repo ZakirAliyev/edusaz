@@ -1,1 +1,1 @@
-# EduSaz
+# Edusaz

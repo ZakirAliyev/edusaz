@@ -199,6 +199,7 @@ public class InstructorService : IInstructorService
             .Include(c => c.Sections.Where(s => !s.IsDeleted))
                 .ThenInclude(s => s.Lectures.Where(l => !l.IsDeleted))
             .Include(c => c.Enrollments)
+            .Include(c => c.Translations)
             .FirstOrDefaultAsync(c => c.Id == courseId && !c.IsDeleted);
 
         if (course == null) return null;
@@ -262,6 +263,8 @@ public class InstructorService : IInstructorService
                 }
                 course.Sections.Add(section);
             }
+            course.TotalLectures = course.Sections.Sum(s => s.Lectures.Count);
+            course.TotalDurationMinutes = course.Sections.Sum(s => s.Lectures.Sum(l => l.DurationMinutes));
         }
 
         // Add translations
@@ -317,13 +320,58 @@ public class InstructorService : IInstructorService
         course.PreviewVideoUrl = dto.PreviewVideoUrl;
         course.IsPublished = dto.IsPublished;
 
+        // Replace the curriculum (sections + lectures) when the client sends it.
+        if (dto.Sections != null)
+        {
+            foreach (var oldSection in course.Sections.ToList())
+            {
+                _context.CourseLectures.RemoveRange(oldSection.Lectures);
+                _context.CourseSections.Remove(oldSection);
+            }
+            course.Sections.Clear();
+
+            // BaseEntity pre-assigns Ids, so new rows must be added through the DbSet
+            // (adding them to the tracked collection makes EF issue UPDATEs that affect 0 rows).
+            var newSections = new List<CourseSection>();
+            var order = 0;
+            foreach (var sectionDto in dto.Sections)
+            {
+                var section = new CourseSection
+                {
+                    CourseId = course.Id,
+                    Title = sectionDto.Title,
+                    Description = sectionDto.Description,
+                    Order = order++
+                };
+                var lectOrder = 0;
+                foreach (var lectDto in sectionDto.Lectures)
+                {
+                    section.Lectures.Add(new CourseLecture
+                    {
+                        Title = lectDto.Title,
+                        Description = lectDto.Description,
+                        VideoUrl = lectDto.VideoUrl,
+                        ResourceUrl = lectDto.ResourceUrl,
+                        DurationMinutes = lectDto.DurationMinutes,
+                        Order = lectOrder++,
+                        IsFree = lectDto.IsFree,
+                        LectureType = lectDto.LectureType
+                    });
+                }
+                newSections.Add(section);
+            }
+            _context.CourseSections.AddRange(newSections);
+            course.TotalLectures = newSections.Sum(s => s.Lectures.Count);
+            course.TotalDurationMinutes = newSections.Sum(s => s.Lectures.Sum(l => l.DurationMinutes));
+        }
+
         // Update translations
         if (dto.Translations != null)
         {
             _context.CourseTranslations.RemoveRange(course.Translations);
             foreach (var (langCode, trans) in dto.Translations)
             {
-                course.Translations.Add(new CourseTranslation
+                _context.CourseTranslations.Add(new CourseTranslation
                 {
                     CourseId = course.Id,
                     LanguageCode = langCode,
@@ -537,6 +585,7 @@ public class InstructorService : IInstructorService
             Language = c.Language,
             Price = c.Price,
             DiscountPrice = c.DiscountPrice,
+            Currency = c.Currency,
             IsFree = c.IsFree,
             ThumbnailUrl = c.ThumbnailUrl,
             IsPublished = c.IsPublished,
@@ -568,6 +617,7 @@ public class InstructorService : IInstructorService
             Language = c.Language,
             Price = c.Price,
             DiscountPrice = c.DiscountPrice,
+            Currency = c.Currency,
             IsFree = c.IsFree,
             ThumbnailUrl = c.ThumbnailUrl,
             PreviewVideoUrl = c.PreviewVideoUrl,
@@ -602,7 +652,23 @@ public class InstructorService : IInstructorService
                             IsFree = l.IsFree,
                             LectureType = l.LectureType
                         }).ToList() ?? new List<CourseLectureDto>()
-                }).ToList() ?? new List<CourseSectionDto>()
+                }).ToList() ?? new List<CourseSectionDto>(),
+            // Editors need every saved translation; without it a save would overwrite them with the source language only.
+            Translations = c.Translations?
+                .Where(t => !t.IsDeleted)
+                .GroupBy(t => t.LanguageCode)
+                .ToDictionary(g => g.Key, g =>
+                {
+                    var t = g.First();
+                    return new CourseTranslationInputDto
+                    {
+                        Title = t.Title,
+                        Description = t.Description,
+                        ShortDescription = t.ShortDescription,
+                        WhatYouLearn = t.WhatYouLearn,
+                        Requirements = t.Requirements
+                    };
+                }) ?? new Dictionary<string, CourseTranslationInputDto>()
         };
         return dto;
     }

@@ -16,10 +16,11 @@ public class User : IdentityUser<Guid>
     // Custom user fields
     public string? ProfileImageUrl { get; set; }
     public string? Country { get; set; } = "Azerbaijan";
-    public double Gpa { get; set; } = 3.6;
-    public string EnglishScore { get; set; } = "IELTS 6.5";
-    public string DegreeLevel { get; set; } = "Bachelor";
-    public string DesiredField { get; set; } = "Computer Science";
+    // Academic fields start empty — the student fills them in (placeholder values here showed up as real data).
+    public double Gpa { get; set; } = 0;
+    public string EnglishScore { get; set; } = string.Empty;
+    public string DegreeLevel { get; set; } = string.Empty;
+    public string DesiredField { get; set; } = string.Empty;
     
     // UniversityAdmin ownership
     public Guid? UniversityId { get; set; }

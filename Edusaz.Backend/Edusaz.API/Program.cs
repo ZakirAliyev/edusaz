@@ -106,6 +106,8 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+Console.WriteLine($"[Edusaz] Environment: {app.Environment.EnvironmentName}");
+
 // Seed data safely without crashing application
 try
 {
@@ -127,7 +129,11 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-app.UseHttpsRedirection();
+// Locally the API runs on plain http (launchSettings "http" profile), so only force HTTPS outside Development.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseStaticFiles();
 app.UseCors("AllowAll");
 app.UseAuthentication();

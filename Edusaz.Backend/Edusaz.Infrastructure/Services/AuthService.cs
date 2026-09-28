@@ -172,6 +172,18 @@ public class AuthService : IAuthService
 
         var roles = await _userManager.GetRolesAsync(user);
 
+        // University admins need their linked university to open the university portal.
+        string? universityName = null;
+        if (user.UniversityId.HasValue)
+        {
+            universityName = await _context.Universities
+                .Where(u => u.Id == user.UniversityId.Value)
+                .SelectMany(u => u.Translations)
+                .OrderBy(t => t.Language.Code == "az" ? 0 : 1)
+                .Select(t => t.Name)
+                .FirstOrDefaultAsync();
+        }
+
         return new UserProfileDto
         {
             Id = user.Id,
@@ -187,7 +199,9 @@ public class AuthService : IAuthService
             ScholarshipCount = subs.Count,
             Activities = activities,
             Role = roles.FirstOrDefault() ?? "Student",
-            ProfileImageUrl = user.ProfileImageUrl ?? ""
+            ProfileImageUrl = user.ProfileImageUrl ?? "",
+            UniversityId = user.UniversityId,
+            UniversityName = universityName
         };
     }
 

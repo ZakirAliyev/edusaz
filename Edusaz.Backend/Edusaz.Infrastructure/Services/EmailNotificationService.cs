@@ -38,7 +38,7 @@ public class EmailNotificationService : IEmailNotificationService
             var studentBody = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #f8fafc; border-radius: 16px;'>
                     <div style='background: linear-gradient(135deg, #7A5CFF, #6366f1); padding: 20px; border-radius: 12px; text-align: center; color: white;'>
-                        <h1 style='margin: 0; font-size: 24px;'>EduSaz Kurs Platforması</h1>
+                        <h1 style='margin: 0; font-size: 24px;'>Edusaz Kurs Platforması</h1>
                     </div>
                     <div style='background: white; padding: 24px; border-radius: 12px; margin-top: 16px; border: 1px solid #e2e8f0;'>
                         <h2 style='color: #0f172a; margin-top: 0;'>Hörmətli {studentName},</h2>
@@ -178,7 +178,7 @@ public class EmailNotificationService : IEmailNotificationService
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(fromEmail, "EduSaz Platform"),
+                    From = new MailAddress(fromEmail, "Edusaz Platform"),
                     Subject = subject,
                     Body = htmlBody,
                     IsBodyHtml = true
