@@ -115,11 +115,11 @@ function UserProfilePage() {
       localStorage.setItem('userName', `${profileData.firstName} ${profileData.lastName}`.trim());
       localStorage.setItem('userEmail', profileData.email);
       setSavedSuccess(true);
-      toast?.showSuccess?.(t('profile.updatedSuccess', 'Məlumatlarınız yeniləndi!'));
+      toast.success(t('toast.profile.updated'));
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err) {
       console.error('Profile update error:', err);
-      toast?.showError?.(err?.data?.message || t('profile.updateError', 'Məlumatları yeniləyərkən xəta baş verdi.'));
+      toast.apiError(err, 'toast.profile.updateError');
     }
   };
 

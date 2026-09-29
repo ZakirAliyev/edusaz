@@ -182,7 +182,7 @@ function UniversityDetailPage() {
   const openApplyModal = (program = null, kind = program ? 'program' : null) => {
     const token = Cookies.get('userToken');
     if (!token) {
-      toast.showError(t('auth.loginRequired', 'Müraciət etmək üçün daxil olun'));
+      toast.info(t('toast.auth.loginRequired'));
       navigate('/signin');
       return;
     }
@@ -220,8 +220,8 @@ function UniversityDetailPage() {
         matchScore: 95
       }).unwrap();
       setApplySubmitted(true);
-    } catch {
-      toast.showError(t('pages.universityDetail.applyError', 'Müraciət göndərilmədi. Zəhmət olmasa bir az sonra yenidən cəhd edin.'));
+    } catch (err) {
+      toast.apiError(err, 'toast.university.applyError');
     } finally {
       setIsApplying(false);
     }
@@ -231,12 +231,12 @@ function UniversityDetailPage() {
     e.preventDefault();
     const token = Cookies.get('userToken');
     if (!token) {
-      toast.showError(t('auth.loginRequired', 'Rəy yazmaq üçün daxil olun'));
+      toast.info(t('toast.auth.loginRequired'));
       navigate('/signin');
       return;
     }
     if (!reviewComment.trim()) {
-      toast.showError(t('pages.universityDetail.reviewRequired', 'Zəhmət olmasa rəyinizi daxil edin'));
+      toast.warning(t('toast.university.reviewRequired'));
       return;
     }
 
@@ -250,10 +250,10 @@ function UniversityDetailPage() {
         comment: reviewComment.trim()
       }).unwrap();
       setReviewComment('');
-      toast.showSuccess(t('pages.universityDetail.reviewSuccess', 'Rəyiniz uğurla əlavə olundu!'));
+      toast.success(t('toast.university.reviewSuccess'));
       refetchReviews();
-    } catch {
-      toast.showError(t('pages.universityDetail.reviewError', 'Rəy göndərilərkən xəta baş verdi'));
+    } catch (err) {
+      toast.apiError(err, 'toast.university.reviewError');
     } finally {
       setIsSubmittingReview(false);
     }

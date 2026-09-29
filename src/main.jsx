@@ -7,6 +7,7 @@ import {store} from "./services/store.jsx";
 import {ThemeProvider} from "./context/ThemeContext/index.jsx";
 import {LanguageProvider} from "./context/LanguageContext/index.jsx";
 import {ToastProvider} from "./context/ToastContext/index.jsx";
+import './locales/registerToastTranslations';
 
 createRoot(document.getElementById('root')).render(
     <ThemeProvider>

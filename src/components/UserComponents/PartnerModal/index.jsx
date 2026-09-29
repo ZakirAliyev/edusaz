@@ -89,8 +89,8 @@ function PartnerModal({ isOpen, onClose }) {
     e.preventDefault();
     setSubmitError('');
     try {
-      const res = await createPartnershipApplication(formData).unwrap();
-      setResponseMsg(res.message || res.data?.message || 'Tərəfdaşlıq müraciətiniz bazada saxlanıldı, xəbərdarlıq e-poçtları göndərildi!');
+      await createPartnershipApplication(formData).unwrap();
+      setResponseMsg(t('toast.partner.sent'));
       setSubmitted(true);
       clearTimeout(closeTimerRef.current);
       closeTimerRef.current = setTimeout(() => {

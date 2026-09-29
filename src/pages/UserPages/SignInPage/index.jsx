@@ -63,7 +63,7 @@ function SignInPage() {
         localStorage.setItem('universityId', tokenData.universityId);
       }
 
-      toast.showSuccess(t('auth.loginSuccess'));
+      toast.success(t('toast.auth.loginSuccess'));
 
       if (role.toLowerCase() === 'superadmin') {
         navigate('/superadmin');
@@ -75,7 +75,7 @@ function SignInPage() {
         navigate('/profile');
       }
     } catch (err) {
-      toast.showError(err?.data?.message || t('auth.loginError'));
+      toast.apiError(err, 'toast.auth.invalidCredentials');
     }
   };
 

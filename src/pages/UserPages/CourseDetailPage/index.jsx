@@ -181,7 +181,7 @@ function CourseDetailPage() {
       const firstVideo = course.sections?.[0]?.lectures?.find(l => l.videoUrl);
       if (firstVideo) setActiveVideo(firstVideo.videoUrl);
       else if (course.previewVideoUrl) setActiveVideo(course.previewVideoUrl);
-      toast.showSuccess('Kursa artıq qeydiyyatdan keçmisiniz 🎉');
+      toast.info(t('toast.course.alreadyEnrolled'));
       return;
     }
 
@@ -191,7 +191,7 @@ function CourseDetailPage() {
       const firstVideo = course.sections?.[0]?.lectures?.find(l => l.videoUrl);
       if (firstVideo) setActiveVideo(firstVideo.videoUrl);
       else if (course.previewVideoUrl) setActiveVideo(course.previewVideoUrl);
-      toast.showSuccess(t('courses.freeAccessGranted', 'Ödənişsiz kurs dərsləri aktivləşdirildi! 🎉'));
+      toast.success(t('toast.course.freeAccessGranted'));
       return;
     }
 
@@ -205,16 +205,15 @@ function CourseDetailPage() {
       }).unwrap();
 
       if (result?.paymentUrl) {
-        toast.showSuccess('ePoint ödəniş panelinə yönləndirilirsiniz...');
+        toast.info(t('toast.course.redirectingToPayment'));
         setTimeout(() => {
           window.location.href = result.paymentUrl;
         }, 800);
       } else {
-        toast.showError('Ödəniş URL-i alınmadı. Yenidən cəhd edin.');
+        toast.error(t('toast.course.paymentUrlMissing'));
       }
     } catch (err) {
-      const msg = err?.data?.message || err?.message || 'Ödəniş başlanğıcında xəta';
-      toast.showError(msg);
+      toast.apiError(err, 'toast.course.paymentError');
     } finally {
       setIsPaymentLoading(false);
     }
@@ -223,7 +222,7 @@ function CourseDetailPage() {
   // ── Lecture click handler ─────────────────────────────────────────────────────
   const handleLectureClick = (lec) => {
     if (!isLoggedIn) {
-      toast.showError(t('auth.loginRequired', 'Daxil olmaq tələb olunur'));
+      toast.info(t('toast.auth.loginRequired'));
       navigate('/signin');
       return;
     }

@@ -197,7 +197,7 @@ const mainBundles = {
 const ALL_CODES = [
   'en', 'az', 'tr', 'ru', 'de', 'fr', 'es', 'it', 'ar', 'zh',
   'pt', 'nl', 'se', 'no', 'fi', 'dk', 'gr', 'hu', 'cz', 'ro',
-  'bg', 'hr', 'sk', 'ua', 'ge', 'am', 'kz', 'uz', 'jp', 'kr'
+  'bg', 'hr', 'sk', 'ua', 'ge', 'am', 'kz', 'uz', 'jp', 'kr', 'pl'
 ];
 
 // ── Instructor Portal Translations (31 Languages) ─────────────────────────────

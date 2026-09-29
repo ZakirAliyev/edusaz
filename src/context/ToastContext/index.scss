@@ -1,78 +1,181 @@
-.toast-container {
+// Site notifications — light card in the Edusaz design system.
+// Desktop: top-right under the navbar. Mobile: bottom, full width (thumb reach, never covers the header).
+
+.et-region {
   position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: 9999999 !important;
+  z-index: 10000;
+  inset-inline: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 400px;
+  flex-direction: column-reverse;
+  gap: 10px;
   pointer-events: none;
+
+  @media (min-width: 640px) {
+    inset-inline: auto 24px;
+    top: calc(var(--ds-nav-h, 72px) + 16px);
+    bottom: auto;
+    flex-direction: column;
+    width: 380px;
+  }
+
+  &:empty {
+    display: none;
+  }
 }
 
-.toast-item {
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
+.et {
+  --et-accent: var(--ds-info, #1d4ed8);
+  --et-soft: var(--ds-info-soft, #eff6ff);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
   gap: 12px;
-  padding: 14px 18px;
-  border-radius: 14px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(255, 255, 255, 0.2) inset;
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 500;
-  animation: slideInToast 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  color: #ffffff;
+  overflow: hidden;
+  padding: 14px 12px 16px 14px;
+  border: 1px solid var(--ds-line, #ebe7f0);
+  border-radius: var(--ds-r, 14px);
+  background: var(--ds-surface, #fff);
+  box-shadow: var(--ds-shadow-lg);
+  font-family: var(--ds-font, 'Poppins', sans-serif);
+  color: var(--ds-ink, #17142a);
+  pointer-events: auto;
+  animation: et-in 0.28s var(--ds-ease, ease-out) both;
 
-  &.toast-success {
-    background: rgba(16, 185, 129, 0.9);
-    border: 1px solid rgba(52, 211, 153, 0.4);
+  &[data-type='success'] {
+    --et-accent: var(--ds-success, #15803d);
+    --et-soft: var(--ds-success-soft, #ecfdf3);
+  }
+  &[data-type='error'] {
+    --et-accent: var(--ds-danger, #dc2626);
+    --et-soft: var(--ds-danger-soft, #fef2f2);
+  }
+  &[data-type='warning'] {
+    --et-accent: var(--ds-warning, #b45309);
+    --et-soft: var(--ds-warning-soft, #fffbeb);
   }
 
-  &.toast-error {
-    background: rgba(239, 68, 68, 0.9);
-    border: 1px solid rgba(248, 113, 113, 0.4);
+  &[data-leaving] {
+    animation: et-out 0.2s ease-in both;
   }
 
-  &.toast-info {
-    background: rgba(99, 102, 241, 0.9);
-    border: 1px solid rgba(129, 140, 248, 0.4);
-  }
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--et-soft);
+    color: var(--et-accent);
 
-  .toast-icon {
-    font-size: 1.2rem;
-  }
-
-  .toast-message {
-    flex: 1;
-    line-height: 1.4;
-  }
-
-  .toast-close {
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0 4px;
-    line-height: 1;
-    transition: color 0.2s ease;
-
-    &:hover {
-      color: #ffffff;
+    svg {
+      width: 18px;
+      height: 18px;
     }
   }
+
+  &__body {
+    min-width: 0;
+    padding-top: 1px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  &__message {
+    margin: 2px 0 0;
+    font-size: 0.84375rem;
+    line-height: 1.5;
+    color: var(--ds-muted, #666279);
+    overflow-wrap: anywhere;
+  }
+
+  &__close {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin: -4px -2px 0 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ds-subtle, #8a8699);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+
+    &:hover {
+      background: var(--ds-bg, #fbfaf7);
+      color: var(--ds-ink, #17142a);
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // Time left before auto-dismiss; pauses while the pointer or focus is on the toast.
+  &__progress {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--et-accent);
+    opacity: 0.35;
+    transform-origin: left;
+    animation: et-progress var(--et-duration) linear forwards;
+
+    html[dir='rtl'] & {
+      transform-origin: right;
+    }
+  }
+
+  &:hover &__progress,
+  &:focus-within &__progress {
+    animation-play-state: paused;
+  }
 }
 
-@keyframes slideInToast {
+@keyframes et-in {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translateY(8px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
+  }
+}
+
+@keyframes et-out {
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+@keyframes et-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .et,
+  .et[data-leaving] {
+    animation: none;
+  }
+
+  .et__progress {
+    display: none;
   }
 }

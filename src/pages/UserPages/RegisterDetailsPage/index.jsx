@@ -61,11 +61,10 @@ function RegisterDetailsPage() {
       };
 
       await registerUser(payload).unwrap();
-      toast.showSuccess("Qeydiyyat uğurla tamamlandı! 🎓 Zəhmət olmasa daxil olun.");
+      toast.success(t('toast.auth.registerSuccess'));
       navigate('/signin');
     } catch (err) {
-      const errorMessage = err?.data?.message || err?.data || err?.error || t('auth.registerError') || "Qeydiyyat zamanı xəta baş verdi.";
-      toast.showError(errorMessage);
+      toast.apiError(err, 'toast.auth.registerError');
     }
   };
 

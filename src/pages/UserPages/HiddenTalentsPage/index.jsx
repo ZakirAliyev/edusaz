@@ -388,7 +388,7 @@ function HiddenTalentsPage() {
       }, 1000);
     } catch (err) {
       console.error('Mikrofon icazəsi xətası:', err);
-      toast?.showError ? toast.showError(t('talents.voiceError', 'Mikrofon icazəsi verilmədi və ya cihaz dəstəklənmir.')) : alert('Mikrofon icazəsi verilmədi.');
+      toast.error(t('toast.talents.micDenied'));
     }
   };
 
@@ -416,10 +416,11 @@ function HiddenTalentsPage() {
       const res = await uploadFileApi(fData).unwrap();
       if (res.data?.fileUrl) {
         setFormData((prev) => ({ ...prev, voiceNoteUrl: res.data.fileUrl }));
-        toast?.showSuccess ? toast.showSuccess(t('talents.voiceSuccess', 'Səsli izah uğurla yadda saxlanıldı!')) : null;
+        toast.success(t('toast.talents.voiceSaved'));
       }
     } catch (err) {
       console.error('Audio upload error:', err);
+      toast.apiError(err, 'toast.talents.fileUploadError');
     } finally {
       setIsUploadingVoice(false);
     }
@@ -452,10 +453,10 @@ function HiddenTalentsPage() {
           }));
         }
       }
-      toast?.showSuccess ? toast.showSuccess(`${files.length} ${t('talents.filesUploadedSuccess', 'fayl uğurla əlavə edildi.')}`) : null;
+      toast.success(t('toast.talents.filesAdded', { count: files.length }));
     } catch (err) {
       console.error('File upload error:', err);
-      toast?.showError ? toast.showError(t('talents.fileUploadError', 'Fayl yükləmə zamanı xəta baş verdi.')) : null;
+      toast.apiError(err, 'toast.talents.fileUploadError');
     } finally {
       setIsUploadingFile(false);
     }
@@ -493,7 +494,7 @@ function HiddenTalentsPage() {
     const messages = Object.values(next);
     if (messages.length) {
       setErrors((prev) => ({ ...prev, ...next }));
-      toast?.showError ? toast.showError(messages[0]) : alert(messages[0]);
+      toast.warning(messages[0]);
       if (step !== currentStep) setCurrentStep(step);
       requestAnimationFrame(() => {
         const firstInvalid = formSectionRef.current?.querySelector('[aria-invalid="true"]');
@@ -568,8 +569,7 @@ function HiddenTalentsPage() {
       scrollToForm();
     } catch (err) {
       console.error('Submission error:', err);
-      const msg = err?.data?.message || t('talents.submitError', 'Müraciət göndərilərkən xəta baş verdi. Zəhmət olmasa yenidən yoxlayın.');
-      toast?.showError ? toast.showError(msg) : alert(msg);
+      toast.apiError(err, 'toast.talents.submitError');
     }
   };
 
