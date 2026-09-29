@@ -27,6 +27,7 @@ import {
   useInitiateCoursePaymentMutation,
   useCheckCourseEnrollmentQuery,
 } from '../../../services/apis/userApi';
+import { categoryLabel, levelLabel } from '../../../locales/courseLabels';
 import { useToast } from '../../../context/ToastContext';
 import { AutoTranslate } from '../../../hooks/useAutoTranslate';
 import Cookies from 'js-cookie';
@@ -73,8 +74,8 @@ function formatDuration(minutes, t) {
   const total = Number(minutes) || 0;
   const h = Math.floor(total / 60);
   const m = total % 60;
-  if (!h) return `${m} ${t('courses.min', 'dəq')}`;
-  return `${h} ${t('pages.courses.hourShort', 'saat')}${m ? ` ${m} ${t('courses.min', 'dəq')}` : ''}`;
+  if (!h) return `${m} ${t('courses.min')}`;
+  return `${h} ${t('courses.hourShort')}${m ? ` ${m} ${t('courses.min')}` : ''}`;
 }
 
 function DetailSkeleton() {
@@ -165,10 +166,10 @@ function CourseDetailPage() {
         <div className="ds-container">
           <div className="ds-empty cdp-notfound">
             <BookOpen aria-hidden />
-            <h1 className="ds-h3">{t('courses.notFound', 'Kurs tapılmadı')}</h1>
-            <p>{t('courses.notFoundDesc', 'Axtardığınız kurs mövcud deyil və ya silinib.')}</p>
+            <h1 className="ds-h3">{t('courses.notFound')}</h1>
+            <p>{t('courses.notFoundDesc')}</p>
             <Link to="/courses" className="ds-btn ds-btn--primary">
-              {t('courses.browseAll', 'Bütün Kurslara Bax')}
+              {t('courses.browseAll')}
             </Link>
           </div>
         </div>
@@ -273,14 +274,14 @@ function CourseDetailPage() {
 
   // Button label
   const ctaLabel = () => {
-    if (isPaymentLoading) return 'Emal edilir...';
-    if (isEnrolled) return 'Dərslərə Bax';
+    if (isPaymentLoading) return t('courses.processing');
+    if (isEnrolled) return t('courses.accessNow');
     if (course.isFree) {
       return isFreeEnrolled
-        ? t('courses.accessNow', 'Dərslərə Bax')
-        : t('courses.enrollFree', 'İndi Qoşul (Ödənişsiz)');
+        ? t('courses.accessNow')
+        : t('courses.enrollFree');
     }
-    return `${t('courses.buyNow', 'Kursu Al')} — ${price} ${currency}`;
+    return `${t('courses.buyNow')} — ${price} ${currency}`;
   };
 
   const CtaIcon = isPaymentLoading
@@ -302,15 +303,15 @@ function CourseDetailPage() {
       <div className="ds-container">
         <nav className="cdp-crumbs" aria-label="Breadcrumb">
           <ol>
-            <li><Link to="/">{t('nav.home', 'Ana Səhifə')}</Link></li>
+            <li><Link to="/">{t('courses.home')}</Link></li>
             <li>
               <ChevronRight aria-hidden />
-              <Link to="/courses">{t('nav.courses', 'Kurslar')}</Link>
+              <Link to="/courses">{t('courses.allCourses')}</Link>
             </li>
             {course.category && (
               <li>
                 <ChevronRight aria-hidden />
-                <span aria-current="page"><AutoTranslate text={course.category} /></span>
+                <span aria-current="page">{categoryLabel(t, course.category) || <AutoTranslate text={course.category} />}</span>
               </li>
             )}
           </ol>
@@ -321,9 +322,9 @@ function CourseDetailPage() {
           <header className="cdp-head" data-reveal>
             <div className="cdp-head__badges">
               {course.category && (
-                <span className="ds-badge ds-badge--brand"><AutoTranslate text={course.category} /></span>
+                <span className="ds-badge ds-badge--brand">{categoryLabel(t, course.category) || <AutoTranslate text={course.category} />}</span>
               )}
-              {course.isFree && <span className="ds-badge ds-badge--success">{t('courses.free', 'Ödənişsiz')}</span>}
+              {course.isFree && <span className="ds-badge ds-badge--success">{t('courses.free')}</span>}
             </div>
 
             <h1 className="ds-title cdp-title"><AutoTranslate text={course.title} /></h1>
@@ -339,30 +340,30 @@ function CourseDetailPage() {
                 <li className="cdp-meta__rating">
                   <Star aria-hidden />
                   <strong>{course.rating.toFixed(1)}</strong>
-                  <span>{t('common.reviews', 'reytinq')}</span>
+                  <span>{t('courses.rating')}</span>
                 </li>
               )}
               {course.totalStudents > 0 && (
                 <li>
                   <Users aria-hidden />
-                  {course.totalStudents} {t('courses.students', 'tələbə')}
+                  {t('courses.studentsCount', { count: course.totalStudents || 0 })}
                 </li>
               )}
               {course.level && (
                 <li>
                   <BarChart3 aria-hidden />
-                  <AutoTranslate text={course.level} />
+                  {levelLabel(t, course.level) || <AutoTranslate text={course.level} />}
                 </li>
               )}
               {course.language && (
                 <li>
                   <Globe2 aria-hidden />
-                  {t('matchedUniversities.labels.language', 'Dil')}: {course.language.toUpperCase()}
+                  {t('courses.language')}: {course.language.toUpperCase()}
                 </li>
               )}
               <li>
                 <PlayCircle aria-hidden />
-                {course.totalLectures || 0} {t('courses.lectures', 'dərs')}
+                {t('courses.lecturesCount', { count: course.totalLectures || 0 })}
               </li>
               {course.totalDurationMinutes > 0 && (
                 <li>
@@ -383,7 +384,7 @@ function CourseDetailPage() {
                 </span>
                 <div className="cdp-instructor__text">
                   <div className="cdp-instructor__name">
-                    {t('courses.instructorBy', 'Müəllif:')} <strong><AutoTranslate text={course.instructorName} /></strong>
+                    {t('courses.instructorBy')} <strong>{course.instructorName}</strong>
                   </div>
                   {course.instructorBio && (
                     <div className="cdp-instructor__bio">
@@ -416,7 +417,7 @@ function CourseDetailPage() {
               <div className="cdp-buy__body">
                 <div className="cdp-price">
                   {course.isFree ? (
-                    <span className="cdp-price__now cdp-price__now--free">{t('courses.freeCourse', 'Ödənişsiz Kurs')}</span>
+                    <span className="cdp-price__now cdp-price__now--free">{t('courses.freeCourse')}</span>
                   ) : isEnrolled ? (
                     <span className="cdp-price__enrolled">
                       <CheckCircle2 aria-hidden /> Qeydiyyatdan Keçmisiniz
@@ -436,7 +437,7 @@ function CourseDetailPage() {
                       </div>
                       {course.currency && course.currency.toUpperCase() !== 'AZN' && (
                         <div className="cdp-price__azn">
-                          ePoint ilə ödəniş: ~{convertToAznDisplay(price, course.currency)} AZN
+                          {t('courses.payViaEpoint', { amount: convertToAznDisplay(price, course.currency) })}
                         </div>
                       )}
                     </>
@@ -456,19 +457,19 @@ function CourseDetailPage() {
 
                 {!course.isFree && !isEnrolled && (
                   <ul className="cdp-trust">
-                    <li><ShieldCheck aria-hidden /> Güvənli ödəniş</li>
+                    <li><ShieldCheck aria-hidden /> {t('courses.securePayment')}</li>
                     <li><CreditCard aria-hidden /> ePoint</li>
-                    <li><RotateCcw aria-hidden /> Geri qaytarıla bilər</li>
+                    <li><RotateCcw aria-hidden /> {t('courses.refundable')}</li>
                   </ul>
                 )}
 
                 <div className="cdp-includes">
-                  <h2 className="cdp-includes__title">{t('courses.includes', 'Bu kursa daxildir:')}</h2>
+                  <h2 className="cdp-includes__title">{t('courses.includes')}</h2>
                   <ul>
-                    <li><PlayCircle aria-hidden /> {course.totalLectures || 0} {t('courses.videoLectures', 'video dərs')}</li>
-                    <li><Clock aria-hidden /> {course.totalDurationMinutes || 0} {t('courses.minutesDuration', 'dəqiqə ümumi müddət')}</li>
-                    <li><Smartphone aria-hidden /> {t('courses.accessDevices', 'Mobil və kompüterdən giriş')}</li>
-                    <li><Award aria-hidden /> {t('courses.certificate', 'Bitirmə sertifikatı')}</li>
+                    <li><PlayCircle aria-hidden /> {t('courses.videoLecturesCount', { count: course.totalLectures || 0 })}</li>
+                    <li><Clock aria-hidden /> {t('courses.minutesTotal', { count: course.totalDurationMinutes || 0 })}</li>
+                    <li><Smartphone aria-hidden /> {t('courses.accessDevices')}</li>
+                    <li><Award aria-hidden /> {t('courses.certificate')}</li>
                   </ul>
                 </div>
               </div>
@@ -479,7 +480,7 @@ function CourseDetailPage() {
           <div className="cdp-body">
             {learnItems.length > 0 && (
               <section className="ds-card cdp-box" data-reveal>
-                <h2 className="ds-h3 cdp-box__title">{t('courses.whatYouLearn', 'Nələr Öyrənəcəksiniz')}</h2>
+                <h2 className="ds-h3 cdp-box__title">{t('courses.whatYouLearn')}</h2>
                 <ul className="cdp-learn">
                   {learnItems.map((item, idx) => (
                     <li key={idx}>
@@ -494,9 +495,9 @@ function CourseDetailPage() {
             {sections.length > 0 && (
               <section className="cdp-curriculum" data-reveal>
                 <div className="cdp-curriculum__head">
-                  <h2 className="ds-h3">{t('courses.content', 'Kursun Məzmunu')}</h2>
+                  <h2 className="ds-h3">{t('courses.content')}</h2>
                   <span className="ds-muted">
-                    {course.totalLectures || 0} {t('courses.lectures', 'dərs')}
+                    {t('courses.lecturesCount', { count: course.totalLectures || 0 })}
                     {course.totalDurationMinutes > 0 && ` · ${formatDuration(course.totalDurationMinutes, t)}`}
                   </span>
                 </div>
@@ -518,10 +519,10 @@ function CourseDetailPage() {
                         >
                           <ChevronDown aria-hidden className="cdp-section__chevron" />
                           <span className="cdp-section__title">
-                            {t('courses.section', 'Bölmə')} {sIdx + 1}: <AutoTranslate text={section.title} />
+                            {t('courses.section')} {sIdx + 1}: <AutoTranslate text={section.title} />
                           </span>
                           <span className="cdp-section__meta">
-                            {section.lectures?.length || 0} {t('courses.lectures', 'dərs')}
+                            {t('courses.lecturesCount', { count: section.lectures?.length || 0 })}
                             {sectionMinutes > 0 && ` · ${formatDuration(sectionMinutes, t)}`}
                           </span>
                         </button>
@@ -547,7 +548,7 @@ function CourseDetailPage() {
                                       handleEnrollOrBuy();
                                     }
                                   }}
-                                  title={canWatch ? 'Videonu izləmək üçün klikləyin' : 'Kursu alaraq izləyin'}
+                                  title={canWatch ? t('courses.clickToWatch') : t('courses.buyToWatchHint')}
                                 >
                                   <span className="cdp-lecture__icon" aria-hidden>
                                     {isPaidLocked ? <Lock /> : <PlayCircle />}
@@ -560,12 +561,12 @@ function CourseDetailPage() {
                                     <span className="cdp-lecture__sub">
                                       {isPreview && (
                                         <span className="ds-badge ds-badge--success">
-                                          {t('courses.freePreview', 'Ödənişsiz Baxış')}
+                                          {t('courses.freePreview')}
                                         </span>
                                       )}
                                       {lec.durationMinutes > 0 && (
                                         <span className="cdp-lecture__duration">
-                                          <Clock aria-hidden /> {lec.durationMinutes} {t('courses.min', 'dəq')}
+                                          <Clock aria-hidden /> {lec.durationMinutes} {t('courses.min')}
                                         </span>
                                       )}
                                     </span>
@@ -581,7 +582,7 @@ function CourseDetailPage() {
                                       }}
                                     >
                                       <PlayCircle aria-hidden />
-                                      {t('courses.watchVideo', 'Videoya Bax')}
+                                      {t('courses.watchVideo')}
                                     </button>
                                   )}
 
@@ -596,7 +597,7 @@ function CourseDetailPage() {
                                       disabled={isPaymentLoading}
                                     >
                                       <CreditCard aria-hidden />
-                                      {t('courses.buyToWatch', 'Al və İzlə')}
+                                      {t('courses.buyToWatch')}
                                     </button>
                                   )}
                                 </li>
@@ -613,7 +614,7 @@ function CourseDetailPage() {
 
             {requirementItems.length > 0 && (
               <section className="cdp-block" data-reveal>
-                <h2 className="ds-h3 cdp-box__title">{t('courses.requirements', 'Tələblər')}</h2>
+                <h2 className="ds-h3 cdp-box__title">{t('courses.requirements')}</h2>
                 <ul className="cdp-reqs">
                   {requirementItems.map((req, idx) => (
                     <li key={idx}><AutoTranslate text={req} /></li>
@@ -624,7 +625,7 @@ function CourseDetailPage() {
 
             {course.description && (
               <section className="cdp-block" data-reveal>
-                <h2 className="ds-h3 cdp-box__title">{t('courses.description', 'Açıqlama')}</h2>
+                <h2 className="ds-h3 cdp-box__title">{t('courses.description')}</h2>
                 <div className="cdp-description">
                   <AutoTranslate text={course.description} />
                 </div>
@@ -646,7 +647,7 @@ function CourseDetailPage() {
           >
             <div className="cdp-modal__header">
               <div className="cdp-modal__titles">
-                <span className="cdp-modal__badge"><PlayCircle aria-hidden /> Dərs İzlənir</span>
+                <span className="cdp-modal__badge"><PlayCircle aria-hidden /> {t('courses.nowPlaying')}</span>
                 <h2 className="cdp-modal__title" id="cdp-modal-title"><AutoTranslate text={modalLecture.title} /></h2>
               </div>
               <button
@@ -671,7 +672,7 @@ function CourseDetailPage() {
 
             {modalLecture.description && (
               <div className="cdp-modal__desc">
-                <h3>Dərs Haqqında</h3>
+                <h3>{t('courses.aboutLesson')}</h3>
                 <p><AutoTranslate text={modalLecture.description} /></p>
               </div>
             )}

@@ -5,20 +5,22 @@ import { BookOpen, Clock, PlayCircle, Search, SearchX, Star, Users, X } from 'lu
 import { useGetPublishedCoursesQuery } from '../../../services/apis/userApi';
 import useAutoTranslate, { AutoTranslate } from '../../../hooks/useAutoTranslate';
 import ScrollToTop from '../../../components/Common/ScrollToTop.jsx';
+import { categoryLabel, levelLabel } from '../../../locales/courseLabels';
 import './index.scss';
 
+// `key` is the value stored in the database; labels come from the static courses.cat.* translations.
 const CATEGORIES = [
-  { key: 'All', labelAz: 'Bütün Kurslar', labelEn: 'All Courses' },
-  { key: 'Programming', labelAz: 'Proqramlaşdırma', labelEn: 'Programming' },
-  { key: 'Web Development', labelAz: 'Veb Proqramlaşdırma', labelEn: 'Web Development' },
-  { key: 'Mobile Development', labelAz: 'Mobil Proqramlaşdırma', labelEn: 'Mobile Development' },
-  { key: 'Data Science', labelAz: 'Data Elmi', labelEn: 'Data Science' },
-  { key: 'AI & Machine Learning', labelAz: 'Süni İntellekt', labelEn: 'AI & Machine Learning' },
-  { key: 'Design', labelAz: 'Dizayn', labelEn: 'Design' },
-  { key: 'Business', labelAz: 'Biznes', labelEn: 'Business' },
-  { key: 'Marketing', labelAz: 'Marketinq', labelEn: 'Marketing' },
-  { key: 'Finance', labelAz: 'Maliyyə', labelEn: 'Finance' },
-  { key: 'Language Learning', labelAz: 'Xarici Dillər', labelEn: 'Language Learning' }
+  { key: 'All', label: 'all' },
+  { key: 'Programming', label: 'programming' },
+  { key: 'Web Development', label: 'webDevelopment' },
+  { key: 'Mobile Development', label: 'mobileDevelopment' },
+  { key: 'Data Science', label: 'dataScience' },
+  { key: 'AI & Machine Learning', label: 'ai' },
+  { key: 'Design', label: 'design' },
+  { key: 'Business', label: 'business' },
+  { key: 'Marketing', label: 'marketing' },
+  { key: 'Finance', label: 'finance' },
+  { key: 'Language Learning', label: 'languages' },
 ];
 
 const SKELETON_COUNT = 6;
@@ -27,14 +29,15 @@ function formatDuration(minutes, t) {
   const total = Number(minutes) || 0;
   const h = Math.floor(total / 60);
   const m = total % 60;
-  if (!h) return `${m} ${t('courses.min', 'dəq')}`;
-  return `${h} ${t('pages.courses.hourShort', 'saat')}${m ? ` ${m} ${t('courses.min', 'dəq')}` : ''}`;
+  if (!h) return `${m} ${t('courses.min')}`;
+  return `${h} ${t('courses.hourShort')}${m ? ` ${m} ${t('courses.min')}` : ''}`;
 }
 
-// <option> only accepts plain text, so the level label is translated with the hook.
+// <option> only accepts plain text: known levels use the static translations, anything else is translated on the fly.
 function LevelOption({ value }) {
-  const label = useAutoTranslate(value);
-  return <option value={value}>{label}</option>;
+  const { t } = useTranslation();
+  const auto = useAutoTranslate(value);
+  return <option value={value}>{levelLabel(t, value) || auto}</option>;
 }
 
 function CourseCard({ course, index }) {
@@ -54,7 +57,7 @@ function CourseCard({ course, index }) {
             </div>
           )}
           {course.isFree && (
-            <span className="ds-badge ds-badge--success pcp-card__flag">{t('courses.free', 'Ödənişsiz')}</span>
+            <span className="ds-badge ds-badge--success pcp-card__flag">{t('courses.free')}</span>
           )}
         </div>
 
@@ -62,12 +65,12 @@ function CourseCard({ course, index }) {
           <div className="pcp-card__tags">
             {course.category && (
               <span className="pcp-card__cat">
-                <AutoTranslate text={course.category} />
+                {categoryLabel(t, course.category) || <AutoTranslate text={course.category} />}
               </span>
             )}
             {course.level && (
               <span className="pcp-card__level">
-                <AutoTranslate text={course.level} />
+                {levelLabel(t, course.level) || <AutoTranslate text={course.level} />}
               </span>
             )}
           </div>
@@ -92,7 +95,7 @@ function CourseCard({ course, index }) {
                 )}
               </span>
               <span className="pcp-card__instructor-name">
-                <AutoTranslate text={course.instructorName} />
+                {course.instructorName}
               </span>
             </div>
           )}
@@ -100,7 +103,7 @@ function CourseCard({ course, index }) {
           <ul className="pcp-card__stats">
             <li>
               <PlayCircle aria-hidden />
-              {course.totalLectures || 0} {t('courses.lectures', 'dərs')}
+              {t('courses.lecturesCount', { count: course.totalLectures || 0 })}
             </li>
             {course.totalDurationMinutes > 0 && (
               <li>
@@ -125,7 +128,7 @@ function CourseCard({ course, index }) {
 
           <div className="pcp-card__price">
             {course.isFree ? (
-              <span className="pcp-card__now pcp-card__now--free">{t('courses.free', 'Ödənişsiz')}</span>
+              <span className="pcp-card__now pcp-card__now--free">{t('courses.free')}</span>
             ) : (
               <>
                 <span className="pcp-card__now">
@@ -197,28 +200,28 @@ function CoursesPage() {
       <ScrollToTop />
       <div className="ds-container">
         <header className="ds-page-header pcp-header" data-reveal>
-          <span className="ds-eyebrow">{t('courses.platform') || 'Online Kurslar Platforması'}</span>
+          <span className="ds-eyebrow">{t('courses.platform')}</span>
           <h1 className="ds-title">
-            {t('courses.heroTitle') || 'Dünya üzrə Mütəxəssislərdən'}{' '}
-            <span className="pcp-header__accent">{t('courses.heroAccent') || 'Öyrən'}</span>
+            {t('courses.heroTitle')}
+            {/* Chinese, Japanese and Korean don't put spaces between the two halves of the headline. */}
+            {/^(zh|jp|kr)/.test(i18n.language || '') ? '' : ' '}
+            <span className="pcp-header__accent">{t('courses.heroAccent')}</span>
           </h1>
-          <p className="ds-lead">
-            {t('courses.heroDesc') || 'Yüzlərlə ekspert tərəfindən hazırlanmış kursları kəşf et, praktiki bacarıqlar əldə et.'}
-          </p>
+          <p className="ds-lead">{t('courses.heroDesc')}</p>
         </header>
 
-        <section className="pcp-filters" data-reveal aria-label={t('common.search') || 'Axtar'}>
+        <section className="pcp-filters" data-reveal aria-label={t('courses.searchPlaceholder')}>
           <div className="pcp-filters__row">
             <form className="pcp-search" role="search" onSubmit={(e) => e.preventDefault()}>
               <label htmlFor="pcp-search-input" className="pcp-sr-only">
-                {t('common.search') || 'Axtar'}
+                {t('courses.searchPlaceholder')}
               </label>
               <Search className="pcp-search__icon" aria-hidden />
               <input
                 id="pcp-search-input"
                 type="search"
                 className="ds-input pcp-search__input"
-                placeholder={t('courses.searchPlaceholder') || 'Ad, mövzu və ya açar söz axtar...'}
+                placeholder={t('courses.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoComplete="off"
@@ -228,7 +231,7 @@ function CoursesPage() {
                   type="button"
                   className="pcp-search__clear"
                   onClick={() => setSearchQuery('')}
-                  aria-label={t('pages.courses.clearSearch', 'Axtarışı təmizlə')}
+                  aria-label={t('courses.clearSearch')}
                 >
                   <X aria-hidden />
                 </button>
@@ -238,7 +241,7 @@ function CoursesPage() {
             {levels.length > 0 && (
               <div className="pcp-level">
                 <label htmlFor="pcp-level-select" className="pcp-sr-only">
-                  {t('pages.courses.level', 'Səviyyə')}
+                  {t('courses.level')}
                 </label>
                 <select
                   id="pcp-level-select"
@@ -246,7 +249,7 @@ function CoursesPage() {
                   value={levelFilter}
                   onChange={(e) => setSelectedLevel(e.target.value)}
                 >
-                  <option value="">{t('pages.courses.allLevels', 'Bütün səviyyələr')}</option>
+                  <option value="">{t('courses.allLevels')}</option>
                   {levels.map((lvl) => (
                     <LevelOption key={lvl} value={lvl} />
                   ))}
@@ -255,7 +258,7 @@ function CoursesPage() {
             )}
           </div>
 
-          <div className="pcp-chips" role="group" aria-label={t('pages.courses.categories', 'Kateqoriyalar')}>
+          <div className="pcp-chips" role="group" aria-label={t('courses.categoriesLabel')}>
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.key}
@@ -264,7 +267,7 @@ function CoursesPage() {
                 aria-pressed={selectedCategory === cat.key}
                 onClick={() => setSelectedCategory(cat.key)}
               >
-                <AutoTranslate text={cat.labelAz} />
+                {t(`courses.cat.${cat.label}`)}
               </button>
             ))}
           </div>
@@ -272,11 +275,11 @@ function CoursesPage() {
 
         <div className="pcp-results-head">
           <h2 className="ds-h3">
-            <AutoTranslate text={activeCatObj.labelAz} />
+            {t(`courses.cat.${activeCatObj.label}`)}
           </h2>
           {!isLoading && (
             <span className="ds-muted" aria-live="polite">
-              {visibleCourses.length} {t('courses.available') || 'kurs mövcuddur'}
+              {t('courses.availableCount', { count: visibleCourses.length })}
             </span>
           )}
         </div>
@@ -290,11 +293,11 @@ function CoursesPage() {
         ) : visibleCourses.length === 0 ? (
           <div className="ds-empty pcp-empty">
             <SearchX aria-hidden />
-            <strong>{t('courses.notFound') || 'Kurs tapılmadı'}</strong>
-            <p>{t('courses.notFoundDesc') || 'Axtarış meyarlarına uyğun kurs tapılmadı. Filtrləri dəyişdirin.'}</p>
+            <strong>{t('courses.notFound')}</strong>
+            <p>{t('courses.notFoundDesc')}</p>
             {hasFilters && (
               <button type="button" className="ds-btn ds-btn--secondary ds-btn--sm" onClick={resetFilters}>
-                {t('pages.courses.resetFilters', 'Filtrləri sıfırla')}
+                {t('courses.resetFilters')}
               </button>
             )}
           </div>
