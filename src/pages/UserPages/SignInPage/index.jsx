@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
 import { Mail } from 'lucide-react';
@@ -13,6 +13,21 @@ function SignInPage() {
   const { t } = useTranslation();
   const toast = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Where to return after sign-in (e.g. the course the visitor wanted to buy). Kept for the session so it
+  // also survives a detour through registration. Only same-site paths are accepted.
+  const returnTo = (() => {
+    const fromUrl = searchParams.get('next');
+    if (fromUrl) {
+      try { sessionStorage.setItem('authNext', fromUrl); } catch { /* storage unavailable */ }
+    }
+    let value = fromUrl;
+    if (!value) {
+      try { value = sessionStorage.getItem('authNext'); } catch { value = null; }
+    }
+    return value && value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/signin') ? value : null;
+  })();
 
   const [loginUser, { isLoading }] = useLoginUserMutation();
 
@@ -72,7 +87,8 @@ function SignInPage() {
       } else if (role === 'Teacher' || role === 'CourseCenter') {
         navigate('/instructor-portal');
       } else {
-        navigate('/profile');
+        try { sessionStorage.removeItem('authNext'); } catch { /* storage unavailable */ }
+        navigate(returnTo || '/profile', { replace: true });
       }
     } catch (err) {
       toast.apiError(err, 'toast.auth.invalidCredentials');

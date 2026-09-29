@@ -128,11 +128,19 @@ public class PaymentsController : ControllerBase
     /// Converts any currency (USD, EUR, GBP, TRY, RUB) to AZN for ePoint checkout.
     /// Returns redirect URL for the user to complete payment.
     /// </summary>
+    [Authorize]
     [HttpPost("initiate-course-payment")]
     public async Task<IActionResult> InitiateCoursePayment([FromBody] InitiateCoursePaymentDto dto)
     {
         try
         {
+            // Purchases always belong to the signed-in account (a SuperAdmin may act for someone else).
+            var callerEmail = User.GetEmail();
+            if (string.IsNullOrWhiteSpace(callerEmail))
+                return Unauthorized(new { success = false, message = "Daxil olmaq tələb olunur." });
+            if (dto != null)
+                dto.UserEmail = User.IsSuperAdmin() && !string.IsNullOrWhiteSpace(dto.UserEmail) ? dto.UserEmail.Trim() : callerEmail;
+
             if (dto == null || dto.CourseId == Guid.Empty || string.IsNullOrWhiteSpace(dto.UserEmail))
                 return BadRequest(new { success = false, message = "courseId və userEmail tələb olunur." });
 

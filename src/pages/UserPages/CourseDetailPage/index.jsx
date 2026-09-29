@@ -45,7 +45,9 @@ function getUserInfo() {
   const token = Cookies.get('userToken');
   if (!token) return { email: '', name: '', isLoggedIn: false };
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    // An expired session counts as signed out, so purchases always go through a fresh sign-in.
+    if (payload.exp && payload.exp * 1000 < Date.now()) return { email: '', name: '', isLoggedIn: false };
     const email = payload.email || payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '';
     const name = localStorage.getItem('userName') || email.split('@')[0];
     return { email, name, isLoggedIn: true };
@@ -175,7 +177,18 @@ function CourseDetailPage() {
   }
 
   // ── Enrollment / Payment Handler ─────────────────────────────────────────────
+  const goToSignIn = () => {
+    toast.info(t('toast.auth.loginRequired'));
+    navigate(`/signin?next=${encodeURIComponent(`/courses/${id}`)}`);
+  };
+
   const handleEnrollOrBuy = async () => {
+    // Buying or enrolling always requires an account.
+    if (!isLoggedIn) {
+      goToSignIn();
+      return;
+    }
+
     if (isEnrolled) {
       // Already enrolled — scroll to first lecture
       const firstVideo = course.sections?.[0]?.lectures?.find(l => l.videoUrl);
@@ -213,6 +226,11 @@ function CourseDetailPage() {
         toast.error(t('toast.course.paymentUrlMissing'));
       }
     } catch (err) {
+      // The saved session is no longer valid on the server (expired or signed out elsewhere).
+      if (err?.status === 401) {
+        goToSignIn();
+        return;
+      }
       toast.apiError(err, 'toast.course.paymentError');
     } finally {
       setIsPaymentLoading(false);
@@ -222,8 +240,7 @@ function CourseDetailPage() {
   // ── Lecture click handler ─────────────────────────────────────────────────────
   const handleLectureClick = (lec) => {
     if (!isLoggedIn) {
-      toast.info(t('toast.auth.loginRequired'));
-      navigate('/signin');
+      goToSignIn();
       return;
     }
     if (lec.videoUrl) {
