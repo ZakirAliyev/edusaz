@@ -203,8 +203,8 @@ function CoursesPage() {
           <span className="ds-eyebrow">{t('courses.platform')}</span>
           <h1 className="ds-title">
             {t('courses.heroTitle')}
-            {/* Chinese, Japanese and Korean don't put spaces between the two halves of the headline. */}
-            {/^(zh|jp|kr)/.test(i18n.language || '') ? '' : ' '}
+            {/* Chinese and Japanese don't put spaces between the two halves of the headline. */}
+            {/^(zh|jp)/.test(i18n.language || '') ? '' : ' '}
             <span className="pcp-header__accent">{t('courses.heroAccent')}</span>
           </h1>
           <p className="ds-lead">{t('courses.heroDesc')}</p>
