@@ -24,6 +24,12 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Server-only secrets that must never live in this (public) repository, e.g. {"Jwt":{"SecretKey":"..."}}.
+// The deploy workflow creates the file on the VPS; its values override appsettings*.json.
+var secretsFile = Environment.GetEnvironmentVariable("EDUSAZ_SECRETS_FILE") ?? "/etc/edusaz/secrets.json";
+builder.Configuration.AddJsonFile(secretsFile, optional: true, reloadOnChange: false);
+builder.Configuration.AddEnvironmentVariables();
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -47,7 +53,17 @@ builder.Services.AddIdentity<User, Role>(options =>
     .AddDefaultTokenProviders();
 
 // Configure JWT Authentication
-var secretKey = builder.Configuration["Jwt:SecretKey"] ?? "edusaz_super_secret_key_1234567890";
+// The old hard-coded key is public on GitHub, so tokens signed with it are never accepted again.
+const string LegacyPublicJwtKey = "edusaz_super_secret_key_1234567890";
+var secretKey = builder.Configuration["Jwt:SecretKey"];
+if (string.IsNullOrWhiteSpace(secretKey) || secretKey == LegacyPublicJwtKey || secretKey.Length < 32)
+{
+    if (!builder.Environment.IsDevelopment())
+        throw new InvalidOperationException($"Jwt:SecretKey is missing or insecure. Set it in {secretsFile}.");
+    secretKey = "edusaz-local-development-only-signing-key-0123456789";
+}
+// Token issuing services read the same value from configuration.
+builder.Configuration["Jwt:SecretKey"] = secretKey;
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

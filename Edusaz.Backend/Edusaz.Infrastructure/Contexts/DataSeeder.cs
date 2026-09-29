@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Edusaz.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Edusaz.Infrastructure.Contexts;
 
@@ -106,7 +108,25 @@ public static class DataSeeder
 
             const string superAdminRole = "SuperAdmin";
 
-            const string adminEmail = "superadmin@edu.saz";
+            // Only bootstrap an admin on an empty system. Checking by role (not by a fixed email) means a renamed or
+            // re-passworded admin never brings the default account back on the next restart.
+            if ((await userManager.GetUsersInRoleAsync(superAdminRole)).Count > 0) return;
+
+            var configuration = serviceProvider.GetService<IConfiguration>();
+            var environment = serviceProvider.GetService<IHostEnvironment>();
+            var adminEmail = configuration?["Seed:SuperAdminEmail"] ?? "superadmin@edu.saz";
+            var adminPassword = configuration?["Seed:SuperAdminPassword"];
+            if (string.IsNullOrWhiteSpace(adminPassword))
+            {
+                // The development password is public in this repository, so it is never used outside Development.
+                if (environment == null || !environment.IsDevelopment())
+                {
+                    Console.WriteLine("[Seed] No SuperAdmin exists and Seed:SuperAdminPassword is not set; skipping.");
+                    return;
+                }
+                adminPassword = "EduSaz2026!";
+            }
+
             var superAdminUser = await userManager.FindByEmailAsync(adminEmail);
             if (superAdminUser == null)
             {
@@ -121,11 +141,15 @@ public static class DataSeeder
                     CreatedAt = DateTime.UtcNow
                 };
 
-                var createResult = await userManager.CreateAsync(superAdminUser, "EduSaz2026!");
+                var createResult = await userManager.CreateAsync(superAdminUser, adminPassword);
                 if (createResult.Succeeded)
                 {
                     await userManager.AddToRoleAsync(superAdminUser, superAdminRole);
                 }
+            }
+            else
+            {
+                await userManager.AddToRoleAsync(superAdminUser, superAdminRole);
             }
         }
     }

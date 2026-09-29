@@ -47,7 +47,7 @@ public class CountryService : ICountryService
         return countries.Select(c =>
         {
             var translation = c.Translations.FirstOrDefault(t => t.Language?.Code == lang) 
-                              ?? c.Translations.FirstOrDefault();
+                              ?? c.Translations.FirstOrDefault(t => t.Language?.Code == "en") ?? c.Translations.FirstOrDefault(t => t.Language?.Code == "az") ?? c.Translations.FirstOrDefault();
 
             int actualUniversityCount = universities.Count(u => 
                 (u.CountryId.HasValue && u.CountryId.Value == c.Id) ||
@@ -92,7 +92,7 @@ public class CountryService : ICountryService
         );
 
         var translation = country.Translations.FirstOrDefault(t => t.Language?.Code == lang)
-                          ?? country.Translations.FirstOrDefault();
+                          ?? country.Translations.FirstOrDefault(t => t.Language?.Code == "en") ?? country.Translations.FirstOrDefault(t => t.Language?.Code == "az") ?? country.Translations.FirstOrDefault();
 
         return new CountryDto
         {
@@ -131,7 +131,7 @@ public class CountryService : ICountryService
         );
 
         var translation = country.Translations.FirstOrDefault(t => t.Language?.Code == lang)
-                          ?? country.Translations.FirstOrDefault();
+                          ?? country.Translations.FirstOrDefault(t => t.Language?.Code == "en") ?? country.Translations.FirstOrDefault(t => t.Language?.Code == "az") ?? country.Translations.FirstOrDefault();
 
         return new CountryDto
         {
@@ -155,7 +155,7 @@ public class CountryService : ICountryService
 
         return universities.Select(u => {
             var translation = u.Translations.FirstOrDefault(t => t.Language?.Code == lang) 
-                              ?? u.Translations.FirstOrDefault();
+                              ?? u.Translations.FirstOrDefault(t => t.Language?.Code == "en") ?? u.Translations.FirstOrDefault(t => t.Language?.Code == "az") ?? u.Translations.FirstOrDefault();
             return new UniversityDto
             {
                 Id = u.Id,
@@ -265,6 +265,10 @@ public class CountryService : ICountryService
         foreach (var l in languages)
         {
             var existingTranslation = c.Translations.FirstOrDefault(t => t.LanguageId == l.Id);
+
+            // Other languages keep their curated translations; only missing ones are machine-translated.
+            if (existingTranslation != null && baseLang != null && l.Id != baseLang.Id) continue;
+
             string nameToSet = countryName;
 
             if (baseLang != null && l.Id != baseLang.Id)
@@ -280,6 +284,7 @@ public class CountryService : ICountryService
             if (existingTranslation != null)
             {
                 existingTranslation.Name = nameToSet;
+                if (!string.IsNullOrWhiteSpace(dto.Label)) existingTranslation.Label = dto.Label;
             }
             else
             {

@@ -83,7 +83,7 @@ public class UniversityService : IUniversityService
             }
 
             var translation = u.Translations != null 
-                              ? (u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) ?? u.Translations.FirstOrDefault())
+                              ? (u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) ?? u.Translations.FirstOrDefault(t => t.Language?.Code == "en") ?? u.Translations.FirstOrDefault(t => t.Language?.Code == "az") ?? u.Translations.FirstOrDefault())
                               : null;
 
             var uMedia = mediaList.Where(m => m.UniversityId == u.Id).OrderBy(m => m.OrderIndex).ToList();
@@ -97,7 +97,7 @@ public class UniversityService : IUniversityService
                 var countryTranslation = country.Translations?.FirstOrDefault(t => 
                     (t.Language != null && string.Equals(t.Language.Code, langCode, StringComparison.OrdinalIgnoreCase)) ||
                     (targetLang != null && t.LanguageId == targetLang.Id)
-                ) ?? country.Translations?.FirstOrDefault();
+                ) ?? country.Translations?.FirstOrDefault(t => t.Language?.Code == "en") ?? country.Translations?.FirstOrDefault(t => t.Language?.Code == "az") ?? country.Translations?.FirstOrDefault();
 
                 displayCountry = !string.IsNullOrEmpty(countryTranslation?.Name)
                                  ? countryTranslation!.Name
@@ -170,7 +170,7 @@ public class UniversityService : IUniversityService
         }
 
         var translation = u.Translations != null
-                          ? (u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) ?? u.Translations.FirstOrDefault())
+                          ? (u.Translations.FirstOrDefault(t => t.Language != null && t.Language.Code == langCode) ?? u.Translations.FirstOrDefault(t => t.Language?.Code == "en") ?? u.Translations.FirstOrDefault(t => t.Language?.Code == "az") ?? u.Translations.FirstOrDefault())
                           : null;
 
         var media = await _universityMediaReadRepository.GetAllAsync(m => m.UniversityId == id && !m.IsDeleted);
@@ -186,7 +186,7 @@ public class UniversityService : IUniversityService
             var countryTranslation = country.Translations?.FirstOrDefault(t => 
                 (t.Language != null && string.Equals(t.Language.Code, langCode, StringComparison.OrdinalIgnoreCase)) ||
                 (targetLang != null && t.LanguageId == targetLang.Id)
-            ) ?? country.Translations?.FirstOrDefault();
+            ) ?? country.Translations?.FirstOrDefault(t => t.Language?.Code == "en") ?? country.Translations?.FirstOrDefault(t => t.Language?.Code == "az") ?? country.Translations?.FirstOrDefault();
 
             displayCountry = !string.IsNullOrEmpty(countryTranslation?.Name)
                              ? countryTranslation!.Name
@@ -387,17 +387,24 @@ public class UniversityService : IUniversityService
         u.Ranking = dto.Ranking;
         u.HasScholarship = dto.HasScholarship;
 
-        var baseTranslation = u.Translations.FirstOrDefault();
+        // Edit the translation of the language the admin is writing in, not an arbitrary row.
+        var editLanguages = await _languageReadRepository.GetAllAsync(x => !x.IsDeleted);
+        var baseLanguage = editLanguages.FirstOrDefault(x => x.Code == dto.BaseLanguageCode)
+                           ?? editLanguages.FirstOrDefault(x => x.Code == "az");
+        var baseTranslation = baseLanguage != null
+            ? u.Translations.FirstOrDefault(t => t.LanguageId == baseLanguage.Id)
+            : u.Translations.FirstOrDefault();
         if (baseTranslation != null)
         {
             baseTranslation.Name = dto.Name;
             baseTranslation.Description = dto.Description;
             baseTranslation.City = dto.City;
         }
-        else
+        else if (baseLanguage != null)
         {
             u.Translations.Add(new UniversityTranslation
             {
+                LanguageId = baseLanguage.Id,
                 Name = dto.Name,
                 Description = dto.Description,
                 City = dto.City

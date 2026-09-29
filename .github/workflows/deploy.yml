@@ -86,7 +86,6 @@ jobs:
             psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "EnglishScore" text;' || true
             psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "Gpa" double precision;' || true
             psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "StudentApplications" ADD COLUMN IF NOT EXISTS "CourseId" uuid;' || true
-            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'DROP TABLE IF EXISTS "CoursePayments" CASCADE;' || sudo -u postgres psql -d edusaz_db -c 'DROP TABLE IF EXISTS "CoursePayments" CASCADE;' || true
             psql -h 127.0.0.1 -U postgres -d edusaz_db -c '
               CREATE TABLE IF NOT EXISTS "CoursePayments" (
                 "Id" uuid NOT NULL PRIMARY KEY,
@@ -110,9 +109,7 @@ jobs:
               );
               ALTER TABLE "CoursePayments" OWNER TO postgres;
               GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO postgres;
-              GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO PUBLIC;
               GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
-              GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO PUBLIC;
             ' || sudo -u postgres psql -d edusaz_db -c '
               CREATE TABLE IF NOT EXISTS "CoursePayments" (
                 "Id" uuid NOT NULL PRIMARY KEY,
@@ -136,31 +133,25 @@ jobs:
               );
               ALTER TABLE "CoursePayments" OWNER TO postgres;
               GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO postgres;
-              GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO PUBLIC;
               GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
-              GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO PUBLIC;
             ' || true
 
             psql -h 127.0.0.1 -U postgres -d edusaz_db -c "
               DO \$\$ DECLARE r RECORD;
               BEGIN
                 EXECUTE 'GRANT ALL ON SCHEMA public TO postgres;';
-                EXECUTE 'GRANT ALL ON SCHEMA public TO PUBLIC;';
                 FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
                   EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres;';
                   EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO postgres;';
-                  EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO PUBLIC;';
                 END LOOP;
               END \$\$;
             " || sudo -u postgres psql -d edusaz_db -c "
               DO \$\$ DECLARE r RECORD;
               BEGIN
                 EXECUTE 'GRANT ALL ON SCHEMA public TO postgres;';
-                EXECUTE 'GRANT ALL ON SCHEMA public TO PUBLIC;';
                 FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
                   EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres;';
                   EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO postgres;';
-                  EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO PUBLIC;';
                 END LOOP;
               END \$\$;
             " || true
@@ -218,19 +209,15 @@ jobs:
                   ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "TransactionId" text NOT NULL DEFAULT '';
                   ALTER TABLE "CoursePayments" OWNER TO postgres;
                   GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO postgres;
-                  GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO PUBLIC;
                   GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
-                  GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO PUBLIC;
                 ' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c "
                   DO \$\$ DECLARE r RECORD;
                   BEGIN
                     EXECUTE 'GRANT ALL ON SCHEMA public TO postgres;';
-                    EXECUTE 'GRANT ALL ON SCHEMA public TO PUBLIC;';
                     FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
                       EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres;';
                       EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO postgres;';
-                      EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO PUBLIC;';
                     END LOOP;
                   END \$\$;
                 " 2>/dev/null || true

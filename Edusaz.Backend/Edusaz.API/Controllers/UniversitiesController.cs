@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Edusaz.Application.Abstracts.Services;
 using Edusaz.Application.Dtos;
 using Edusaz.Application.Wrappers;
+using Edusaz.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
@@ -155,5 +157,58 @@ public class UniversitiesController : ControllerBase
         var result = await _universityService.ApproveUniversityAsync(id);
         if (!result) return NotFound(ApiResponse<bool>.ErrorResponse("University not found", 404));
         return Ok(ApiResponse<bool>.SuccessResponse(true, "University approved successfully"));
+    }
+
+    /// <summary>Creates or updates the name/city/description of a university in several languages at once.</summary>
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
+    [HttpPut("{id:guid}/translations")]
+    public async Task<IActionResult> UpsertTranslations(Guid id, [FromBody] List<TranslationUpsertDto> items)
+    {
+        if (items == null || items.Count == 0)
+            return BadRequest(ApiResponse<string>.ErrorResponse("Tərcümə siyahısı boşdur.", 400));
+        if (!await _context.Universities.AnyAsync(u => u.Id == id && !u.IsDeleted))
+            return NotFound(ApiResponse<string>.ErrorResponse("University not found", 404));
+
+        var languages = await _context.Languages.Where(l => !l.IsDeleted)
+            .ToDictionaryAsync(l => l.Code.ToLower(), l => l.Id);
+        var rows = await _context.UniversityTranslations.Where(t => t.UniversityId == id && !t.IsDeleted).ToListAsync();
+
+        int created = 0, updated = 0;
+        var skipped = new List<string>();
+        foreach (var item in items)
+        {
+            var code = (item.LanguageCode ?? "").Trim().ToLower();
+            if (string.IsNullOrWhiteSpace(item.Name) || !languages.TryGetValue(code, out var languageId))
+            {
+                skipped.Add(code);
+                continue;
+            }
+
+            var sameLanguage = rows.Where(t => t.LanguageId == languageId).ToList();
+            var row = sameLanguage.FirstOrDefault();
+            // Duplicate rows for one language make the displayed text unpredictable; keep only one.
+            foreach (var duplicate in sameLanguage.Skip(1))
+            {
+                duplicate.IsDeleted = true;
+                duplicate.DeletedDate = DateTime.UtcNow;
+            }
+
+            if (row == null)
+            {
+                row = new UniversityTranslation { UniversityId = id, LanguageId = languageId, City = "", Description = "" };
+                _context.UniversityTranslations.Add(row);
+                rows.Add(row);
+                created++;
+            }
+            else updated++;
+
+            row.Name = item.Name.Trim();
+            if (item.City != null) row.City = item.City.Trim();
+            if (item.Description != null) row.Description = item.Description.Trim();
+            row.LastUpdatedDate = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(ApiResponse<object>.SuccessResponse(new { created, updated, skipped }));
     }
 }

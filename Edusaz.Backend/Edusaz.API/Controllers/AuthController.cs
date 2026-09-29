@@ -377,14 +377,23 @@ public class AuthController : ControllerBase
 
         if (!string.IsNullOrEmpty(dto.FirstName)) user.FirstName = dto.FirstName.Trim();
         if (!string.IsNullOrEmpty(dto.LastName)) user.LastName = dto.LastName.Trim();
-        if (!string.IsNullOrEmpty(dto.Email) && dto.Email != user.Email)
+        if (!string.IsNullOrWhiteSpace(dto.Email) && !string.Equals(dto.Email.Trim(), user.Email, StringComparison.OrdinalIgnoreCase))
         {
-            user.Email = dto.Email.Trim().ToLower();
-            user.UserName = dto.Email.Trim().ToLower();
+            var newEmail = dto.Email.Trim().ToLower();
+            var taken = await _userManager.FindByEmailAsync(newEmail);
+            if (taken != null && taken.Id != user.Id)
+                return BadRequest(ApiResponse<string>.ErrorResponse("Bu email artıq istifadə olunur."));
+            user.Email = newEmail;
+            user.UserName = newEmail;
         }
 
         var currentRoles = await _userManager.GetRolesAsync(user);
         var effectiveRole = !string.IsNullOrEmpty(dto.Role) ? dto.Role : (currentRoles.FirstOrDefault() ?? "Student");
+
+        // Never leave the platform without an administrator.
+        var losesSuperAdmin = currentRoles.Contains("SuperAdmin") && !effectiveRole.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase);
+        if (losesSuperAdmin && (await _userManager.GetUsersInRoleAsync("SuperAdmin")).Count <= 1)
+            return BadRequest(ApiResponse<string>.ErrorResponse("Sonuncu SuperAdmin hesabının rolu dəyişdirilə bilməz."));
 
         if (effectiveRole.Equals("UniversityAdmin", StringComparison.OrdinalIgnoreCase))
         {
@@ -395,13 +404,17 @@ public class AuthController : ControllerBase
             user.UniversityId = null;
         }
 
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+            return BadRequest(ApiResponse<string>.ErrorResponse(string.Join("; ", updateResult.Errors.Select(e => e.Description))));
+
         if (!string.IsNullOrEmpty(dto.Password))
         {
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            await _userManager.ResetPasswordAsync(user, token, dto.Password);
+            var resetResult = await _userManager.ResetPasswordAsync(user, token, dto.Password);
+            if (!resetResult.Succeeded)
+                return BadRequest(ApiResponse<string>.ErrorResponse(string.Join("; ", resetResult.Errors.Select(e => e.Description))));
         }
-
-        await _userManager.UpdateAsync(user);
 
         if (!string.IsNullOrEmpty(dto.Role))
         {
@@ -426,8 +439,7 @@ public class AuthController : ControllerBase
         if (user == null)
             return NotFound(ApiResponse<string>.ErrorResponse("İstifadəçi tapılmadı"));
 
-        var emailLower = (user.Email ?? "").ToLower().Trim();
-        if (emailLower == "superadmin@edu.saz" || emailLower == "superadmin@edusaz.com")
+        if (await _userManager.IsInRoleAsync(user, "SuperAdmin"))
         {
             return BadRequest(ApiResponse<string>.ErrorResponse("SuperAdmin hesabı silinə bilməz!"));
         }
