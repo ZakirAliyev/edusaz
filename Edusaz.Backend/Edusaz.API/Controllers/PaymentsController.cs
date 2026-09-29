@@ -40,7 +40,9 @@ public class PaymentsController : ControllerBase
     // ── ePoint Helpers ────────────────────────────────────────────────────────
 
     private string GetMerchantKey() => _config["EPoint:MerchantKey"] ?? "i000201834";
-    private string GetSecretKey() => _config["EPoint:SecretKey"] ?? "2wvHlC85FkOWwBWdR4dYxoxd";
+    // The secret lives only on the server (/etc/edusaz/secrets.json), never in this public repository.
+    private string GetSecretKey() => _config["EPoint:SecretKey"]
+        ?? throw new InvalidOperationException("EPoint:SecretKey is not configured.");
     private string GetEPointBaseUrl() => _config["EPoint:BaseUrl"] ?? "https://epoint.az";
     private string GetSuccessRedirect() => _config["EPoint:SuccessRedirectUrl"] ?? "https://edusaz.com/payment/result";
     private string GetErrorRedirect() => _config["EPoint:ErrorRedirectUrl"] ?? "https://edusaz.com/payment/result";
