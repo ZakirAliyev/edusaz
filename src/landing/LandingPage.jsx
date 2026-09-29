@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,6 +13,8 @@ import {
   Languages,
   Lightbulb,
   MapPin,
+  Pause,
+  Play,
   Search,
   ShieldCheck,
   Wallet,
@@ -23,7 +25,15 @@ import { resolveMediaUrl } from '../config/env';
 import './i18n';
 import './landing.scss';
 
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1400&q=75';
+// Background clip: "Students walking in a university" (Mixkit Stock Video Free License — commercial use, no attribution).
+const HERO_VIDEO = { webm: '/media/edusaz-hero.webm', mp4: '/media/edusaz-hero.mp4', poster: '/media/edusaz-hero-poster.jpg' };
+
+/** Video only when the visitor hasn't asked for less motion or less data; otherwise the still poster. */
+const canPlayHeroVideo = () => {
+  if (typeof window === 'undefined') return false;
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return false;
+  return !navigator.connection?.saveData;
+};
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=900&q=70';
 const TEACHING_LANGUAGES = ['en', 'tr', 'az', 'de', 'ru'];
 
@@ -44,12 +54,72 @@ function SectionHead({ title, subtitle, action }) {
   );
 }
 
+function HeroBackdrop() {
+  const { t } = useTranslation();
+  const videoRef = useRef(null);
+  const [enabled] = useState(canPlayHeroVideo);
+  const [ready, setReady] = useState(false);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!enabled || !video) return;
+    // Some browsers ignore autoplay until play() is called explicitly; a rejection just leaves the poster.
+    video.play().catch(() => setPaused(true));
+  }, [enabled]);
+
+  const toggle = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().then(() => setPaused(false)).catch(() => {});
+    } else {
+      video.pause();
+      setPaused(true);
+    }
+  };
+
+  return (
+    <>
+      <img className="lp-hero__media" src={HERO_VIDEO.poster} alt="" aria-hidden fetchPriority="high" />
+      {enabled && (
+        <video
+          ref={videoRef}
+          className="lp-hero__media lp-hero__video"
+          data-ready={ready || undefined}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster={HERO_VIDEO.poster}
+          aria-hidden
+          onPlaying={() => setReady(true)}
+        >
+          <source src={HERO_VIDEO.webm} type="video/webm" />
+          <source src={HERO_VIDEO.mp4} type="video/mp4" />
+        </video>
+      )}
+      <span className="lp-hero__shade" aria-hidden />
+      {enabled && (
+        <button
+          type="button"
+          className="lp-hero__pause"
+          onClick={toggle}
+          aria-label={paused ? t('landing.hero.playVideo') : t('landing.hero.pauseVideo')}
+        >
+          {paused ? <Play aria-hidden /> : <Pause aria-hidden />}
+        </button>
+      )}
+    </>
+  );
+}
+
 function Hero({ countries, universities, scholarshipCount }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [country, setCountry] = useState('');
   const [language, setLanguage] = useState('');
-  const featured = universities.find((u) => u.hasScholarship && u.logoUrl) || universities[0];
 
   const submit = (e) => {
     e.preventDefault();
@@ -68,98 +138,73 @@ function Hero({ countries, universities, scholarshipCount }) {
 
   return (
     <section className="lp-hero">
-      <div className="lp-container lp-hero__grid">
-        <div className="lp-hero__copy">
-          <p className="lp-eyebrow">
-            <span className="lp-eyebrow__dot" aria-hidden />
-            {t('landing.hero.eyebrow')}
-          </p>
-          <h1 className="lp-h1">
-            {t('landing.hero.titleA')} <em>{t('landing.hero.titleAccent')}</em>
-          </h1>
-          <p className="lp-hero__subtitle">{t('landing.hero.subtitle')}</p>
+      <div className="lp-hero__frame">
+        <HeroBackdrop />
+        <div className="lp-container lp-hero__inner">
+          <div className="lp-hero__copy">
+            <p className="lp-eyebrow">
+              <span className="lp-eyebrow__dot" aria-hidden />
+              {t('landing.hero.eyebrow')}
+            </p>
+            <h1 className="lp-h1">
+              {t('landing.hero.titleA')} <em>{t('landing.hero.titleAccent')}</em>
+            </h1>
+            <p className="lp-hero__subtitle">{t('landing.hero.subtitle')}</p>
 
-          <form className="lp-search" onSubmit={submit} role="search">
-            <label className="lp-search__field">
-              <span className="lp-search__label">{t('landing.hero.where')}</span>
-              <span className="lp-search__control">
-                <MapPin aria-hidden />
-                <select value={country} onChange={(e) => setCountry(e.target.value)}>
-                  <option value="">{t('landing.hero.anyCountry')}</option>
-                  {countries.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.flagEmoji ? `${c.flagEmoji} ` : ''}
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown aria-hidden className="lp-search__chevron" />
-              </span>
-            </label>
-            <label className="lp-search__field">
-              <span className="lp-search__label">{t('landing.hero.language')}</span>
-              <span className="lp-search__control">
-                <Languages aria-hidden />
-                <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-                  <option value="">{t('landing.hero.anyLanguage')}</option>
-                  {TEACHING_LANGUAGES.map((code) => (
-                    <option key={code} value={code}>
-                      {t(`landing.langs.${code}`)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown aria-hidden className="lp-search__chevron" />
-              </span>
-            </label>
-            <button type="submit" className="lp-btn lp-btn--primary lp-search__submit">
-              <Search aria-hidden />
-              {t('landing.hero.cta')}
-            </button>
-          </form>
-
-          <Link to="/ai-discovery" className="lp-hero__quiz">
-            {t('landing.hero.quiz')}
-            <ArrowRight aria-hidden />
-          </Link>
-
-          {stats.length > 0 && (
-            <dl className="lp-stats">
-              {stats.map(([value, label]) => (
-                <div key={label} className="lp-stats__item">
-                  <dt className="lp-stats__value">{value}</dt>
-                  <dd className="lp-stats__label">{label}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </div>
-
-        <div className="lp-hero__visual">
-          <img className="lp-hero__photo" src={HERO_IMAGE} alt={t('landing.hero.imageAlt')} width="700" height="820" fetchPriority="high" />
-          {featured && (
-            <Link to={`/universities/${featured.id}`} className="lp-float lp-float--uni">
-              <img src={resolveMediaUrl(featured.logoUrl) || FALLBACK_IMAGE} onError={onImgError} alt="" className="lp-float__logo" />
-              <span className="lp-float__body">
-                <span className="lp-float__title">{featured.name}</span>
-                <span className="lp-float__meta">
-                  {[featured.city, featured.country].filter(Boolean).join(', ')}
+            <form className="lp-search" onSubmit={submit} role="search">
+              <label className="lp-search__field">
+                <span className="lp-search__label">{t('landing.hero.where')}</span>
+                <span className="lp-search__control">
+                  <MapPin aria-hidden />
+                  <select value={country} onChange={(e) => setCountry(e.target.value)}>
+                    <option value="">{t('landing.hero.anyCountry')}</option>
+                    {countries.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.flagEmoji ? `${c.flagEmoji} ` : ''}
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown aria-hidden className="lp-search__chevron" />
                 </span>
-                {featured.tuition && (
-                  <span className="lp-float__meta">
-                    {t('landing.card.tuition')}: <strong>{featured.tuition}</strong>
-                  </span>
-                )}
-              </span>
+              </label>
+              <label className="lp-search__field">
+                <span className="lp-search__label">{t('landing.hero.language')}</span>
+                <span className="lp-search__control">
+                  <Languages aria-hidden />
+                  <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+                    <option value="">{t('landing.hero.anyLanguage')}</option>
+                    {TEACHING_LANGUAGES.map((code) => (
+                      <option key={code} value={code}>
+                        {t(`landing.langs.${code}`)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown aria-hidden className="lp-search__chevron" />
+                </span>
+              </label>
+              <button type="submit" className="lp-btn lp-btn--primary lp-search__submit">
+                <Search aria-hidden />
+                {t('landing.hero.cta')}
+              </button>
+            </form>
+
+            <Link to="/ai-discovery" className="lp-hero__quiz">
+              {t('landing.hero.quiz')}
+              <ArrowRight aria-hidden />
             </Link>
-          )}
-          {scholarshipCount > 0 && (
-            <Link to="/scholarships" className="lp-float lp-float--chip">
-              <Wallet aria-hidden />
-              <span>
-                <strong>{scholarshipCount}</strong> {t('landing.card.openScholarships')}
-              </span>
-            </Link>
-          )}
+
+            {stats.length > 0 && (
+              <dl className="lp-stats">
+                {stats.map(([value, label]) => (
+                  <div key={label} className="lp-stats__item">
+                    <dt className="lp-stats__value">{value}</dt>
+                    <dd className="lp-stats__label">{label}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </div>
         </div>
       </div>
     </section>
