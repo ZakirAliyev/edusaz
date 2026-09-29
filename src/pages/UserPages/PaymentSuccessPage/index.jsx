@@ -38,6 +38,8 @@ function PaymentSuccessPage() {
   const courseId = statusData?.courseId;
   const courseTitle = statusData?.courseTitle;
   const shownAmount = amount || statusData?.amount;
+  // The gateway redirect alone is not proof of payment; trust the server once it has answered.
+  const isPending = !!statusData?.status && statusData.status !== 'Paid';
 
   return (
     <main className="ds-page pr-page">
@@ -80,9 +82,15 @@ function PaymentSuccessPage() {
             <div className="pr-row">
               <dt>{t('payment.status', 'Status')}</dt>
               <dd>
-                <span className="ds-badge ds-badge--success pr-status">
-                  {t('payment.statusSuccess', 'Uğurlu (Ödənilib)')}
-                </span>
+                {isPending ? (
+                  <span className="ds-badge ds-badge--warning pr-status">
+                    {t('pages.paymentSuccess.pending', 'Ödəniş hələ yoxlanılır')}
+                  </span>
+                ) : (
+                  <span className="ds-badge ds-badge--success pr-status">
+                    {t('payment.statusSuccess', 'Uğurlu (Ödənilib)')}
+                  </span>
+                )}
               </dd>
             </div>
             <div className="pr-row">
@@ -91,7 +99,7 @@ function PaymentSuccessPage() {
             </div>
             <div className="pr-row">
               <dt>{t('payment.date', 'Tarix')}</dt>
-              <dd>{new Date().toLocaleString('az-AZ')}</dd>
+              <dd>{new Date(statusData?.paidAt || Date.now()).toLocaleString('az-AZ')}</dd>
             </div>
           </dl>
 

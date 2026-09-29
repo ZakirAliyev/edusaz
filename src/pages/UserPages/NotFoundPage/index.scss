@@ -1,0 +1,30 @@
+// Public 404 page.
+.nf {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  min-height: 56vh;
+  text-align: center;
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 4px;
+    border-radius: var(--ds-r);
+    background: var(--ds-brand-soft);
+    color: var(--ds-brand-ink);
+
+    svg {
+      width: 26px;
+      height: 26px;
+    }
+  }
+
+  p {
+    max-width: 28rem;
+    margin-bottom: 8px;
+  }
+}

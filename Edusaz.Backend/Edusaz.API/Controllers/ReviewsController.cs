@@ -8,6 +8,8 @@ using Edusaz.Domain.Entities;
 using Edusaz.Infrastructure.Contexts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Edusaz.API.Security;
 
 namespace Edusaz.API.Controllers;
 
@@ -97,6 +99,7 @@ public class ReviewsController : ControllerBase
         return Ok(ApiResponse<ReviewDto>.SuccessResponse(result, "Rəyiniz uğurla əlavə edildi!", 201));
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {

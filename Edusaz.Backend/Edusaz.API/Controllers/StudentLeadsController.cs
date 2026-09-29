@@ -10,6 +10,7 @@ using Edusaz.Infrastructure.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Edusaz.API.Security;
 
 namespace Edusaz.API.Controllers;
 
@@ -26,9 +27,17 @@ public class StudentLeadsController : ControllerBase
         _emailNotificationService = emailNotificationService;
     }
 
+    [Authorize(Roles = AccessRoles.UniversityStaff)]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] Guid? universityId = null, [FromQuery] Guid? courseId = null)
     {
+        // A university admin only ever sees their own university's applications.
+        if (!User.IsSuperAdmin())
+        {
+            universityId = await User.GetUniversityIdAsync(_context);
+            if (universityId is null) return Forbid();
+        }
+
         var query = _context.StudentApplications.AsQueryable();
 
         if (universityId.HasValue && universityId.Value != Guid.Empty)
@@ -186,12 +195,14 @@ public class StudentLeadsController : ControllerBase
         return Ok(ApiResponse<StudentLeadDto>.SuccessResponse(result, "Müraciət uğurla göndərildi!", 201));
     }
 
+    [Authorize(Roles = AccessRoles.UniversityStaff)]
     [HttpPut("{id}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateLeadStatusDto dto)
     {
         var lead = await _context.StudentApplications.FindAsync(id);
         if (lead == null)
             return NotFound(ApiResponse<StudentLeadDto>.ErrorResponse("Lead not found in Database", 404));
+        if (!await User.CanManageUniversityAsync(_context, lead.UniversityId)) return Forbid();
 
         lead.Status = dto.Status;
         await _context.SaveChangesAsync();

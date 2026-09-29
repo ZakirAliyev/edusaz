@@ -4,14 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { ArrowUpRight, Building2, Globe2, Search, SearchX, Wallet, X } from 'lucide-react';
 import { useLanguage } from '../../../context/LanguageContext';
 import { useGetCountriesQuery } from '../../../services/apis/userApi';
-import { resolveMediaUrl } from '../../../config/env';
 import ScrollToTop from '../../../components/Common/ScrollToTop';
 import './index.scss';
-
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=900&q=70';
-const onImgError = (e) => {
-  if (e.currentTarget.src !== FALLBACK_IMAGE) e.currentTarget.src = FALLBACK_IMAGE;
-};
 
 function DestinationsPage() {
   const { t } = useTranslation();
@@ -93,21 +87,16 @@ function DestinationsPage() {
             {filtered.map((country, i) => (
               <li key={country.id} data-reveal style={{ '--delay': `${Math.min(i % 3, 5) * 60}ms` }}>
                 <Link to={`/destinations/${country.code || country.id}`} className="dp-card">
-                  <img
-                    src={resolveMediaUrl(country.imageUrl) || FALLBACK_IMAGE}
-                    onError={onImgError}
-                    alt=""
-                    loading="lazy"
-                    className="dp-card__img"
-                  />
-                  <span className="dp-card__overlay" aria-hidden />
-                  {country.label && <span className="dp-card__label">{country.label}</span>}
-                  <ArrowUpRight aria-hidden className="dp-card__arrow" />
-                  <span className="dp-card__body">
-                    <span className="dp-card__name">
-                      {country.flagEmoji && <span className="dp-card__flag" aria-hidden>{country.flagEmoji}</span>}
-                      {country.name}
+                  {/* Countries have no photos of their own, so the card leads with the flag. */}
+                  <span className="dp-card__top">
+                    <span className="dp-card__flag" aria-hidden>
+                      {country.flagEmoji || <Globe2 />}
                     </span>
+                    {country.label && <span className="ds-badge ds-badge--brand dp-card__label">{country.label}</span>}
+                    <ArrowUpRight aria-hidden className="dp-card__arrow" />
+                  </span>
+                  <span className="dp-card__body">
+                    <span className="dp-card__name">{country.name}</span>
                     <span className="dp-card__meta">
                       <span>
                         <Building2 aria-hidden />

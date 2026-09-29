@@ -7,6 +7,10 @@ using Edusaz.Application.Wrappers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Edusaz.API.Security;
+
+using Edusaz.Infrastructure.Services;
 
 namespace Edusaz.API.Controllers;
 
@@ -66,6 +70,11 @@ public class HiddenTalentsController : ControllerBase
             return BadRequest(ApiResponse<string>.ErrorResponse("Fayl seçilməyib.", 400));
         }
 
+        if (!FileService.IsAllowedExtension(file.FileName))
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse("Bu fayl növü dəstəklənmir.", 400));
+        }
+
         try
         {
             var webRoot = _env.WebRootPath;
@@ -80,8 +89,8 @@ public class HiddenTalentsController : ControllerBase
                 Directory.CreateDirectory(uploadsFolder);
             }
 
-            var ext = Path.GetExtension(file.FileName);
-            var safeOriginalName = Path.GetFileNameWithoutExtension(file.FileName);
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var safeOriginalName = FileService.SafeName(Path.GetFileNameWithoutExtension(file.FileName), "file");
             var uniqueFileName = $"{Guid.NewGuid():N}_{safeOriginalName}{ext}";
             var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
@@ -111,6 +120,7 @@ public class HiddenTalentsController : ControllerBase
     /// <summary>
     /// Admin: Get all submissions with filters
     /// </summary>
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? status, [FromQuery] string? search)
     {
@@ -121,6 +131,7 @@ public class HiddenTalentsController : ControllerBase
     /// <summary>
     /// Admin: Get submission detail by ID
     /// </summary>
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -135,6 +146,7 @@ public class HiddenTalentsController : ControllerBase
     /// <summary>
     /// Admin: Update status or admin notes
     /// </summary>
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpPatch("{id}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateTalentStatusDto dto)
     {
@@ -149,6 +161,7 @@ public class HiddenTalentsController : ControllerBase
     /// <summary>
     /// Admin: Delete submission
     /// </summary>
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {

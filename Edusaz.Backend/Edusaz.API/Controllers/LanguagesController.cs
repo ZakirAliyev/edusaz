@@ -4,6 +4,8 @@ using Edusaz.Application.Abstracts.Services;
 using Edusaz.Application.Dtos;
 using Edusaz.Application.Wrappers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Edusaz.API.Security;
 
 namespace Edusaz.API.Controllers;
 
@@ -25,6 +27,7 @@ public class LanguagesController : ControllerBase
         return Ok(ApiResponse<List<LanguageDto>>.SuccessResponse(result));
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateLanguageDto dto)
     {

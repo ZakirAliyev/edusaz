@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using Edusaz.API.Security;
 using Edusaz.Infrastructure.Contexts;
 
 namespace Edusaz.API.Controllers;
@@ -165,8 +166,8 @@ public class AuthController : ControllerBase
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile([FromQuery] string? email)
     {
-        var targetEmail = email ?? User.Identity?.Name;
-        if (targetEmail == null) return Unauthorized();
+        var targetEmail = User.ResolveTargetEmail(email);
+        if (string.IsNullOrEmpty(targetEmail)) return Unauthorized();
         var profile = await _authService.GetUserProfileAsync(targetEmail);
         if (profile == null) return NotFound(ApiResponse<string>.ErrorResponse("User not found", 404));
         return Ok(ApiResponse<UserProfileDto>.SuccessResponse(profile, "User profile fetched successfully"));
@@ -176,8 +177,8 @@ public class AuthController : ControllerBase
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromQuery] string? email, [FromBody] UpdateUserProfileDto dto)
     {
-        var targetEmail = email ?? dto.Email ?? User.Identity?.Name;
-        if (targetEmail == null) return Unauthorized();
+        var targetEmail = User.ResolveTargetEmail(email ?? dto.Email);
+        if (string.IsNullOrEmpty(targetEmail)) return Unauthorized();
         var updated = await _authService.UpdateUserProfileAsync(targetEmail, dto);
         return Ok(ApiResponse<UserProfileDto>.SuccessResponse(updated, "User profile updated successfully"));
     }
@@ -186,7 +187,7 @@ public class AuthController : ControllerBase
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
     {
-        var targetEmail = dto.Email ?? User.Identity?.Name;
+        var targetEmail = User.ResolveTargetEmail(dto.Email);
         if (string.IsNullOrEmpty(targetEmail)) return Unauthorized();
 
         var user = await _userManager.FindByEmailAsync(targetEmail);
@@ -195,6 +196,12 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 4)
         {
             return BadRequest(ApiResponse<string>.ErrorResponse("Yeni şifrə ən azı 4 simvol olmalıdır."));
+        }
+
+        // Only a SuperAdmin may set a password without knowing the current one.
+        if (string.IsNullOrEmpty(dto.CurrentPassword) && !await IsCallerSuperAdminAsync())
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse("Cari şifrəni daxil edin."));
         }
 
         if (!string.IsNullOrEmpty(dto.CurrentPassword))
@@ -223,44 +230,17 @@ public class AuthController : ControllerBase
 
     // ── Admin Endpoints ────────────────────────────────────────────────────────
 
-    private string GetCurrentUserEmail()
-    {
-        return User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value 
-            ?? User.FindFirst("email")?.Value 
-            ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value 
-            ?? User.Identity?.Name 
-            ?? "";
-    }
-
     private async Task<bool> IsCallerSuperAdminAsync()
     {
-        if (User.IsInRole("SuperAdmin") || User.IsInRole("superadmin"))
-            return true;
-        
-        var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value 
-            ?? User.FindFirst("role")?.Value;
-        if (roleClaim != null && roleClaim.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase))
-            return true;
+        if (User.IsSuperAdmin()) return true;
 
-        var email = GetCurrentUserEmail().ToLower().Trim();
-        if (!string.IsNullOrEmpty(email))
-        {
-            if (email == "superadmin@edu.saz" || email == "superadmin@edusaz.com" || email.StartsWith("superadmin@"))
-                return true;
-
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user != null)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
-                if (roles.Any(r => r.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase)))
-                    return true;
-            }
-        }
-
-        return false;
+        var email = User.GetEmail();
+        if (string.IsNullOrWhiteSpace(email)) return false;
+        var user = await _userManager.FindByEmailAsync(email);
+        return user != null && await _userManager.IsInRoleAsync(user, "SuperAdmin");
     }
 
-    [Authorize]
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpGet("users")]
     public async Task<IActionResult> GetUsers([FromQuery] string? role)
     {
@@ -309,7 +289,7 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<System.Collections.Generic.List<UserProfileDto>>.SuccessResponse(result));
     }
 
-    [Authorize]
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpPost("admin-create")]
     public async Task<IActionResult> AdminCreateUser([FromBody] AdminCreateUserDto dto)
     {
@@ -384,7 +364,7 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<string>.SuccessResponse("Hesab uğurla yaradıldı!"));
     }
 
-    [Authorize]
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpPut("users/{id}")]
     public async Task<IActionResult> AdminUpdateUser(Guid id, [FromBody] AdminUpdateUserDto dto)
     {
@@ -436,7 +416,7 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<string>.SuccessResponse("Məlumatlar uğurla yeniləndi"));
     }
 
-    [Authorize]
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpDelete("users/{id}")]
     public async Task<IActionResult> AdminDeleteUser(Guid id)
     {
@@ -488,55 +468,5 @@ public class AuthController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(ApiResponse<string>.SuccessResponse("Hesab uğurla silindi və email yenidən qeydiyyat üçün azad edildi."));
-    }
-
-    [HttpGet("/api/system/clean-all-users")]
-    [HttpPost("/api/system/clean-all-users")]
-    public async Task<IActionResult> CleanAllUsersExceptSuperAdmin()
-    {
-        try
-        {
-            var usersToDelete = await _userManager.Users
-                .Where(u => u.Email != "superadmin@edu.saz" && u.Email != "superadmin@edusaz.com")
-                .ToListAsync();
-
-            int count = usersToDelete.Count;
-            foreach (var user in usersToDelete)
-            {
-                try
-                {
-                    var instructors = await _context.Instructors.Where(i => i.UserId == user.Id).ToListAsync();
-                    if (instructors.Any()) _context.Instructors.RemoveRange(instructors);
-                }
-                catch {}
-
-                try
-                {
-                    var reviews = await _context.Reviews.Where(r => r.UserId == user.Id).ToListAsync();
-                    foreach (var r in reviews) r.UserId = null;
-                }
-                catch {}
-
-                try
-                {
-                    var roles = await _userManager.GetRolesAsync(user);
-                    if (roles.Any()) await _userManager.RemoveFromRolesAsync(user, roles);
-                }
-                catch {}
-
-                var delRes = await _userManager.DeleteAsync(user);
-                if (!delRes.Succeeded)
-                {
-                    _context.Users.Remove(user);
-                }
-            }
-
-            await _context.SaveChangesAsync();
-            return Ok(new { success = true, deletedCount = count, message = $"SuperAdmin xaricində bütün {count} istifadəçi/admin bazadan tam silindi." });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { success = false, error = ex.Message });
-        }
     }
 }

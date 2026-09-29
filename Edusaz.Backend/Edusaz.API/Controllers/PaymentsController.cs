@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Edusaz.API.Security;
 using Edusaz.Domain.Entities;
 using Edusaz.Infrastructure.Contexts;
 using Microsoft.AspNetCore.Authorization;
@@ -540,17 +541,52 @@ public class PaymentsController : ControllerBase
         });
     }
 
-    private async Task<bool> CanManuallyConfirmAsync(CoursePayment payment)
+    // ── Payment status (read-only, used by the public payment result page) ──
+
+    [HttpGet("status")]
+    public async Task<IActionResult> GetPaymentStatus([FromQuery] string? orderId, [FromQuery] Guid? paymentId)
+    {
+        if (string.IsNullOrWhiteSpace(orderId) && !paymentId.HasValue)
+            return BadRequest(new { success = false, message = "OrderId və ya PaymentId tələb olunur." });
+
+        var query = _context.CoursePayments.AsNoTracking();
+        query = paymentId.HasValue
+            ? query.Where(p => p.Id == paymentId.Value)
+            : query.Where(p => p.EpointOrderId == orderId);
+
+        // No student email or gateway ids here: the order id alone must not reveal who paid.
+        var result = await query
+            .Select(p => new
+            {
+                courseId = p.CourseId,
+                courseTitle = p.Course != null ? p.Course.Title : null,
+                amount = p.Amount,
+                currency = p.Currency,
+                status = p.Status,
+                paidAt = p.PaidAt
+            })
+            .FirstOrDefaultAsync();
+
+        if (result == null)
+            return NotFound(new { success = false, message = "Ödəniş tapılmadı." });
+
+        return Ok(new { success = true, data = result });
+    }
+
+    private Task<bool> CanManuallyConfirmAsync(CoursePayment payment) => IsCourseInstructorOrAdminAsync(payment.CourseId);
+
+    /// <summary>SuperAdmin, or the signed-in instructor who owns the course.</summary>
+    private async Task<bool> IsCourseInstructorOrAdminAsync(Guid courseId)
     {
         if (User?.Identity?.IsAuthenticated != true) return false;
-        if (User.IsInRole("SuperAdmin")) return true;
+        if (User.IsSuperAdmin()) return true;
 
-        var callerEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? User.Identity?.Name;
+        var callerEmail = User.GetEmail();
         if (string.IsNullOrWhiteSpace(callerEmail)) return false;
 
         var course = await _context.Courses
             .Include(c => c.Instructor)
-            .FirstOrDefaultAsync(c => c.Id == payment.CourseId && !c.IsDeleted);
+            .FirstOrDefaultAsync(c => c.Id == courseId && !c.IsDeleted);
         if (course?.Instructor == null) return false;
 
         var instructorUser = await _userManager.FindByIdAsync(course.Instructor.UserId.ToString());
@@ -559,9 +595,12 @@ public class PaymentsController : ControllerBase
 
     // ── Sync Course Payments for Instructor ───────────────────────────────────
 
+    [Authorize]
     [HttpPost("sync-course-payments/{courseId}")]
     public async Task<IActionResult> SyncCoursePayments(Guid courseId)
     {
+        if (!await IsCourseInstructorOrAdminAsync(courseId)) return Forbid();
+
         var pendingPayments = await _context.CoursePayments
             .Where(p => p.CourseId == courseId)
             .ToListAsync();
@@ -615,7 +654,7 @@ public class PaymentsController : ControllerBase
     [HttpPost("refund/{paymentId}")]
     public async Task<IActionResult> RequestRefund(Guid paymentId, [FromBody] RefundRequestDto dto)
     {
-        var callerEmail = User.Identity?.Name ?? "";
+        var callerEmail = User.GetEmail();
 
         var payment = await _context.CoursePayments
             .Include(p => p.Course)
@@ -744,17 +783,11 @@ public class PaymentsController : ControllerBase
     [HttpGet("course/{courseId}/payments")]
     public async Task<IActionResult> GetCoursePayments(Guid courseId, [FromQuery] string? email)
     {
-        var callerEmail = email ?? User.Identity?.Name ?? "";
-
-        var course = await _context.Courses
-            .Include(c => c.Instructor)
-            .FirstOrDefaultAsync(c => c.Id == courseId && !c.IsDeleted);
-
-        if (course == null)
+        var courseExists = await _context.Courses.AnyAsync(c => c.Id == courseId && !c.IsDeleted);
+        if (!courseExists)
             return NotFound(new { success = false, message = "Kurs tapılmadı." });
 
-        var instructorUser = await _userManager.FindByIdAsync(course.Instructor?.UserId.ToString() ?? "");
-        if (instructorUser == null || !string.Equals(instructorUser.Email, callerEmail, StringComparison.OrdinalIgnoreCase))
+        if (!await IsCourseInstructorOrAdminAsync(courseId))
             return Forbid();
 
         // Check & sync any pending payments with ePoint

@@ -5,6 +5,11 @@ using Edusaz.Application.Abstracts.Services;
 using Edusaz.Application.Dtos;
 using Edusaz.Application.Wrappers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Edusaz.API.Security;
+using Edusaz.Infrastructure.Contexts;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Edusaz.API.Controllers;
 
@@ -13,10 +18,12 @@ namespace Edusaz.API.Controllers;
 public class ProgramsController : ControllerBase
 {
     private readonly IProgramService _programService;
+    private readonly EdusazDbContext _context;
 
-    public ProgramsController(IProgramService programService)
+    public ProgramsController(IProgramService programService, EdusazDbContext context)
     {
         _programService = programService;
+        _context = context;
     }
 
     [HttpGet]
@@ -53,9 +60,12 @@ public class ProgramsController : ControllerBase
         }
     }
 
+    [Authorize(Roles = AccessRoles.UniversityStaff)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProgramDto dto)
     {
+        if (!await User.CanManageUniversityAsync(_context, dto.UniversityId)) return Forbid();
+
         try
         {
             var result = await _programService.CreateProgramAsync(dto);
@@ -67,9 +77,12 @@ public class ProgramsController : ControllerBase
         }
     }
 
+    [Authorize(Roles = AccessRoles.UniversityStaff)]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] CreateProgramDto dto)
     {
+        if (!await CanManageAsync(id) || !await User.CanManageUniversityAsync(_context, dto.UniversityId)) return Forbid();
+
         try
         {
             var result = await _programService.UpdateProgramAsync(id, dto);
@@ -81,11 +94,22 @@ public class ProgramsController : ControllerBase
         }
     }
 
+    [Authorize(Roles = AccessRoles.UniversityStaff)]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
+        if (!await CanManageAsync(id)) return Forbid();
+
         var result = await _programService.DeleteProgramAsync(id);
         if (!result) return NotFound(ApiResponse<bool>.ErrorResponse("Program not found", 404));
         return Ok(ApiResponse<bool>.SuccessResponse(true, "Program deleted successfully"));
+    }
+
+    /// <summary>SuperAdmin, or the admin of the university this record belongs to.</summary>
+    private async Task<bool> CanManageAsync(Guid id)
+    {
+        if (User.IsSuperAdmin()) return true;
+        var universityId = await _context.Programs.Where(x => x.Id == id).Select(x => x.UniversityId).FirstOrDefaultAsync();
+        return await User.CanManageUniversityAsync(_context, universityId);
     }
 }

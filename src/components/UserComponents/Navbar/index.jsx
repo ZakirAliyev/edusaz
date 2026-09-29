@@ -86,7 +86,7 @@ function Navbar() {
           <BrandLogo size={30} />
         </Link>
 
-        <nav className="sn__links" aria-label="Əsas menyu">
+        <nav className="sn__links" aria-label={t('pages.nav.mainMenu', 'Əsas menyu')}>
           {LINKS.map(({ to, key, fallback }) => (
             <NavLink key={to} to={to} className={({ isActive }) => `sn__link${isActive ? ' is-active' : ''}`}>
               {t(key, fallback ? { defaultValue: fallback } : undefined)}

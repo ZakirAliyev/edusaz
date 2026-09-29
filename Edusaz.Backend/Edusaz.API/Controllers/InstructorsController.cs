@@ -4,6 +4,8 @@ using Edusaz.Application.Abstracts.Services;
 using Edusaz.Application.Dtos;
 using Edusaz.Application.Wrappers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Edusaz.API.Security;
 
 namespace Edusaz.API.Controllers;
 
@@ -40,35 +42,39 @@ public class InstructorsController : ControllerBase
 
     // ── Profile ───────────────────────────────────────────────────────────────
 
+    [Authorize]
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile([FromQuery] string? email)
     {
-        var targetEmail = email ?? User.Identity?.Name ?? "";
+        var targetEmail = User.ResolveTargetEmail(email);
         var profile = await _instructorService.GetProfileAsync(targetEmail);
         if (profile == null)
             return NotFound(ApiResponse<string>.ErrorResponse("Instructor profile not found."));
         return Ok(ApiResponse<InstructorProfileDto>.SuccessResponse(profile));
     }
 
+    [Authorize]
     [HttpPut("profile")]
     public async Task<IActionResult> UpdateProfile([FromQuery] string? email, [FromBody] UpdateInstructorProfileDto dto)
     {
-        var targetEmail = email ?? User.Identity?.Name ?? "";
+        var targetEmail = User.ResolveTargetEmail(email);
         var updated = await _instructorService.UpdateProfileAsync(targetEmail, dto);
         return Ok(ApiResponse<InstructorProfileDto>.SuccessResponse(updated, "Profile updated successfully."));
     }
 
     // ── Courses ───────────────────────────────────────────────────────────────
 
+    [Authorize]
     [HttpGet("my-courses")]
     public async Task<IActionResult> GetMyCourses([FromQuery] string? email)
     {
-        var targetEmail = email ?? User.Identity?.Name ?? "";
+        var targetEmail = User.ResolveTargetEmail(email);
         var courses = await _instructorService.GetMyCoursesAsync(targetEmail);
         return Ok(ApiResponse<object>.SuccessResponse(courses));
     }
 
 
+    [Authorize]
     [HttpGet("courses/{id}")]
     public async Task<IActionResult> GetCourse(Guid id)
     {
@@ -77,36 +83,40 @@ public class InstructorsController : ControllerBase
         return Ok(ApiResponse<CourseDetailDto>.SuccessResponse(course));
     }
 
+    [Authorize]
     [HttpPost("courses")]
     public async Task<IActionResult> CreateCourse([FromQuery] string? email, [FromBody] CreateCourseDto dto)
     {
-        var targetEmail = email ?? User.Identity?.Name ?? "";
+        var targetEmail = User.ResolveTargetEmail(email);
         var course = await _instructorService.CreateCourseAsync(targetEmail, dto);
         return Ok(ApiResponse<CourseDetailDto>.SuccessResponse(course, "Course created successfully."));
     }
 
+    [Authorize]
     [HttpPut("courses/{id}")]
     public async Task<IActionResult> UpdateCourse(Guid id, [FromQuery] string? email, [FromBody] UpdateCourseDto dto)
     {
-        var targetEmail = email ?? User.Identity?.Name ?? "";
+        var targetEmail = User.ResolveTargetEmail(email);
         var course = await _instructorService.UpdateCourseAsync(targetEmail, id, dto);
         if (course == null) return NotFound(ApiResponse<string>.ErrorResponse("Course not found or access denied."));
         return Ok(ApiResponse<CourseDetailDto>.SuccessResponse(course, "Course updated successfully."));
     }
 
+    [Authorize]
     [HttpDelete("courses/{id}")]
     public async Task<IActionResult> DeleteCourse(Guid id, [FromQuery] string? email)
     {
-        var targetEmail = email ?? User.Identity?.Name ?? "";
+        var targetEmail = User.ResolveTargetEmail(email);
         var success = await _instructorService.DeleteCourseAsync(targetEmail, id);
         if (!success) return NotFound(ApiResponse<string>.ErrorResponse("Course not found or access denied."));
         return Ok(ApiResponse<string>.SuccessResponse("Course deleted successfully."));
     }
 
+    [Authorize]
     [HttpPut("courses/{id}/publish")]
     public async Task<IActionResult> PublishCourse(Guid id, [FromQuery] string? email, [FromQuery] bool publish = true)
     {
-        var targetEmail = email ?? User.Identity?.Name ?? "";
+        var targetEmail = User.ResolveTargetEmail(email);
         var success = await _instructorService.PublishCourseAsync(targetEmail, id, publish);
         if (!success) return NotFound(ApiResponse<string>.ErrorResponse("Course not found or access denied."));
         return Ok(ApiResponse<string>.SuccessResponse(publish ? "Course published." : "Course unpublished."));
@@ -114,18 +124,20 @@ public class InstructorsController : ControllerBase
 
     // ── Students & Analytics ──────────────────────────────────────────────────
 
+    [Authorize]
     [HttpGet("courses/{id}/students")]
     public async Task<IActionResult> GetCourseStudents(Guid id, [FromQuery] string? email)
     {
-        var targetEmail = email ?? User.Identity?.Name ?? "";
+        var targetEmail = User.ResolveTargetEmail(email);
         var students = await _instructorService.GetCourseStudentsAsync(targetEmail, id);
         return Ok(ApiResponse<object>.SuccessResponse(students));
     }
 
+    [Authorize]
     [HttpGet("analytics")]
     public async Task<IActionResult> GetAnalytics([FromQuery] string? email)
     {
-        var targetEmail = email ?? User.Identity?.Name ?? "";
+        var targetEmail = User.ResolveTargetEmail(email);
         var analytics = await _instructorService.GetAnalyticsAsync(targetEmail);
         return Ok(ApiResponse<InstructorAnalyticsDto>.SuccessResponse(analytics));
     }

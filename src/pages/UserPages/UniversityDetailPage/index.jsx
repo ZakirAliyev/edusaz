@@ -236,7 +236,7 @@ function UniversityDetailPage() {
       return;
     }
     if (!reviewComment.trim()) {
-      toast.showError('Zəhmət olmasa rəyinizi daxil edin');
+      toast.showError(t('pages.universityDetail.reviewRequired', 'Zəhmət olmasa rəyinizi daxil edin'));
       return;
     }
 
@@ -250,10 +250,10 @@ function UniversityDetailPage() {
         comment: reviewComment.trim()
       }).unwrap();
       setReviewComment('');
-      toast.showSuccess('Rəyiniz uğurla əlavə olundu!');
+      toast.showSuccess(t('pages.universityDetail.reviewSuccess', 'Rəyiniz uğurla əlavə olundu!'));
       refetchReviews();
     } catch {
-      toast.showError('Rəy göndərilərkən xəta baş verdi');
+      toast.showError(t('pages.universityDetail.reviewError', 'Rəy göndərilərkən xəta baş verdi'));
     } finally {
       setIsSubmittingReview(false);
     }
@@ -551,7 +551,7 @@ function UniversityDetailPage() {
                 <h3 className="ds-h3">{t('common.writeReview', 'Rəy bildir')}</h3>
 
                 <fieldset className="udp-rating">
-                  <legend className="ds-label">Qiymət</legend>
+                  <legend className="ds-label">{t('pages.universityDetail.ratingLabel', 'Qiymət')}</legend>
                   <div className="udp-rating__stars">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -578,7 +578,7 @@ function UniversityDetailPage() {
                     id="udp-review-comment"
                     className="ds-textarea"
                     rows="3"
-                    placeholder="Bu universitet haqqında təcrübənizi və fikirlərinizi bölüşün..."
+                    placeholder={t('pages.universityDetail.reviewPlaceholder', 'Bu universitet haqqında təcrübənizi və fikirlərinizi bölüşün...')}
                     value={reviewComment}
                     onChange={(e) => setReviewComment(e.target.value)}
                   />
@@ -586,7 +586,9 @@ function UniversityDetailPage() {
 
                 <div>
                   <button type="submit" className="ds-btn ds-btn--dark" disabled={isSubmittingReview}>
-                    {isSubmittingReview ? 'Göndərilir...' : 'Rəyi Göndər'}
+                    {isSubmittingReview
+                      ? t('pages.universityDetail.submitting', 'Göndərilir...')
+                      : t('pages.universityDetail.submitReview', 'Rəyi göndər')}
                   </button>
                 </div>
               </form>
@@ -594,7 +596,7 @@ function UniversityDetailPage() {
               {reviews.length === 0 ? (
                 <div className="ds-empty udp-empty">
                   <MessageSquare aria-hidden />
-                  <p>Bu universitet üçün hələ rəy yazılmayıb. İlk rəyi siz yazın!</p>
+                  <p>{t('pages.universityDetail.noReviews', 'Bu universitet üçün hələ rəy yazılmayıb. İlk rəyi siz yazın!')}</p>
                 </div>
               ) : (
                 <ul className="udp-reviews">
@@ -836,7 +838,7 @@ function UniversityDetailPage() {
                       id="udp-apply-notes"
                       className="ds-textarea"
                       rows="3"
-                      placeholder="Universitet və proqram haqqında əlavə qeydləriniz..."
+                      placeholder={t('pages.universityDetail.notesPlaceholder', 'Universitet və proqram haqqında əlavə qeydləriniz...')}
                       value={applyFormData.notes}
                       onChange={(e) => setApplyFormData({ ...applyFormData, notes: e.target.value })}
                     />

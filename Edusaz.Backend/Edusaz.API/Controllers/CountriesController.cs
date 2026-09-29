@@ -5,6 +5,8 @@ using Edusaz.Application.Abstracts.Services;
 using Edusaz.Application.Dtos;
 using Edusaz.Application.Wrappers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Edusaz.API.Security;
 
 namespace Edusaz.API.Controllers;
 
@@ -41,6 +43,7 @@ public class CountriesController : ControllerBase
         return Ok(ApiResponse<List<UniversityDto>>.SuccessResponse(result));
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCountryDto dto)
     {
@@ -55,6 +58,7 @@ public class CountriesController : ControllerBase
         }
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] CreateCountryDto dto)
     {
@@ -69,6 +73,7 @@ public class CountriesController : ControllerBase
         }
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {

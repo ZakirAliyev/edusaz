@@ -132,7 +132,10 @@ function PartnerModal({ isOpen, onClose }) {
             <p className="pm-success__note">
               <Mail aria-hidden />
               <span>
-                {formData.email} {t('partnerModal.successEmailNote', 'ünvanına təsdiq məktubu və Admin ünvanına yeni müraciət bildirişi göndərildi.')}
+                {t('partnerModal.successEmailSent', {
+                  email: formData.email,
+                  defaultValue: 'Təsdiq məktubu {{email}} ünvanına göndərildi.'
+                })}
               </span>
             </p>
           </div>

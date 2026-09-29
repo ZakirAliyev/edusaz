@@ -7,6 +7,8 @@ using Edusaz.Application.Wrappers;
 using Edusaz.Infrastructure.Contexts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Edusaz.API.Security;
 
 namespace Edusaz.API.Controllers;
 
@@ -21,6 +23,7 @@ public class AnalyticsController : ControllerBase
         _context = context;
     }
 
+    [Authorize(Roles = AccessRoles.UniversityStaff)]
     [HttpGet("university/{universityId}")]
     public async Task<IActionResult> GetUniversityAnalytics(string universityId)
     {
@@ -29,11 +32,17 @@ public class AnalyticsController : ControllerBase
         {
             uniGuid = parsed;
         }
+        else if (!User.IsSuperAdmin())
+        {
+            uniGuid = await User.GetUniversityIdAsync(_context) ?? Guid.Empty;
+        }
         else
         {
             var firstUni = await _context.Universities.FirstOrDefaultAsync();
             if (firstUni != null) uniGuid = firstUni.Id;
         }
+
+        if (!await User.CanManageUniversityAsync(_context, uniGuid)) return Forbid();
 
         var uni = await _context.Universities
             .Include(u => u.Translations)
@@ -141,6 +150,7 @@ public class AnalyticsController : ControllerBase
         return Ok(ApiResponse<AnalyticsDto>.SuccessResponse(analytics));
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpGet("superadmin")]
     public async Task<IActionResult> GetSuperAdminOverview()
     {

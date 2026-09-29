@@ -103,6 +103,7 @@ export const pagesTranslations = {
     paymentSuccess: {
       goToCourse: 'Kursa keçin və dərslərə başlayın',
       browseCourses: 'Kurslara bax',
+      pending: 'Ödəniş hələ yoxlanılır',
       courseEnrolled: 'Təbriklər! "{{course}}" kursuna qeydiyyatınız uğurla tamamlandı və dərslər aktivləşdirildi.',
     },
     auth: {
@@ -259,6 +260,7 @@ export const pagesTranslations = {
     paymentSuccess: {
       goToCourse: 'Go to the course and start learning',
       browseCourses: 'Browse courses',
+      pending: 'Payment is still being verified',
       courseEnrolled: 'Congratulations! You are enrolled in "{{course}}" and the lessons are now unlocked.',
     },
     auth: {
@@ -413,6 +415,7 @@ export const pagesTranslations = {
     paymentSuccess: {
       goToCourse: 'Kursa geçin ve derslere başlayın',
       browseCourses: 'Kurslara göz at',
+      pending: 'Ödeme hâlâ doğrulanıyor',
       courseEnrolled: 'Tebrikler! "{{course}}" kursuna kaydınız başarıyla tamamlandı ve dersler etkinleştirildi.',
     },
     auth: {
@@ -573,6 +576,7 @@ export const pagesTranslations = {
     paymentSuccess: {
       goToCourse: 'Перейти к курсу и начать занятия',
       browseCourses: 'Смотреть курсы',
+      pending: 'Платёж ещё проверяется',
       courseEnrolled: 'Поздравляем! Вы записаны на курс «{{course}}», уроки уже открыты.',
     },
     auth: {
@@ -733,6 +737,7 @@ export const pagesTranslations = {
     paymentSuccess: {
       goToCourse: 'Zum Kurs und mit dem Lernen beginnen',
       browseCourses: 'Kurse ansehen',
+      pending: 'Die Zahlung wird noch geprüft',
       courseEnrolled: 'Herzlichen Glückwunsch! Sie sind für den Kurs „{{course}}“ angemeldet und die Lektionen sind freigeschaltet.',
     },
     auth: {
@@ -889,6 +894,7 @@ export const pagesTranslations = {
     paymentSuccess: {
       goToCourse: 'Accéder au cours et commencer',
       browseCourses: 'Voir les cours',
+      pending: 'Le paiement est en cours de vérification',
       courseEnrolled: 'Félicitations ! Votre inscription au cours « {{course}} » est confirmée et les leçons sont débloquées.',
     },
     auth: {
@@ -1047,6 +1053,7 @@ export const pagesTranslations = {
     paymentSuccess: {
       goToCourse: 'Ir al curso y empezar las clases',
       browseCourses: 'Ver cursos',
+      pending: 'El pago aún se está verificando',
       courseEnrolled: '¡Enhorabuena! Te has inscrito en el curso «{{course}}» y las lecciones ya están disponibles.',
     },
     auth: {
@@ -1203,6 +1210,7 @@ export const pagesTranslations = {
     paymentSuccess: {
       goToCourse: 'Vai al corso e inizia le lezioni',
       browseCourses: 'Sfoglia i corsi',
+      pending: 'Il pagamento è ancora in verifica',
       courseEnrolled: 'Congratulazioni! L’iscrizione al corso «{{course}}» è completata e le lezioni sono state sbloccate.',
     },
     auth: {
@@ -1369,6 +1377,7 @@ export const pagesTranslations = {
     paymentSuccess: {
       goToCourse: 'انتقل إلى الدورة وابدأ الدروس',
       browseCourses: 'تصفّح الدورات',
+      pending: 'لا يزال التحقق من الدفع جاريًا',
       courseEnrolled: 'تهانينا! تم تسجيلك في دورة «{{course}}» بنجاح وأصبحت الدروس متاحة.',
     },
     auth: {
@@ -1527,6 +1536,7 @@ export const pagesTranslations = {
     paymentSuccess: {
       goToCourse: '进入课程开始学习',
       browseCourses: '浏览课程',
+      pending: '付款仍在核实中',
       courseEnrolled: '恭喜！你已成功报名“{{course}}”课程，课程内容已解锁。',
     },
     auth: {

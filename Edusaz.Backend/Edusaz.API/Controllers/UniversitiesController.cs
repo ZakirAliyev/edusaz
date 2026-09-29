@@ -6,6 +6,9 @@ using Edusaz.Application.Dtos;
 using Edusaz.Application.Wrappers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Edusaz.API.Security;
+using Edusaz.Infrastructure.Contexts;
 
 namespace Edusaz.API.Controllers;
 
@@ -14,10 +17,12 @@ namespace Edusaz.API.Controllers;
 public class UniversitiesController : ControllerBase
 {
     private readonly IUniversityService _universityService;
+    private readonly EdusazDbContext _context;
 
-    public UniversitiesController(IUniversityService universityService)
+    public UniversitiesController(IUniversityService universityService, EdusazDbContext context)
     {
         _universityService = universityService;
+        _context = context;
     }
 
     [HttpGet]
@@ -34,6 +39,7 @@ public class UniversitiesController : ControllerBase
         }
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpGet("fix-db-schema")]
     public async Task<IActionResult> FixDbSchema([FromServices] Edusaz.Infrastructure.Contexts.EdusazDbContext db)
     {
@@ -61,6 +67,7 @@ public class UniversitiesController : ControllerBase
         }
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpGet("check-db-user")]
     public async Task<IActionResult> CheckDbUser([FromServices] Edusaz.Infrastructure.Contexts.EdusazDbContext db)
     {
@@ -100,6 +107,7 @@ public class UniversitiesController : ControllerBase
         }
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUniversityDto dto)
     {
@@ -114,9 +122,12 @@ public class UniversitiesController : ControllerBase
         }
     }
 
+    [Authorize(Roles = AccessRoles.UniversityStaff)]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] CreateUniversityDto dto)
     {
+        if (!await User.CanManageUniversityAsync(_context, id)) return Forbid();
+
         try
         {
             var result = await _universityService.UpdateUniversityAsync(id, dto);
@@ -128,6 +139,7 @@ public class UniversitiesController : ControllerBase
         }
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -136,6 +148,7 @@ public class UniversitiesController : ControllerBase
         return Ok(ApiResponse<bool>.SuccessResponse(true, "University deleted successfully"));
     }
 
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpPut("{id}/approve")]
     public async Task<IActionResult> Approve(Guid id)
     {

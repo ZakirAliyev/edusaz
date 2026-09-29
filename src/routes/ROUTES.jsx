@@ -10,6 +10,7 @@ import RegisterDetailsPage from "../pages/UserPages/RegisterDetailsPage/index.js
 
 import AiDiscoveryPage from "../pages/UserPages/AiDiscoveryPage/index.jsx";
 import AiDiscoveryResultsPage from "../pages/UserPages/AiDiscoveryResultsPage/index.jsx";
+import NotFoundPage from "../pages/UserPages/NotFoundPage/index.jsx";
 import DestinationDetailPage from "../pages/UserPages/DestinationDetailPage/index.jsx";
 import UniversityDetailPage from "../pages/UserPages/UniversityDetailPage/index.jsx";
 
@@ -143,6 +144,10 @@ export const ROUTES = [
             {
                 path: 'payment/result',
                 element: <PaymentResultPage/>
+            },
+            {
+                path: '*',
+                element: <NotFoundPage/>
             }
         ]
     },

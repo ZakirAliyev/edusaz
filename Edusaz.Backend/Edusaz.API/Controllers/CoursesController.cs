@@ -12,6 +12,8 @@ using Edusaz.Infrastructure.Contexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Edusaz.API.Security;
 
 namespace Edusaz.API.Controllers;
 
@@ -286,6 +288,7 @@ public class CoursesController : ControllerBase
     /// <summary>
     /// Create new course with sections, video lectures and 31-language auto-translation
     /// </summary>
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpPost]
     public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDto dto)
     {
@@ -470,6 +473,7 @@ public class CoursesController : ControllerBase
     /// <summary>
     /// Update existing course with video lectures and 31-language auto-translation
     /// </summary>
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseDto dto)
     {
@@ -634,6 +638,7 @@ public class CoursesController : ControllerBase
     /// <summary>
     /// Delete course by ID
     /// </summary>
+    [Authorize(Roles = AccessRoles.SuperAdmin)]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCourse(Guid id)
     {

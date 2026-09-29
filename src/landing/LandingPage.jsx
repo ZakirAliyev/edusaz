@@ -266,17 +266,17 @@ function Destinations({ countries }) {
           {top.map((c) => (
             <li key={c.id} data-reveal>
               <Link to={`/destinations/${c.code || c.id}`} className="lp-dest__card">
-                <img src={c.imageUrl || FALLBACK_IMAGE} onError={onImgError} alt="" loading="lazy" className="lp-dest__img" />
-                <span className="lp-dest__overlay" />
+                <span className="lp-dest__flag" aria-hidden>
+                  {c.flagEmoji || <Globe2 />}
+                </span>
                 <span className="lp-dest__body">
-                  <span className="lp-dest__name">
-                    {c.flagEmoji && <span aria-hidden>{c.flagEmoji}</span>} {c.name}
-                  </span>
+                  <span className="lp-dest__name">{c.name}</span>
                   <span className="lp-dest__meta">
                     <span>{t('landing.destinations.count', { count: c.universityCount || 0 })}</span>
                     {c.averageCost && <span>{c.averageCost}</span>}
                   </span>
                 </span>
+                <ArrowRight aria-hidden className="lp-dest__arrow" />
               </Link>
             </li>
           ))}
