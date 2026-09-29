@@ -60,6 +60,7 @@ public class ReviewsController : ControllerBase
         return Ok(ApiResponse<List<ReviewDto>>.SuccessResponse(reviews));
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateReviewDto dto)
     {
@@ -67,14 +68,27 @@ public class ReviewsController : ControllerBase
         {
             return BadRequest(ApiResponse<ReviewDto>.ErrorResponse("Rəy mətni daxil edilməlidir.", 400));
         }
+        if (!dto.UniversityId.HasValue && !dto.CourseId.HasValue)
+        {
+            return BadRequest(ApiResponse<ReviewDto>.ErrorResponse("Universitet və ya kurs seçilməlidir.", 400));
+        }
+
+        // The author is always the signed-in account; the name is not taken from the request.
+        var email = User.GetEmail();
+        var normalizedEmail = email.Trim().ToUpperInvariant();
+        var author = await _context.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
+        if (author == null) return Unauthorized();
+        var authorName = $"{author.FirstName} {author.LastName}".Trim();
+        if (string.IsNullOrWhiteSpace(authorName)) authorName = email.Split('@')[0];
 
         var review = new Review
         {
             Id = Guid.NewGuid(),
             UniversityId = dto.UniversityId,
             CourseId = dto.CourseId,
-            AuthorName = !string.IsNullOrWhiteSpace(dto.AuthorName) ? dto.AuthorName.Trim() : "Tələbə",
-            AuthorAvatar = dto.AuthorAvatar ?? "",
+            UserId = author.Id,
+            AuthorName = authorName,
+            AuthorAvatar = author.ProfileImageUrl ?? "",
             Rating = Math.Clamp(dto.Rating, 1, 5),
             Comment = dto.Comment.Trim(),
             CreatedDate = DateTime.UtcNow,

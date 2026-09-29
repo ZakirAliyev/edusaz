@@ -183,7 +183,7 @@ function UniversityDetailPage() {
     const token = Cookies.get('userToken');
     if (!token) {
       toast.info(t('toast.auth.loginRequired'));
-      navigate('/signin');
+      navigate(`/signin?next=${encodeURIComponent(`/universities/${id}`)}`);
       return;
     }
 
@@ -232,7 +232,7 @@ function UniversityDetailPage() {
     const token = Cookies.get('userToken');
     if (!token) {
       toast.info(t('toast.auth.loginRequired'));
-      navigate('/signin');
+      navigate(`/signin?next=${encodeURIComponent(`/universities/${id}`)}`);
       return;
     }
     if (!reviewComment.trim()) {
@@ -242,10 +242,9 @@ function UniversityDetailPage() {
 
     setIsSubmittingReview(true);
     try {
-      const userName = localStorage.getItem('userName') || 'Tələbə';
+      // The server takes the author's name from the signed-in account.
       await createReview({
         universityId: id,
-        authorName: userName,
         rating: reviewRating,
         comment: reviewComment.trim()
       }).unwrap();
@@ -253,6 +252,11 @@ function UniversityDetailPage() {
       toast.success(t('toast.university.reviewSuccess'));
       refetchReviews();
     } catch (err) {
+      if (err?.status === 401) {
+        toast.info(t('toast.auth.loginRequired'));
+        navigate(`/signin?next=${encodeURIComponent(`/universities/${id}`)}`);
+        return;
+      }
       toast.apiError(err, 'toast.university.reviewError');
     } finally {
       setIsSubmittingReview(false);

@@ -74,9 +74,9 @@ jobs:
             # 1. Execute DB migrations & table ownership as postgres superuser (Host & Docker)
             export PGPASSWORD=postgres
             psql -h 127.0.0.1 -U postgres -c 'ALTER USER postgres WITH SUPERUSER;' || sudo -u postgres psql -c 'ALTER USER postgres WITH SUPERUSER;' || true
-            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO postgres;' || sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO postgres;' || true
-            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetRoles" OWNER TO postgres;' || sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetRoles" OWNER TO postgres;' || true
-            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUserRoles" OWNER TO postgres;' || sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUserRoles" OWNER TO postgres;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO edusaz_user;' || sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO edusaz_user;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetRoles" OWNER TO edusaz_user;' || sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetRoles" OWNER TO edusaz_user;' || true
+            psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUserRoles" OWNER TO edusaz_user;' || sudo -u postgres psql -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUserRoles" OWNER TO edusaz_user;' || true
             psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;' || sudo -u postgres psql -d edusaz_db -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;' || true
             psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "UniversityId" uuid;' || true
             psql -h 127.0.0.1 -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "ProfileImageUrl" text;' || true
@@ -107,7 +107,7 @@ jobs:
                 "DeletedDate" timestamp with time zone,
                 "IsDeleted" boolean NOT NULL DEFAULT false
               );
-              ALTER TABLE "CoursePayments" OWNER TO postgres;
+              ALTER TABLE "CoursePayments" OWNER TO edusaz_user;
               GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO postgres;
               GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
             ' || sudo -u postgres psql -d edusaz_db -c '
@@ -131,7 +131,7 @@ jobs:
                 "DeletedDate" timestamp with time zone,
                 "IsDeleted" boolean NOT NULL DEFAULT false
               );
-              ALTER TABLE "CoursePayments" OWNER TO postgres;
+              ALTER TABLE "CoursePayments" OWNER TO edusaz_user;
               GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO postgres;
               GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
             ' || true
@@ -141,7 +141,7 @@ jobs:
               BEGIN
                 EXECUTE 'GRANT ALL ON SCHEMA public TO postgres;';
                 FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-                  EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres;';
+                  EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO edusaz_user;';
                   EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO postgres;';
                 END LOOP;
               END \$\$;
@@ -150,7 +150,7 @@ jobs:
               BEGIN
                 EXECUTE 'GRANT ALL ON SCHEMA public TO postgres;';
                 FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-                  EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres;';
+                  EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO edusaz_user;';
                   EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO postgres;';
                 END LOOP;
               END \$\$;
@@ -169,7 +169,7 @@ jobs:
             if command -v docker &> /dev/null; then
               for container in $(docker ps -q); do
                 docker exec $container psql -U postgres -c 'ALTER USER postgres WITH SUPERUSER;' 2>/dev/null || true
-                docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO postgres;' 2>/dev/null || true
+                docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" OWNER TO edusaz_user;' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c 'GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres;' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "UniversityId" uuid;' 2>/dev/null || true
                 docker exec $container psql -U postgres -d edusaz_db -c 'ALTER TABLE IF EXISTS "AspNetUsers" ADD COLUMN IF NOT EXISTS "ProfileImageUrl" text;' 2>/dev/null || true
@@ -207,7 +207,7 @@ jobs:
                   ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "RefundNote" text;
                   ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "PaidAt" timestamp with time zone;
                   ALTER TABLE "CoursePayments" ADD COLUMN IF NOT EXISTS "TransactionId" text NOT NULL DEFAULT '';
-                  ALTER TABLE "CoursePayments" OWNER TO postgres;
+                  ALTER TABLE "CoursePayments" OWNER TO edusaz_user;
                   GRANT ALL PRIVILEGES ON TABLE "CoursePayments" TO postgres;
                   GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
                 ' 2>/dev/null || true
@@ -216,7 +216,7 @@ jobs:
                   BEGIN
                     EXECUTE 'GRANT ALL ON SCHEMA public TO postgres;';
                     FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-                      EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres;';
+                      EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO edusaz_user;';
                       EXECUTE 'GRANT ALL ON TABLE public.' || quote_ident(r.tablename) || ' TO postgres;';
                     END LOOP;
                   END \$\$;

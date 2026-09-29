@@ -12,11 +12,8 @@ namespace Edusaz.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<Guid>(
-                name: "CourseId",
-                table: "StudentApplications",
-                type: "uuid",
-                nullable: true);
+            // Production already got this column from a manual schema script, so add it only when missing.
+            migrationBuilder.Sql(@"ALTER TABLE ""StudentApplications"" ADD COLUMN IF NOT EXISTS ""CourseId"" uuid;");
 
 
             migrationBuilder.CreateTable(
@@ -58,10 +55,7 @@ namespace Edusaz.Infrastructure.Migrations
 
 
 
-            migrationBuilder.CreateIndex(
-                name: "IX_StudentApplications_CourseId",
-                table: "StudentApplications",
-                column: "CourseId");
+            migrationBuilder.Sql(@"CREATE INDEX IF NOT EXISTS ""IX_StudentApplications_CourseId"" ON ""StudentApplications"" (""CourseId"");");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_CourseId",
